@@ -15,6 +15,8 @@ let landmarker: PoseLandmarker | null = null;
 let drawingUtils: DrawingUtils | null = null;
 
 export async function initPoseDetector(): Promise<void> {
+  if (landmarker) return;
+
   const vision = await FilesetResolver.forVisionTasks(WASM_CDN);
 
   landmarker = await PoseLandmarker.createFromOptions(vision, {

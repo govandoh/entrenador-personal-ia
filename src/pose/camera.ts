@@ -1,7 +1,10 @@
-export async function startCamera(videoEl: HTMLVideoElement): Promise<MediaStream> {
+export async function startCamera(
+  videoEl: HTMLVideoElement,
+  facingMode: 'environment' | 'user' = 'environment'
+): Promise<MediaStream> {
   const stream = await navigator.mediaDevices.getUserMedia({
     video: {
-      facingMode: 'environment', // cámara trasera; cambiar a 'user' para front-cam
+      facingMode,
       width: { ideal: 640 },
       height: { ideal: 480 },
     },
