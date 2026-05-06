@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { startCamera, stopCamera } from '../pose/camera';
 import { initPoseDetector, detectAndDraw } from '../pose/poseDetector';
+import { SquatTracker, GOOD_DEPTH_ANGLE, type SquatResult } from '../exercises/squat';
+import { ExerciseOverlay } from './ExerciseOverlay';
+import { useSpeech } from './useSpeech';
 
 type Status = 'loading' | 'ready' | 'error';
 type FacingMode = 'environment' | 'user';
@@ -10,14 +13,30 @@ function serializeError(err: unknown): string {
   try { return JSON.stringify(err); } catch { return String(err); }
 }
 
+// Frases de voz al completar una rep. El motor de es-ES lee los números en español.
+function repPhrase(n: number): string {
+  if (n === 1)         return 'Una';
+  if (n % 10 === 0)    return `${n}. ¡Excelente ritmo!`;
+  if (n % 5  === 0)    return `${n}. ¡Sigue así!`;
+  return String(n);
+}
+
 export function CameraView() {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const rafRef = useRef<number>(0);
-  const [status, setStatus] = useState<Status>('loading');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [facingMode, setFacingMode] = useState<FacingMode>('environment');
+  const videoRef   = useRef<HTMLVideoElement>(null);
+  const canvasRef  = useRef<HTMLCanvasElement>(null);
+  const streamRef  = useRef<MediaStream | null>(null);
+  const rafRef     = useRef<number>(0);
+  const trackerRef = useRef(new SquatTracker());
+  const prevRef    = useRef<SquatResult | null>(null);
+
+  const [status, setStatus]               = useState<Status>('loading');
+  const [errorMsg, setErrorMsg]           = useState('');
+  const [facingMode, setFacingMode]       = useState<FacingMode>(
+    () => (localStorage.getItem('preferred_camera') as FacingMode) ?? 'environment'
+  );
+  const [exerciseResult, setExerciseResult] = useState<SquatResult | null>(null);
+
+  const speak = useSpeech();
 
   useEffect(() => {
     let cancelled = false;
@@ -40,7 +59,32 @@ export function CameraView() {
 
         function loop() {
           if (cancelled || !videoRef.current || !canvasRef.current) return;
-          detectAndDraw(videoRef.current, canvasRef.current, performance.now());
+
+          const landmarkSets = detectAndDraw(videoRef.current, canvasRef.current, performance.now());
+
+          if (landmarkSets.length > 0) {
+            const result = trackerRef.current.update(landmarkSets[0]);
+            const prev   = prevRef.current;
+
+            // ── Retroalimentación por voz (solo en transiciones, no cada frame) ──
+            if (prev) {
+              if (result.reps > prev.reps) {
+                // Rep completada → solo el número (el feedback de forma ya se dio en el fondo)
+                speak(repPhrase(result.reps));
+              } else if (result.atBottom) {
+                // Fondo real detectado → evaluar con el ángulo mínimo acumulado,
+                // no con el ángulo del frame de entrada a squatting
+                speak(result.minAngleReached < GOOD_DEPTH_ANGLE
+                  ? '¡Excelente profundidad!'
+                  : 'Baja un poco más'
+                );
+              }
+            }
+
+            prevRef.current = result;
+            setExerciseResult(result);
+          }
+
           rafRef.current = requestAnimationFrame(loop);
         }
         rafRef.current = requestAnimationFrame(loop);
@@ -62,9 +106,8 @@ export function CameraView() {
         streamRef.current = null;
       }
     };
-  }, [facingMode]);
+  }, [facingMode, speak]);
 
-  // Espejo en cámara frontal para experiencia natural tipo selfie
   const mirrorStyle = facingMode === 'user' ? { transform: 'scaleX(-1)' } : undefined;
 
   return (
@@ -79,18 +122,14 @@ export function CameraView() {
           Error al iniciar la cámara: {errorMsg}
         </p>
       )}
-      <video
-        ref={videoRef}
-        className="camera-video"
-        style={mirrorStyle}
-        playsInline
-        muted
-      />
-      <canvas
-        ref={canvasRef}
-        className="camera-canvas"
-        style={mirrorStyle}
-      />
+
+      <video ref={videoRef} className="camera-video" style={mirrorStyle} playsInline muted />
+      <canvas ref={canvasRef} className="camera-canvas" style={mirrorStyle} />
+
+      {status === 'ready' && exerciseResult && (
+        <ExerciseOverlay result={exerciseResult} />
+      )}
+
       {status === 'ready' && (
         <button
           className="switch-camera-btn"

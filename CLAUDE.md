@@ -192,12 +192,12 @@ Lo que se entrega en Canvas el 22/05 y se presenta el 23/05.
 
 > **Esta sección se actualiza cada vez que el proyecto avanza.** Claude Code debe mantenerla viva.
 
-**Última actualización:** 2026-04-29
+**Última actualización:** 2026-05-06
 
 **Directorio de trabajo:** `C:\Dev-AI\entrenador-personal-ia` (fuera de OneDrive — ver DEC-007).
 
-**Hito actual:** Fase 1 - Pipeline cámara + esqueleto implementado y proyecto reubicado. React + Vite + TypeScript inicializado. `src/pose/camera.ts` y `src/pose/poseDetector.ts` operativos. Servidor de desarrollo expuesto en red local (`host: true` en vite.config.ts).
+**Hito actual:** Fase 2 completa — Feedback visual y por voz operativos. Barra inferior de feedback rediseñada (borde colorido + mensaje + counter animado). Voz en español via `SpeechSynthesis` (sin dependencias externas).
 
-**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`. Documentadas en `DECISIONS.md` (DEC-001 a DEC-007).
+**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz. Documentadas en `DECISIONS.md` (DEC-001 a DEC-013).
 
-**Próximo paso:** Probar el pipeline en celular real con `npm run dev` y la IP de red local. Una vez validado, implementar `src/geometry/angles.ts` y la primera máquina de estados en `src/exercises/squat.ts`.
+**Próximo paso:** Prueba en celular real (onboarding → sentadillas → voz + visual). Luego implementar el segundo ejercicio (`src/exercises/bicepCurl.ts`) y el selector de ejercicios (`ExerciseSelector`).

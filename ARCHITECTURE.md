@@ -1,7 +1,7 @@
 # Arquitectura del proyecto
 
 > Documento vivo. Se actualiza a medida que el proyecto evoluciona.  
-> Última actualización: 2026-04-29 — Fase 1: pipeline cámara + esqueleto.
+> Última actualización: 2026-05-06 — Fase 1b: onboarding PWA de 4 pantallas.
 
 ---
 
@@ -45,14 +45,89 @@ Cámara (getUserMedia)
 ### `src/pose/poseDetector.ts`
 Encapsula el ciclo de vida de `PoseLandmarker`. Tiene estado interno de módulo (singleton): una vez inicializado, el landmarker se reutiliza en todos los frames. Expone `initPoseDetector()` (async, llamar una vez al montar) y `detectAndDraw()` (llamar en cada frame del loop de animación). El dibujo del esqueleto vive aquí mientras no haya lógica de feedback por color; cuando exista `FeedbackOverlay`, el dibujo se separará.
 
+### `src/ui/Onboarding/`
+Flujo de onboarding de 4 pantallas que se muestra la primera vez que el usuario abre la app (controlado por `localStorage('ob_complete_v1')`).
+
+- **`OnboardingFlow.tsx`** — Orquestador: mantiene el índice de pantalla activo y renderiza la pantalla correspondiente. La pantalla Splash auto-avanza a los 2.8s; las demás esperan acción del usuario.
+- **`SplashScreen.tsx`** — Logo animado (SVG inline con gradiente verde-teal y landmarks amarillos), nombre de la app y loader de tres puntos pulsantes.
+- **`HowItWorksScreen.tsx`** — Tres step-cards que explican el flujo: apuntar cámara → detección de pose → feedback de técnica. Iconos SVG inline por paso.
+- **`PermissionsScreen.tsx`** — Solicita permisos de cámara (`getUserMedia`) y notificaciones (`Notification.requestPermission`) con contexto claro antes de que el navegador muestre el diálogo nativo. Si el usuario deniega la cámara, CameraView lo maneja con su propio mensaje de error.
+- **`GetStartedScreen.tsx`** — Ilustración SVG del esqueleto de pose detection, selector visual de cámara frontal/trasera (guarda en `localStorage('preferred_camera')`), y botón CTA que llama `onComplete()`.
+- **`onboarding.css`** — Todos los estilos del onboarding aislados. Usa `@keyframes` con `animation-delay` escalonado para el efecto stagger en cada pantalla. Design tokens en `:root`.
+
+**Flujo de datos:**
+```
+App.tsx
+  └─ localStorage('ob_complete_v1') === '1'?
+       No → <OnboardingFlow onComplete={handleComplete} />
+               └─ onComplete() → localStorage.setItem + setReady(true)
+       Sí → <CameraView />
+               └─ useState inicial lee localStorage('preferred_camera')
+```
+
 ### `src/ui/CameraView.tsx`
-Componente React responsable del ciclo de vida de la cámara dentro de React. Usa `useEffect` para inicializar el detector y la cámara al montar, y limpia el stream y el `requestAnimationFrame` al desmontar. Mantiene estado de UI (`loading` / `ready` / `error`) para mostrar mensajes al usuario. Es el único lugar donde vive `requestAnimationFrame`.
+Componente React responsable del ciclo de vida de la cámara. Mantiene estado de UI (`loading` / `ready` / `error`) y ahora también coordina el ejercicio activo:
+- `trackerRef` — instancia de `SquatTracker` en `useRef`. Persiste entre cambios de cámara sin perder el conteo de reps.
+- En cada iteración del RAF: llama `detectAndDraw()` (que devuelve `NormalizedLandmark[][]`), pasa `landmarkSets[0]` al tracker, y actualiza `exerciseResult` con `setExerciseResult`.
+- Renderiza `<ExerciseOverlay>` cuando `status === 'ready'` y hay resultado disponible.
+
+### `src/ui/ExerciseOverlay.tsx`
+Overlay DOM sobre el video (no canvas). Recibe `SquatResult` y renderiza:
+- Label de ejercicio (top-left, pill semitransparente)
+- Barra inferior (`ex-bottom-bar`): fondo negro 80% + blur, borde izquierdo colorido via `--feedback-color` CSS custom property, mensaje de feedback (izquierda) y contador de reps (derecha).
+- El contador usa `key={result.reps}` para que React remonte el `<span>` y reinicie la animación CSS `ex-rep-pop` en cada nueva rep.
+- `pointer-events: none` en el contenedor — los toques pasan al botón de cámara (z-index: 10).
+
+**Detección de fondo en `SquatTracker`:**
+
+```
+Frame N:   kneeAngle baja → minAngleSeen se actualiza, prevKneeAngle = N
+Frame N+1: kneeAngle sube > prevKneeAngle + 2° → atBottom = true (un solo frame)
+           voz evalúa minAngleSeen (no kneeAngle actual)
+Frame N+2: bottomFired = true → atBottom = false en todos los frames restantes
+Al volver a standing → reset: bottomFired = false, minAngleSeen = 180
+```
+
+`GOOD_DEPTH_ANGLE` se exporta desde `squat.ts` para que `CameraView` use el mismo umbral sin duplicarlo.
+
+### `src/ui/useSpeech.ts`
+Hook de voz que envuelve `window.speechSynthesis`. Expone `speak(text)` memoizado con `useCallback`. Cancela la locución anterior antes de cada nueva para evitar cola de mensajes. Idioma: `es-ES`. Disparado desde `CameraView` solo en transiciones de estado (no por frame) vía `prevRef`.
+
+### `src/geometry/angles.ts`
+Módulo de geometría pura sin dependencias externas. Expone:
+- `Point2D` — tipo mínimo `{ x: number; y: number }`. Compatible estructuralmente con `NormalizedLandmark` de MediaPipe (que tiene campos adicionales `z` y `visibility`).
+- `calculateAngle(A, B, C): number` — ángulo en el vértice B usando `atan2`. Rango: 0–180°. Sin efectos secundarios; apto para pruebas unitarias aisladas.
+
+```
+radians = atan2(Cy−By, Cx−Bx) − atan2(Ay−By, Ax−Bx)
+degrees = |radians × 180/π|
+if degrees > 180 → degrees = 360 − degrees
+```
+
+### `src/exercises/squat.ts`
+Máquina de estados para sentadilla. Exporta la clase `SquatTracker` con:
+- `update(landmarks: NormalizedLandmark[]): SquatResult` — recibe los 33 landmarks del frame actual, devuelve fase, reps, nivel de feedback y mensaje.
+- `reset()` — reinicia la fase y el contador.
+
+**Diagrama de estados:**
+```
+         kneeAngle > 160°               kneeAngle < 100°
+standing ──────────────────► transition ◄──────────────────── squatting
+   ▲                           │   ▲                              │
+   │     kneeAngle > 160°      ▼   │      kneeAngle < 100°        │
+   └─────────────────────── (zona) ────────────────────────────────┘
+                           100°–160°
+                         (conserva fase)
+
+Rep contada: squatting → standing
+```
+
+**Umbrales:** `STANDING_ANGLE=160°`, `BOTTOM_ANGLE=100°`, `GOOD_DEPTH=90°`.  
+**Feedback:** verde `<90°`, amarillo `100–90°`, idle en transición/de pie.  
+**Visibilidad:** si algún landmark clave (caderas, rodillas, tobillos) tiene `visibility < 0.5`, se retorna feedback idle sin resetear el estado interno.
 
 ### `src/exercises/` (próximas semanas)
-Un archivo por ejercicio, más un `baseExercise.ts` con la máquina de estados genérica. Cada ejercicio define qué ángulos medir y cuáles son los umbrales para las fases `down` / `up` y para el nivel de feedback.
-
-### `src/geometry/angles.ts` (próximas semanas)
-Una función pura: `calculateAngle(A, B, C): number`. Recibe tres landmarks, devuelve el ángulo en grados usando `Math.atan2`. Sin efectos secundarios, fácil de testear de forma aislada.
+Los demás ejercicios (bíceps curl, press de hombro, plancha) seguirán el mismo patrón de `SquatTracker`: clase con `update()` y `reset()`, umbrales propios, mismos tipos `FeedbackLevel` y `SquatResult`. Cuando haya 2+ ejercicios se extraerá `baseExercise.ts` con la lógica compartida.
 
 ### `src/storage/session.ts` (próximas semanas)
 Wrapper de `localStorage` para persistir el historial de sesiones (ejercicio, reps, duración, fecha). No depende de ningún otro módulo del proyecto.

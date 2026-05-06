@@ -2,6 +2,7 @@ import {
   PoseLandmarker,
   FilesetResolver,
   DrawingUtils,
+  type NormalizedLandmark,
 } from '@mediapipe/tasks-vision';
 
 // Versión debe coincidir exactamente con el paquete instalado (0.10.35)
@@ -33,8 +34,8 @@ export function detectAndDraw(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
   timestampMs: number
-): void {
-  if (!landmarker || video.readyState < 2) return;
+): NormalizedLandmark[][] {
+  if (!landmarker || video.readyState < 2) return [];
 
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
@@ -60,4 +61,6 @@ export function detectAndDraw(
       radius: 3,
     });
   }
+
+  return result.landmarks;
 }

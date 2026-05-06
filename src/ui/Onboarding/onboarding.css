@@ -1,0 +1,328 @@
+/* ─── Design tokens ─────────────────────────────────────────────────────── */
+:root {
+  --ob-bg:          #ffffff;
+  --ob-surface:     #f5f5f7;
+  --ob-text:        #1c1c1e;
+  --ob-text-2:      #6e6e73;
+  --ob-green:       #30d158;
+  --ob-blue:        #34aadc;
+  --ob-orange:      #fc4c02;
+  --ob-red:         #ff375f;
+  --ob-safe-top:    env(safe-area-inset-top, 0px);
+  --ob-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─── Root ───────────────────────────────────────────────────────────────── */
+.ob-root {
+  position: fixed;
+  inset: 0;
+  background: var(--ob-bg);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  z-index: 1000;
+}
+
+/* ─── Screen base ────────────────────────────────────────────────────────── */
+.ob-screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 28px calc(40px + var(--ob-safe-bottom));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  animation: ob-slide-in 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+}
+
+@keyframes ob-slide-in {
+  from { opacity: 0; transform: translateX(28px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+/* Staggered children */
+.ob-screen > * { animation: ob-fade-up 440ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.ob-screen > *:nth-child(1) { animation-delay: 60ms; }
+.ob-screen > *:nth-child(2) { animation-delay: 120ms; }
+.ob-screen > *:nth-child(3) { animation-delay: 180ms; }
+.ob-screen > *:nth-child(4) { animation-delay: 240ms; }
+.ob-screen > *:nth-child(5) { animation-delay: 300ms; }
+.ob-screen > *:nth-child(6) { animation-delay: 360ms; }
+
+@keyframes ob-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── CTA button ─────────────────────────────────────────────────────────── */
+.ob-btn {
+  width: 100%;
+  max-width: 360px;
+  padding: 18px 24px;
+  border: none;
+  border-radius: 100px;
+  background: linear-gradient(135deg, #ff6b35 0%, #fc4c02 100%);
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  font-family: inherit;
+  letter-spacing: -0.2px;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.38);
+  transition: transform 100ms ease, box-shadow 100ms ease;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.ob-btn:active {
+  transform: scale(0.97);
+  box-shadow: 0 4px 12px rgba(252, 76, 2, 0.22);
+}
+
+/* ─── Typography helpers ──────────────────────────────────────────────────── */
+.ob-eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.8px;
+  text-transform: uppercase;
+  color: var(--ob-green);
+  margin: 0 0 8px;
+  align-self: flex-start;
+}
+.ob-h1 {
+  font-size: 32px;
+  font-weight: 800;
+  letter-spacing: -1.4px;
+  color: var(--ob-text);
+  line-height: 1.1;
+  margin: 0 0 10px;
+  align-self: flex-start;
+}
+.ob-lead {
+  font-size: 16px;
+  color: var(--ob-text-2);
+  line-height: 1.55;
+  margin: 0 0 36px;
+  align-self: flex-start;
+}
+
+/* ─── SPLASH ─────────────────────────────────────────────────────────────── */
+.ob-splash {
+  justify-content: center;
+  text-align: center;
+  gap: 0;
+}
+.ob-splash > * { animation: none !important; }
+
+.ob-logo-wrap {
+  margin-bottom: 32px;
+  animation: ob-logo-pop 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+}
+@keyframes ob-logo-pop {
+  from { opacity: 0; transform: scale(0.55); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.ob-app-name {
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1.8px;
+  color: var(--ob-text);
+  margin: 0 0 8px;
+  animation: ob-fade-up 400ms 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+}
+.ob-app-tagline {
+  font-size: 17px;
+  color: var(--ob-text-2);
+  margin: 0 0 52px;
+  letter-spacing: -0.2px;
+  animation: ob-fade-up 400ms 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+}
+.ob-dots-loader {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  animation: ob-fade-up 400ms 540ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+}
+.ob-dots-loader span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: ob-dot-pulse 1.4s infinite ease-in-out;
+}
+.ob-dots-loader span:nth-child(1) { background: var(--ob-green);  animation-delay: 0s; }
+.ob-dots-loader span:nth-child(2) { background: var(--ob-blue);   animation-delay: 0.18s; }
+.ob-dots-loader span:nth-child(3) { background: var(--ob-orange); animation-delay: 0.36s; }
+@keyframes ob-dot-pulse {
+  0%, 60%, 100% { transform: scale(0.65); opacity: 0.4; }
+  30%            { transform: scale(1);   opacity: 1; }
+}
+
+/* ─── HOW IT WORKS ───────────────────────────────────────────────────────── */
+.ob-how {
+  padding-top: calc(max(var(--ob-safe-top), 0px) + 60px);
+  justify-content: flex-start;
+}
+.ob-steps {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: auto;
+  padding-bottom: 28px;
+}
+.ob-step {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--ob-surface);
+  border-radius: 20px;
+  padding: 18px 20px;
+}
+.ob-step-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ob-step-icon.g { background: rgba(48, 209, 88, 0.12); }
+.ob-step-icon.b { background: rgba(52, 170, 220, 0.12); }
+.ob-step-icon.o { background: rgba(252, 76, 2, 0.10); }
+.ob-step-body h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ob-text);
+  margin: 0 0 3px;
+  letter-spacing: -0.3px;
+}
+.ob-step-body p {
+  font-size: 14px;
+  color: var(--ob-text-2);
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* ─── PERMISSIONS ────────────────────────────────────────────────────────── */
+.ob-perms {
+  padding-top: calc(max(var(--ob-safe-top), 0px) + 60px);
+  justify-content: flex-start;
+}
+.ob-perm-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.ob-perm-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  background: var(--ob-surface);
+  border-radius: 20px;
+  padding: 18px 20px;
+}
+.ob-perm-ico {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.ob-perm-ico.cam  { background: rgba(48, 209, 88, 0.12); }
+.ob-perm-ico.bell { background: rgba(52, 170, 220, 0.12); }
+.ob-perm-info { flex: 1; }
+.ob-perm-info h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ob-text);
+  margin: 0 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  letter-spacing: -0.3px;
+}
+.ob-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 100px;
+  letter-spacing: 0.2px;
+}
+.ob-badge.req { background: rgba(255, 55, 95, 0.12); color: var(--ob-red); }
+.ob-badge.opt { background: rgba(110,110,115,0.12);  color: var(--ob-text-2); }
+.ob-perm-info p {
+  font-size: 14px;
+  color: var(--ob-text-2);
+  margin: 0;
+  line-height: 1.4;
+}
+.ob-privacy {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--ob-text-2);
+  margin-bottom: 24px;
+  text-align: center;
+  justify-content: center;
+}
+
+/* ─── GET STARTED ────────────────────────────────────────────────────────── */
+.ob-start {
+  padding-top: calc(max(var(--ob-safe-top), 0px) + 60px);
+  justify-content: flex-start;
+  text-align: center;
+}
+.ob-illus {
+  width: 100%;
+  max-width: 300px;
+  margin: 16px auto 28px;
+}
+.ob-cam-toggle {
+  display: flex;
+  background: var(--ob-surface);
+  border-radius: 100px;
+  padding: 4px;
+  gap: 0;
+  margin-bottom: 28px;
+  width: 100%;
+  max-width: 280px;
+}
+.ob-cam-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ob-text-2);
+  cursor: pointer;
+  transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  font-family: inherit;
+  letter-spacing: -0.2px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.ob-cam-btn.active {
+  background: #ffffff;
+  color: var(--ob-text);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+}
+.ob-start-hint {
+  font-size: 14px;
+  color: var(--ob-text-2);
+  margin-bottom: 28px;
+  line-height: 1.5;
+  max-width: 280px;
+}
