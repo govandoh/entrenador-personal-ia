@@ -66,13 +66,16 @@ App.tsx
 ```
 
 ### `src/ui/CameraView.tsx`
-Componente React responsable del ciclo de vida de la cámara. Mantiene estado de UI (`loading` / `ready` / `error`) y ahora también coordina el ejercicio activo:
-- `trackerRef` — instancia de `SquatTracker` en `useRef`. Persiste entre cambios de cámara sin perder el conteo de reps.
-- En cada iteración del RAF: llama `detectAndDraw()` (que devuelve `NormalizedLandmark[][]`), pasa `landmarkSets[0]` al tracker, y actualiza `exerciseResult` con `setExerciseResult`.
-- Renderiza `<ExerciseOverlay>` cuando `status === 'ready'` y hay resultado disponible.
+Componente React responsable del ciclo de vida de la cámara y del ejercicio activo.
+- `squatTrackerRef` / `curlTrackerRef` — instancias en `useRef`. Persisten entre cambios de cámara y de ejercicio.
+- `activeExRef` — ref (no estado) al ejercicio activo, leído en el RAF loop para evitar stale closures.
+- En cada iteración del RAF: llama `detectAndDraw()`, pasa landmarks al tracker activo, dispara voz en transiciones, actualiza `exerciseResult`.
+- Botón inferior izquierdo: selector de ejercicio (cicla squat → curl → …). Al cambiar, ambos trackers se resetean.
+- Botón inferior derecho: selector de cámara frontal/trasera (sin cambios respecto a v1).
+- Renderiza `<ExerciseOverlay>` con el resultado y el nombre del ejercicio activo.
 
 ### `src/ui/ExerciseOverlay.tsx`
-Overlay DOM sobre el video (no canvas). Recibe `SquatResult` y renderiza:
+Overlay DOM sobre el video (no canvas). Recibe una interfaz mínima `OverlayResult { reps, feedbackLevel, feedbackMessage }` y un prop `exerciseName: string`. Compatible estructuralmente con `SquatResult` y `BicepCurlResult`. Renderiza:
 - Label de ejercicio (top-left, pill semitransparente)
 - Barra inferior (`ex-bottom-bar`): fondo negro 80% + blur, borde izquierdo colorido via `--feedback-color` CSS custom property, mensaje de feedback (izquierda) y contador de reps (derecha).
 - El contador usa `key={result.reps}` para que React remonte el `<span>` y reinicie la animación CSS `ex-rep-pop` en cada nueva rep.
@@ -126,8 +129,30 @@ Rep contada: squatting → standing
 **Feedback:** verde `<90°`, amarillo `100–90°`, idle en transición/de pie.  
 **Visibilidad:** si algún landmark clave (caderas, rodillas, tobillos) tiene `visibility < 0.5`, se retorna feedback idle sin resetear el estado interno.
 
+### `src/exercises/bicepCurl.ts`
+Segundo ejercicio implementado. Exporta `BicepCurlTracker` con el mismo contrato que `SquatTracker` (`update()` / `reset()`).
+
+**Landmarks usados:** LEFT_SHOULDER(11)→LEFT_ELBOW(13)→LEFT_WRIST(15) y RIGHT_SHOULDER(12)→RIGHT_ELBOW(14)→RIGHT_WRIST(16).
+
+**Detección de vista:**
+- Visibilidad mínima del trío hombro-codo-muñeca por lado.
+- Si `|visLeft - visRight| > 0.35` → vista lateral: solo el brazo más visible.
+- Si diferencia menor → vista frontal/45°: ambos brazos.
+
+**Clase interna `ArmTracker`:** Máquina de estados para un solo brazo. Usa el mismo algoritmo de "inversión de tendencia" que `SquatTracker` para detectar la cima real:
+```
+bajando (ángulo decreciente) → silencio (acumulando minAngleSeen)
+cima real (ángulo sube +2°)  → atTop = true, evalúa minAngleSeen
+subiendo → silencio
+extendido → voz dice el número de rep
+```
+
+**Umbrales:** `EXTENDED_ANGLE=160°`, `FLEXED_ANGLE=60°`, `GOOD_FORM_ANGLE=50°`.
+
+**Conteo:** Cada `ArmTracker` lleva sus propias reps; `BicepCurlTracker.reps` = suma de ambos. Soporta reps alternas (mancuernas) y simultáneas (barra).
+
 ### `src/exercises/` (próximas semanas)
-Los demás ejercicios (bíceps curl, press de hombro, plancha) seguirán el mismo patrón de `SquatTracker`: clase con `update()` y `reset()`, umbrales propios, mismos tipos `FeedbackLevel` y `SquatResult`. Cuando haya 2+ ejercicios se extraerá `baseExercise.ts` con la lógica compartida.
+Los ejercicios pendientes (press de hombro, plancha, lunges) seguirán el patrón de `SquatTracker` y `BicepCurlTracker`. Cuando haya 3+ ejercicios se evaluará si extraer `baseExercise.ts` con la lógica compartida.
 
 ### `src/storage/session.ts` (próximas semanas)
 Wrapper de `localStorage` para persistir el historial de sesiones (ejercicio, reps, duración, fecha). No depende de ningún otro módulo del proyecto.

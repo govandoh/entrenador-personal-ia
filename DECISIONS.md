@@ -130,6 +130,17 @@ standing     → voz dice solo el número de rep
 
 ---
 
+## DEC-015 · Curl de bíceps: detección de cima por inversión de tendencia + soporte frontal/lateral
+**Fecha:** 2026-05-15  
+**Contexto:** Segundo ejercicio de la app. El curl de bíceps puede ejecutarse con la cámara frontal (vista de frente, ambos brazos visibles) o lateral (perfil, un solo brazo dominante en frame). Necesitaba decidir cómo manejar ambas vistas con un único tracker.  
+**Alternativas:** (a) Dos trackers separados (uno para cada brazo) con lógica de selección manual; (b) un único tracker que detecta automáticamente el modo de vista; (c) pedir al usuario que indique si usa vista frontal o lateral.  
+**Razón:** Se implementó detección automática de vista por diferencia de visibilidad: si `|visibilidad_izquierda - visibilidad_derecha| > 0.35`, la app infiere vista lateral y usa solo el brazo más visible. Si la diferencia es menor, usa ambos brazos (vista frontal o de 45°). El umbral 0.35 es empírico — un brazo mirando de frente al objetivo es significativamente más visible que el opuesto.  
+**Detección de cima:** Igual que el fondo en sentadillas — inversión de tendencia (+2°). El ángulo de codo sube durante la contracción (menor grado = más contraído); cuando el ángulo vuelve a crecer más de 2°, se confirma que se pasó la cima. `GOOD_FORM_ANGLE = 50°` es el umbral de "contracción completa".  
+**Ángulos:** `EXTENDED_ANGLE = 160°` (brazo extendido), `FLEXED_ANGLE = 60°` (entrada a fase contraída), `GOOD_FORM_ANGLE = 50°` (contracción completa).  
+**Conteo de reps:** Cada `ArmTracker` cuenta sus propias reps; `BicepCurlTracker` suma ambos. Esto permite contar reps alternas (curl con mancuernas alternando brazos) y reps simultáneas (barra).
+
+---
+
 ## DEC-006 · Plugin PWA: diferido (incompatibilidad con Vite 8)
 **Fecha:** 2026-04-29  
 **Contexto:** `vite-plugin-pwa` es la herramienta estándar para generar service worker y validar el manifest en proyectos Vite. Al intentar instalarlo, falló con conflicto de peer dependency: solo soporta hasta Vite 7; el scaffold de Vite 9 instala Vite 8.  

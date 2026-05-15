@@ -1,7 +1,14 @@
-import type { SquatResult, FeedbackLevel } from '../exercises/squat';
+type FeedbackLevel = 'idle' | 'good' | 'warning' | 'bad';
+
+interface OverlayResult {
+  reps:            number;
+  feedbackLevel:   FeedbackLevel;
+  feedbackMessage: string;
+}
 
 interface Props {
-  result: SquatResult;
+  result:       OverlayResult;
+  exerciseName: string;
 }
 
 const FEEDBACK_COLOR: Record<FeedbackLevel, string> = {
@@ -11,22 +18,21 @@ const FEEDBACK_COLOR: Record<FeedbackLevel, string> = {
   idle:    'rgba(255,255,255,0.5)',
 };
 
-export function ExerciseOverlay({ result }: Props) {
-  const color   = FEEDBACK_COLOR[result.feedbackLevel];
-  const message = result.feedbackMessage || '▼  Baja para hacer la sentadilla';
+export function ExerciseOverlay({ result, exerciseName }: Props) {
+  const color = FEEDBACK_COLOR[result.feedbackLevel];
 
   return (
     <div className="exercise-overlay">
-      <div className="ex-label">Sentadillas</div>
+      <div className="ex-label">{exerciseName}</div>
 
       <div
         className="ex-bottom-bar"
         style={{ '--feedback-color': color } as React.CSSProperties}
       >
-        <p className="ex-feedback-text">{message}</p>
+        <p className="ex-feedback-text">{result.feedbackMessage}</p>
 
         <div className="ex-rep-section">
-          {/* key cambia cuando el rep sube → React remonta el span → CSS pop-animation se reinicia */}
+          {/* key={reps} → React remonta el span → reinicia @keyframes ex-rep-pop */}
           <span className="ex-reps" key={result.reps}>{result.reps}</span>
           <span className="ex-reps-label">REPS</span>
         </div>

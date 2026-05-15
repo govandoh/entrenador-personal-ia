@@ -192,12 +192,12 @@ Lo que se entrega en Canvas el 22/05 y se presenta el 23/05.
 
 > **Esta sección se actualiza cada vez que el proyecto avanza.** Claude Code debe mantenerla viva.
 
-**Última actualización:** 2026-05-06
+**Última actualización:** 2026-05-15
 
 **Directorio de trabajo:** `C:\Dev-AI\entrenador-personal-ia` (fuera de OneDrive — ver DEC-007).
 
-**Hito actual:** Fase 2 completa — Feedback visual y por voz operativos. Barra inferior de feedback rediseñada (borde colorido + mensaje + counter animado). Voz en español via `SpeechSynthesis` (sin dependencias externas).
+**Hito actual:** Fase 3 — Segundo ejercicio operativo. `BicepCurlTracker` con soporte de vista frontal y lateral (detección automática por diferencia de visibilidad), misma lógica de cima real que sentadillas. Selector de ejercicio en pantalla (botón inferior izquierdo cicla squat ↔ curl). `ExerciseOverlay` ahora genérico (no acoplado a `SquatResult`).
 
-**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz. Documentadas en `DECISIONS.md` (DEC-001 a DEC-013).
+**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl. Documentadas en `DECISIONS.md` (DEC-001 a DEC-015).
 
-**Próximo paso:** Prueba en celular real (onboarding → sentadillas → voz + visual). Luego implementar el segundo ejercicio (`src/exercises/bicepCurl.ts`) y el selector de ejercicios (`ExerciseSelector`).
+**Próximo paso:** Prueba en celular del curl (frontal y lateral). Luego implementar el tercer ejercicio (`src/exercises/shoulderPress.ts`), deploy a Vercel, y documentación final (`docs/`).
