@@ -38,7 +38,7 @@ export function detectAndDraw(
   if (!landmarker || video.readyState < 2) return [];
 
   const ctx = canvas.getContext('2d');
-  if (!ctx) return;
+  if (!ctx) return [];
 
   // Sincronizar dimensiones internas del canvas con el stream real
   canvas.width = video.videoWidth;
