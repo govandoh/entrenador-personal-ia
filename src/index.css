@@ -91,8 +91,8 @@ body {
 /* ── Barra de feedback inferior ── */
 .ex-bottom-bar {
   width: 100%;
-  /* margen para no tapar el botón de cámara (52px + 1.5rem*2 de padding del botón) */
-  margin-bottom: 72px;
+  /* margen para no tapar la barra de controles inferior (~64px altura) */
+  margin-bottom: 68px;
   background: rgba(0, 0, 0, 0.80);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -150,62 +150,110 @@ body {
   margin-top: 3px;
 }
 
-/* Botón compartido base para controles de pantalla */
-.switch-camera-btn,
-.exercise-btn {
+/* ─── Barra de controles inferior ───────────────────────────────────────── */
+.bottom-controls {
   position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   z-index: 10;
-  height: 52px;
-  border: none;
-  background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  cursor: pointer;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
-  touch-action: manipulation;
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  padding: 12px 14px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Contenedor con scroll horizontal para los chips de ejercicio */
+.exercise-scroller {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Chip individual de ejercicio */
+.exercise-chip {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px 0 10px;
+  border: none;
+  border-radius: 100px;
+  cursor: pointer;
+  touch-action: manipulation;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  -webkit-font-smoothing: antialiased;
+  transition: background 180ms ease, color 180ms ease, transform 120ms ease;
+  /* estado inactivo */
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.55);
+
+  svg {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 180ms ease;
+  }
+
+  span {
+    white-space: nowrap;
+  }
+
+  &.active {
+    background: rgba(255, 255, 255, 0.95);
+    color: #0a0a0a;
+
+    svg {
+      opacity: 1;
+    }
+  }
 
   &:active {
-    background: rgba(0, 0, 0, 0.8);
     transform: scale(0.93);
   }
 }
 
-.switch-camera-btn {
-  bottom: 1.5rem;
-  right: 1.5rem;
-  width: 52px;
+/* Botón circular de cambio de cámara */
+.camera-control-btn {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
   border-radius: 50%;
-  padding: 12px;
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  touch-action: manipulation;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px;
+  transition: background 150ms ease, transform 120ms ease;
 
   svg {
     width: 100%;
     height: 100%;
   }
-}
 
-/* Selector de ejercicio: pill con icono + nombre */
-.exercise-btn {
-  bottom: 1.5rem;
-  left: 1.5rem;
-  padding: 0 16px 0 12px;
-  border-radius: 100px;
-  gap: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  -webkit-font-smoothing: antialiased;
-
-  svg {
-    width: 22px;
-    height: 22px;
-    flex-shrink: 0;
-  }
-
-  span {
-    white-space: nowrap;
+  &:active {
+    background: rgba(255, 255, 255, 0.28);
+    transform: scale(0.9);
   }
 }

@@ -21,6 +21,38 @@ const EXERCISE_NAMES: Record<ActiveExercise, string> = {
   press: 'Press de Hombro',
 };
 
+const EXERCISE_ICONS: Record<ActiveExercise, React.ReactNode> = {
+  squat: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="4" r="2" />
+      <path d="M12 6v4l-3 4h6l-3-4" />
+      <path d="M9 14l-2 5" />
+      <path d="M15 14l2 5" />
+    </svg>
+  ),
+  curl: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2"  y="11" width="4" height="3" rx="1" />
+      <rect x="18" y="11" width="4" height="3" rx="1" />
+      <rect x="5"  y="10" width="3" height="5" rx="1" />
+      <rect x="16" y="10" width="3" height="5" rx="1" />
+      <line x1="8" y1="12.5" x2="16" y2="12.5" />
+    </svg>
+  ),
+  press: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="3" r="1.5" />
+      <line x1="12" y1="5"  x2="12" y2="13" />
+      <line x1="12" y1="9"  x2="6"  y2="4"  />
+      <line x1="6"  y1="4"  x2="4"  y2="2"  />
+      <line x1="12" y1="9"  x2="18" y2="4"  />
+      <line x1="18" y1="4"  x2="20" y2="2"  />
+      <line x1="12" y1="13" x2="9"  y2="19" />
+      <line x1="12" y1="13" x2="15" y2="19" />
+    </svg>
+  ),
+};
+
 function serializeError(err: unknown): string {
   if (err instanceof Error) return err.message;
   try { return JSON.stringify(err); } catch { return String(err); }
@@ -53,9 +85,9 @@ export function CameraView() {
   const pressFormFeedbackRef = useRef<string>('');
   const lastSpeakTimeRef     = useRef<number>(0);
 
-  const [status, setStatus]               = useState<Status>('loading');
-  const [errorMsg, setErrorMsg]           = useState('');
-  const [facingMode, setFacingMode]       = useState<FacingMode>(
+  const [status, setStatus]                 = useState<Status>('loading');
+  const [errorMsg, setErrorMsg]             = useState('');
+  const [facingMode, setFacingMode]         = useState<FacingMode>(
     () => (localStorage.getItem('preferred_camera') as FacingMode) ?? 'environment',
   );
   const [activeExercise, setActiveExercise] = useState<ActiveExercise>('squat');
@@ -100,19 +132,16 @@ export function CameraView() {
             if (prevReps >= 0) {
               if (result.reps > prevReps) {
                 if (ex === 'squat') {
-                  // Para sentadilla: respetar cooldown para no solapar con el feedback de fondo
                   if (performance.now() - lastSpeakTimeRef.current > 1500) {
                     speak(repPhrase(result.reps));
                     lastSpeakTimeRef.current = performance.now();
                   }
                 } else if (ex === 'curl') {
-                  // Para curl: combinar conteo + feedback de forma en un único utterance (ver DEC-016)
                   const formMsg = curlFormFeedbackRef.current;
                   speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
                   curlFormFeedbackRef.current = '';
                   lastSpeakTimeRef.current = performance.now();
                 } else {
-                  // Para press: mismo patrón que curl (pico al fin del esfuerzo)
                   const formMsg = pressFormFeedbackRef.current;
                   speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
                   pressFormFeedbackRef.current = '';
@@ -130,7 +159,6 @@ export function CameraView() {
               } else if (ex === 'curl') {
                 const r = result as BicepCurlResult;
                 if (r.atTop) {
-                  // Guardar feedback de forma; se pronunciará junto con el conteo al completar la rep
                   curlFormFeedbackRef.current = r.minAngleReached < GOOD_FORM_ANGLE
                     ? '¡Excelente contracción!'
                     : 'Sube un poco más';
@@ -138,7 +166,6 @@ export function CameraView() {
               } else {
                 const r = result as ShoulderPressResult;
                 if (r.atPeak) {
-                  // Guardar feedback de forma; se pronunciará junto con el conteo al completar la rep
                   pressFormFeedbackRef.current = r.maxAngleReached >= GOOD_LOCKOUT_ANGLE
                     ? '¡Extensión completa!'
                     : 'Extiende un poco más';
@@ -173,11 +200,8 @@ export function CameraView() {
     };
   }, [facingMode, speak]);
 
-  function handleSwitchExercise() {
-    const current = activeExRef.current;
-    const next: ActiveExercise =
-      current === 'squat' ? 'curl' :
-      current === 'curl'  ? 'press' : 'squat';
+  function handleSelectExercise(next: ActiveExercise) {
+    if (activeExRef.current === next) return;
     activeExRef.current = next;
     setActiveExercise(next);
     squatTrackerRef.current.reset();
@@ -215,49 +239,25 @@ export function CameraView() {
       )}
 
       {status === 'ready' && (
-        <>
-          {/* Selector de ejercicio — esquina inferior izquierda */}
-          <button
-            className="exercise-btn"
-            onClick={handleSwitchExercise}
-            aria-label="Cambiar ejercicio"
-          >
-            {activeExercise === 'squat' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {/* figura en sentadilla */}
-                <circle cx="12" cy="4" r="2" />
-                <path d="M12 6v4l-3 4h6l-3-4" />
-                <path d="M9 14l-2 5" />
-                <path d="M15 14l2 5" />
-              </svg>
-            ) : activeExercise === 'curl' ? (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {/* mancuerna */}
-                <rect x="2"  y="11" width="4" height="3" rx="1" />
-                <rect x="18" y="11" width="4" height="3" rx="1" />
-                <rect x="5"  y="10" width="3" height="5" rx="1" />
-                <rect x="16" y="10" width="3" height="5" rx="1" />
-                <line x1="8" y1="12.5" x2="16" y2="12.5" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                {/* figura con brazos extendidos overhead (press de hombro) */}
-                <circle cx="12" cy="3" r="1.5" />
-                <line x1="12" y1="5"  x2="12" y2="13" />
-                <line x1="12" y1="9"  x2="6"  y2="4"  />
-                <line x1="6"  y1="4"  x2="4"  y2="2"  />
-                <line x1="12" y1="9"  x2="18" y2="4"  />
-                <line x1="18" y1="4"  x2="20" y2="2"  />
-                <line x1="12" y1="13" x2="9"  y2="19" />
-                <line x1="12" y1="13" x2="15" y2="19" />
-              </svg>
-            )}
-            <span>{EXERCISE_NAMES[activeExercise]}</span>
-          </button>
+        <div className="bottom-controls">
+          {/* Selector de ejercicio — chips horizontales con scroll */}
+          <div className="exercise-scroller" role="group" aria-label="Seleccionar ejercicio">
+            {(Object.keys(EXERCISE_NAMES) as ActiveExercise[]).map(ex => (
+              <button
+                key={ex}
+                className={`exercise-chip${activeExercise === ex ? ' active' : ''}`}
+                onClick={() => handleSelectExercise(ex)}
+                aria-pressed={activeExercise === ex}
+              >
+                {EXERCISE_ICONS[ex]}
+                <span>{EXERCISE_NAMES[ex]}</span>
+              </button>
+            ))}
+          </div>
 
-          {/* Selector de cámara — esquina inferior derecha */}
+          {/* Selector de cámara */}
           <button
-            className="switch-camera-btn"
+            className="camera-control-btn"
             onClick={() => setFacingMode(prev => prev === 'environment' ? 'user' : 'environment')}
             aria-label="Cambiar cámara"
           >
@@ -269,7 +269,7 @@ export function CameraView() {
               <circle cx="12" cy="12" r="3" />
             </svg>
           </button>
-        </>
+        </div>
       )}
     </div>
   );
