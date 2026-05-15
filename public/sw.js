@@ -1,4 +1,4 @@
-const CACHE = 'entrenador-ia-v1';
+const CACHE = 'entrenador-ia-v2';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

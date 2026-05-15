@@ -84,6 +84,8 @@ export function CameraView() {
   const curlFormFeedbackRef  = useRef<string>('');
   const pressFormFeedbackRef = useRef<string>('');
   const lastSpeakTimeRef     = useRef<number>(0);
+  // Flag para delay de liberación de hardware al cambiar de cámara
+  const cameraStopPendingRef = useRef(false);
 
   const [status, setStatus]                 = useState<Status>('loading');
   const [errorMsg, setErrorMsg]             = useState('');
@@ -107,6 +109,15 @@ export function CameraView() {
 
     async function setup() {
       try {
+        // Si se acaba de detener una cámara, esperar a que el hardware se libere.
+        // track.stop() es síncrono pero el dispositivo libera el sensor ~300-500ms
+        // después; llamar getUserMedia antes causa "Could not start video source".
+        if (cameraStopPendingRef.current) {
+          cameraStopPendingRef.current = false;
+          await new Promise<void>(resolve => setTimeout(resolve, 450));
+          if (cancelled) return;
+        }
+
         await initPoseDetector();
         if (cancelled || !videoRef.current) return;
 
@@ -196,6 +207,7 @@ export function CameraView() {
       if (streamRef.current) {
         stopCamera(streamRef.current);
         streamRef.current = null;
+        cameraStopPendingRef.current = true;
       }
     };
   }, [facingMode, speak]);
@@ -258,7 +270,11 @@ export function CameraView() {
           {/* Selector de cámara */}
           <button
             className="camera-control-btn"
-            onClick={() => setFacingMode(prev => prev === 'environment' ? 'user' : 'environment')}
+            onClick={() => {
+              const next: FacingMode = facingMode === 'environment' ? 'user' : 'environment';
+              localStorage.setItem('preferred_camera', next);
+              setFacingMode(next);
+            }}
             aria-label="Cambiar cámara"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
