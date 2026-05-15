@@ -13,7 +13,9 @@ const LM = {
 const EXTENDED_ANGLE         = 160;  // > este valor → brazo extendido (abajo)
 const FLEXED_ANGLE           = 60;   // < este valor → brazo en cima del curl
 export const GOOD_FORM_ANGLE = 50;   // < este valor → contracción completa
-const DESCENDING_THRESHOLD   =  2;   // grados de descenso para confirmar que se pasó la cima
+// Confirmación de cima por frames consecutivos (ver DEC-016)
+const RISING_PER_FRAME       = 0.5;  // incremento mínimo por frame para contar como "subiendo"
+const MIN_RISING_FRAMES      = 3;    // frames consecutivos de subida para confirmar que se pasó la cima
 const MIN_VISIBILITY         = 0.5;
 const LATERAL_VIS_DIFF       = 0.35; // diferencia de visibilidad para detectar vista lateral
 
@@ -40,6 +42,7 @@ class ArmTracker {
   prevAngle      = 180;
   minAngleSeen   = 180;
   topFired       = false;
+  risingFrames   = 0;
 
   update(angle: number): { atTop: boolean; minAngleReached: number; phase: CurlPhase } {
     const prevPhase = this.phase;
@@ -48,14 +51,19 @@ class ArmTracker {
     if      (angle > EXTENDED_ANGLE) this.phase = 'extended';
     else if (angle < FLEXED_ANGLE)   this.phase = 'flexed';
 
-    // Rep completada: brazo baja de vuelta a extendido
-    if (prevPhase === 'flexed' && this.phase === 'extended') this.reps++;
+    // Rep completada: solo si se confirmó la cima (topFired) — previene reps falsas por movimientos bruscos (ver DEC-017)
+    if (prevPhase === 'flexed' && this.phase === 'extended' && this.topFired) this.reps++;
 
-    // Detección de cima real por inversión de tendencia (+2° de bajada)
+    // Detección de cima real por confirmación de frames consecutivos (ver DEC-016)
     let atTop = false;
     if (this.phase === 'flexed') {
       if (angle < this.minAngleSeen) this.minAngleSeen = angle;
-      if (!this.topFired && angle > this.prevAngle + DESCENDING_THRESHOLD) {
+      if (angle > this.prevAngle + RISING_PER_FRAME) {
+        this.risingFrames++;
+      } else {
+        this.risingFrames = 0;
+      }
+      if (!this.topFired && this.risingFrames >= MIN_RISING_FRAMES) {
         atTop = true;
         this.topFired = true;
       }
@@ -65,8 +73,9 @@ class ArmTracker {
 
     // Resetear al volver al brazo extendido
     if (this.phase === 'extended' && prevPhase !== 'extended') {
-      this.topFired    = false;
+      this.topFired     = false;
       this.minAngleSeen = 180;
+      this.risingFrames = 0;
     }
 
     this.prevAngle = angle;
@@ -79,6 +88,7 @@ class ArmTracker {
     this.prevAngle    = 180;
     this.minAngleSeen = 180;
     this.topFired     = false;
+    this.risingFrames = 0;
   }
 }
 

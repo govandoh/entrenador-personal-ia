@@ -141,6 +141,45 @@ standing     → voz dice solo el número de rep
 
 ---
 
+## DEC-018 · Press de Hombro: ángulos seguros, polaridad invertida y detección de pico
+**Fecha:** 2026-05-15  
+**Contexto:** Tercer ejercicio. El shoulder press usa los mismos landmarks que el curl (shoulder-elbow-wrist), pero la polaridad del movimiento es inversa: el esfuerzo AUMENTA el ángulo del codo (pesas overhead = ángulo alto ≈ 150-165°). El pico del movimiento es el MÁXIMO de ángulo, no el mínimo.  
+**Umbrales y justificación clínica:**  
+- `PRESSED_ANGLE = 150°`: entrada a fase "pressed". Zona de histéresis: 100°–150° (50° de zona muerta).  
+- `LOWERED_ANGLE = 100°`: entrada a fase "lowered" (pesas a nivel de hombro, codo ≈ 90°).  
+- `GOOD_LOCKOUT_ANGLE = 145°`: mínimo para feedback verde. Se usa 145° en lugar de 170°+ para no exigir hiperextensión del codo bajo carga; MediaPipe también tiende a subestimar ligeramente el ángulo en vista frontal.  
+- `SAFE_LOW_ANGLE = 80°`: feedback rojo por debajo de este valor. Bajar el codo por debajo de la línea del hombro con carga externa comprime el tendón supraespinoso entre el acromion y la cabeza humeral (síndrome de impingement). 80° es el límite clínico conservador para press frontal.  
+**Detección de pico:** Análoga al curl pero invertida. `fallingFrames` cuenta frames donde el ángulo desciende ≥ 0.5°/frame; `atPeak` se confirma con 3 frames consecutivos. `maxAngleSeen` acumula el máximo (vs. `minAngleSeen` del curl). `peakFired` actúa como gate del conteo (DEC-017).  
+**Ángulo primario:** `Math.max(left, right)` — el brazo más extendido indica la calidad del press (vs. `Math.min` del curl donde menor = más contraído).  
+**Estrategia de voz:** Clasificado como "pico al fin del esfuerzo" (DEC-016): `atPeak` guarda en `pressFormFeedbackRef`, `reps++` emite utterance combinado `"${n}. ¡Extensión completa!"`.
+
+---
+
+## DEC-017 · Conteo de reps: gate obligatorio por confirmación de cima/fondo
+**Fecha:** 2026-05-15  
+**Contexto:** Al probar el curl en celular se detectó que movimientos bruscos del dispositivo o la aparición momentánea de un brazo en frame disparaban reps falsas. El ángulo del codo puede saltar de 165° a 45° y volver en 2 frames por ruido o movimiento de cámara, cumpliendo la condición `flexed → extended` sin que el usuario haya hecho ningún curl.  
+**Raíz del problema:** El conteo de reps solo chequeaba la transición de fase (`flexed → extended`), pero no si el movimiento había sido validado como intencional. El mecanismo de confirmación (`topFired` / `bottomFired`) ya existía para detectar el punto extremo del movimiento, pero no estaba siendo usado como prerequisito del conteo.  
+**Consecuencia secundaria:** Sin `topFired`, `curlFormFeedbackRef` estaba vacío cuando el conteo disparaba → el usuario solo escuchaba el número, sin evaluación de forma.  
+**Solución:** Agregar `&& this.topFired` (curl) / `&& this.bottomFired` (sentadilla, aplicar en futura revisión) al condicional de `reps++`. Una rep solo se registra si previamente se confirmó el punto extremo del movimiento mediante N frames consecutivos de tendencia sostenida.  
+**Garantía resultante:** `atTop` siempre ocurre ANTES de `reps++` (son eventos excluyentes en el mismo frame; `topFired` solo se resetea en el mismo frame que `reps++`). Esto garantiza que `curlFormFeedbackRef` siempre tiene el mensaje de forma cuando el conteo dispara.  
+**Patrón para todos los ejercicios:** Todo tracker debe tener un flag `peakConfirmed` (o `topFired`/`bottomFired`) que actúe como gate del conteo. Nunca contar una rep solo por transición de fase.
+
+---
+
+## DEC-016 · Arquitectura de feedback de voz: confirmación por frames y prioridad sin colisiones
+**Fecha:** 2026-05-15  
+**Contexto:** Durante pruebas del curl de bíceps se detectaron dos problemas: (1) la voz disparaba con pequeños movimientos de ruido de MediaPipe, dando feedback incorrecto antes de que el usuario completara la contracción; (2) el feedback de forma (`atTop`/`atBottom`) y el conteo de reps (`reps > prevReps`) disparaban en secuencia rápida, y como `useSpeech` cancela la locución anterior, el conteo cortaba el feedback de forma o viceversa.  
+**Raíz del problema 1:** `DESCENDING_THRESHOLD = 2°` en un solo frame es insuficiente para landmarks de brazo, que tienen más ruido que los de pierna. Un spike de ruido de 3° confirma falsamente que se pasó la cima.  
+**Raíz del problema 2:** Para el curl, `atTop` y `reps++` ocurren dentro de ~200ms (la confirmación de cima precede en pocos frames a la extensión completa). `speechSynthesis.cancel()` en `useSpeech` hace que el último utterance siempre gane, suprimiendo el primero.  
+**Solución 1 — Confirmación por frames consecutivos:** Reemplazar el threshold de un frame por un contador de `risingFrames`. `atTop` solo se confirma después de `MIN_RISING_FRAMES = 3` frames consecutivos donde `angle > prevAngle + 0.5°`. Esto requiere ~50ms de tendencia sostenida a 60fps, filtrando spikes de ruido sin latencia perceptible. El parámetro `MIN_RISING_FRAMES` puede calibrarse por ejercicio según el ruido esperado del joint (brazo > pierna).  
+**Solución 2 — Estrategia por tipo de ejercicio:**  
+- **Ejercicios cuyo peak/bottom es el fin del esfuerzo** (curl, press de hombro): `atTop` no habla; guarda el mensaje en un ref `curlFormFeedbackRef`. Cuando `reps++`, se emite un único utterance combinado: `"3. ¡Excelente contracción!"`. Sin colisión posible.  
+- **Ejercicios cuyo peak/bottom es el punto medio del recorrido** (sentadilla, lunge): `atBottom` habla de inmediato (el feedback "baja más" es accionable mientras el usuario sigue abajo). Cuando `reps++`, se respeta un cooldown de 1500ms desde la última locución; si está dentro del cooldown, el conteo de esa rep se suprime (el usuario ya recibió audio en ese ciclo).  
+**Patrón para futuros ejercicios:** Al diseñar cada ejercicio, clasificar el peak/bottom según si ocurre al fin del esfuerzo o a mitad, y elegir la estrategia correspondiente. Documentar la clasificación en el tracker del ejercicio.  
+**Impacto:** `ArmTracker` agrega `risingFrames: number` al estado; `CameraView` agrega `curlFormFeedbackRef` y `lastSpeakTimeRef`.
+
+---
+
 ## DEC-006 · Plugin PWA: diferido (incompatibilidad con Vite 8)
 **Fecha:** 2026-04-29  
 **Contexto:** `vite-plugin-pwa` es la herramienta estándar para generar service worker y validar el manifest en proyectos Vite. Al intentar instalarlo, falló con conflicto de peer dependency: solo soporta hasta Vite 7; el scaffold de Vite 9 instala Vite 8.  
