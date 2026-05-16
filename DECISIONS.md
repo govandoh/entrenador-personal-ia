@@ -216,6 +216,35 @@ standing     → voz dice solo el número de rep
 
 ---
 
+## DEC-023 · Press de hombro: conteo unificado con cooldown (sin conteo por brazo)
+**Fecha:** 2026-05-16  
+**Contexto:** El diseño original de `ShoulderPressTracker` mantenía un contador de reps independiente en cada `ArmPressTracker` (`left.reps + right.reps`), igual que el diseño original del curl antes de DEC-022. En press bilateral (ambos brazos simultáneos), cada brazo completaba su ciclo de pressed → lowered y ambos contadores incrementaban, resultando en el doble de reps reales. El bug fue identificado por Codex al auditar el código tras DEC-022.  
+**Decisión:** Aplicar exactamente el mismo patrón de DEC-022. `ArmPressTracker` deja de mantener su propio contador y emite `repCompleted: boolean` cuando su ciclo cumple todos los gates (`peakFired` confirmado). `ShoulderPressTracker` tiene el único contador `reps` y lo incrementa con OR logic + cooldown de **15 frames (~250 ms a 60 fps)**.  
+**Comportamiento resultante:** Idéntico al DEC-022: press bilateral = 1 rep; press alterno = 1 rep por brazo; vista lateral = 1 rep por ciclo.  
+**Por qué no se detectó antes:** El ejercicio se implementó (DEC-018) antes de que el bug del curl se corrigiera (DEC-022); al corregir el curl se documentó el patrón pero no se auditó el press.
+
+---
+
+## DEC-024 · localStorage defensivo: try/catch y validación de valor
+**Fecha:** 2026-05-16  
+**Contexto:** `App.tsx` y `CameraView.tsx` leían y escribían `localStorage` directamente sin manejo de errores. En Safari en modo privado y en algunos navegadores con storage bloqueado por política del sistema operativo o del propio navegador (sandboxed iframes, restricciones corporativas), `localStorage.getItem()` lanza `SecurityError`, rompiendo la inicialización de React. Adicionalmente, `CameraView.tsx` hacía `localStorage.getItem('preferred_camera') as FacingMode` —un cast exclusivamente de TypeScript que no valida en runtime— lo que permitía que un valor inválido (ej. `'back'`, `null`, vacío) llegara como constraint a `getUserMedia`, causando que la cámara fallara con un error críptico.  
+**Decisión:** Envolver los cuatro puntos de acceso (2 `getItem` + 2 `setItem`) en bloques `try/catch`. En el catch, retornar el valor por defecto seguro (`false` para el onboarding, `'environment'` para la cámara) y continuar sin lanzar. En `CameraView`, reemplazar el cast por validación explícita: `v === 'user' || v === 'environment'`; cualquier otro valor cae al default.  
+**Por qué no solo `?? 'environment'`:** El operador `??` cubre `null` y `undefined` pero no valores inválidos presentes en storage (`'back'`, `'front'`, una cadena vacía), ni el lanzamiento de excepciones de storage bloqueado. La combinación try/catch + validación explícita cubre ambos casos.
+
+---
+
+## DEC-025 · Service Worker: network-first para HTML, cache-first para assets estáticos
+**Fecha:** 2026-05-16  
+**Contexto:** El SW original (`v2`) aplicaba cache-first a todas las requests del mismo origen, incluido `index.html`. `index.html` no tiene hash en su nombre (a diferencia de `assets/index-HASH.js`), por lo que puede quedar cacheado indefinidamente en una versión vieja después de un deploy. Un usuario con la PWA instalada recibiría el HTML antiguo que apunta a assets ya eliminados del servidor, dejando la app inoperable o mostrando versiones obsoletas. El bug fue identificado por Codex.  
+**Decisión:** Separar la estrategia según el tipo de request:  
+- **Requests de navegación** (`e.request.mode === 'navigate'`, corresponde a `index.html`): **network-first**. Siempre se intenta la red; el resultado se guarda en cache. Si la red falla (offline), se sirve el HTML cacheado como fallback. Esto garantiza que el usuario siempre recibe el HTML del deploy actual, con las referencias correctas a los assets hasheados.  
+- **Assets estáticos** (JS, CSS, iconos): **cache-first**. Los assets de Vite son content-hashed; si el contenido cambia, el nombre cambia. Son inmutables por definición: una URL dada siempre corresponde al mismo contenido. Cache-first es correcto y eficiente para ellos.  
+- **CDN externos** (WASM, modelo MediaPipe): sin cambio, siguen siendo network-only (demasiado grandes; el cache HTTP del browser los maneja).  
+**Bump de versión:** `v2 → v3` en la constante `CACHE` para forzar que el `activate` del nuevo SW limpie el cache viejo y todos los clientes con la PWA instalada reciban el comportamiento correcto.  
+**Por qué no precaching en install:** El precaching requiere conocer los nombres de los assets hasheados en tiempo de build. Sin `vite-plugin-pwa` (descartado en DEC-006 por incompatibilidad con Vite 8), inyectar ese manifiesto requeriría un script custom de post-build. La combinación network-first para HTML + cache-first para assets resuelve el problema raíz sin necesidad de precaching.
+
+---
+
 ## DEC-022 · Curl de bíceps: conteo unificado con cooldown (sin conteo por brazo)
 **Fecha:** 2026-05-15  
 **Contexto:** El diseño original de `BicepCurlTracker` mantenía un contador de reps independiente en cada `ArmTracker` (`left.reps + right.reps`). En vista frontal con curls bilaterales (ambos brazos simultáneos), cada brazo completaba su ciclo y ambos contadores incrementaban, resultando en el doble de reps reales. Sin un modelo de IA que clasifique automáticamente si el ejercicio es unilateral o bilateral, no es posible distinguir el caso sin introducir heurísticas adicionales frágiles.  

@@ -192,12 +192,12 @@ Lo que se entrega en Canvas el 22/05 y se presenta el 23/05.
 
 > **Esta sección se actualiza cada vez que el proyecto avanza.** Claude Code debe mantenerla viva.
 
-**Última actualización:** 2026-05-15
+**Última actualización:** 2026-05-16
 
 **Directorio de trabajo:** `C:\Dev-AI\entrenador-personal-ia` (fuera de OneDrive — ver DEC-007).
 
-**Hito actual:** Fase 4 — App completa en producción. Los 3 ejercicios comprometidos están operativos: sentadillas (`SquatTracker`), curl de bíceps (`BicepCurlTracker`, vistas frontal y lateral), y press de hombro (`ShoulderPressTracker`, polaridad invertida, umbrales clínicos). PWA instalable con service worker cache-first y manifest (DEC-006). Deploy automático en Vercel en cada push a `main` (DEC-019). Bug de hardware de cámara en modo standalone corregido con delay de 450 ms (DEC-021). Selector de ejercicio con chips desplazables en barra inferior. Feedback de voz sin colisiones (DEC-016/017).
+**Hito actual:** Fase 4 — App completa en producción, bugs de auditoría Codex corregidos. Los 3 ejercicios comprometidos están operativos: sentadillas (`SquatTracker`), curl de bíceps (`BicepCurlTracker`, vistas frontal y lateral), y press de hombro (`ShoulderPressTracker`, polaridad invertida, umbrales clínicos). Conteo unificado con OR logic + cooldown en curl y press (DEC-022/023). PWA instalable con service worker (SW network-first para HTML, cache-first para assets — DEC-025) y manifest (DEC-006). Deploy automático en Vercel en cada push a `main` (DEC-019). Bug de hardware de cámara en modo standalone corregido con delay de 450 ms (DEC-021). localStorage con try/catch y validación de valor en todos los puntos de acceso (DEC-024). Selector de ejercicio con chips desplazables en barra inferior. Feedback de voz sin colisiones (DEC-016/017).
 
-**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl, `ArmPressTracker` para press, PWA manual, deploy en Vercel, HTTPS local con `@vitejs/plugin-basic-ssl`, delay 450 ms cambio de cámara. Documentadas en `DECISIONS.md` (DEC-001 a DEC-021).
+**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl, `ArmPressTracker` para press, conteo unificado OR+cooldown en curl y press, PWA manual, SW network-first para HTML, deploy en Vercel, HTTPS local con `@vitejs/plugin-basic-ssl`, delay 450 ms cambio de cámara, localStorage defensivo. Documentadas en `DECISIONS.md` (DEC-001 a DEC-025).
 
 **Próximo paso:** Documentación final del curso — `docs/descripcion-proyecto.md` y `docs/manual-usuario.md`. Entrega 22/05/2026.
