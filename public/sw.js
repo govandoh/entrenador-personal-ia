@@ -1,4 +1,4 @@
-const CACHE = 'entrenador-ia-v2';
+const CACHE = 'entrenador-ia-v3';
 
 self.addEventListener('install', () => {
   self.skipWaiting();
@@ -18,7 +18,23 @@ self.addEventListener('fetch', e => {
   // Son demasiado grandes para el cache del SW y el browser HTTP cache ya los maneja.
   if (!e.request.url.startsWith(self.location.origin)) return;
 
-  // App shell (HTML, JS, CSS): cache-first con actualización en background.
+  // Navegación (index.html): network-first para que el usuario siempre reciba el HTML
+  // más reciente con las referencias correctas a los assets hasheados del deploy actual.
+  // Sin esto, un HTML cacheado puede apuntar a assets inexistentes después de un deploy.
+  if (e.request.mode === 'navigate') {
+    e.respondWith(
+      fetch(e.request)
+        .then(res => {
+          if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+          return res;
+        })
+        .catch(async () => (await caches.match(e.request)) ?? Response.error())
+    );
+    return;
+  }
+
+  // Assets estáticos (JS, CSS, iconos): cache-first.
+  // Son content-hashed e inmutables; si cambian de contenido, cambian de nombre.
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const cached = await cache.match(e.request);

@@ -89,9 +89,12 @@ export function CameraView() {
 
   const [status, setStatus]                 = useState<Status>('loading');
   const [errorMsg, setErrorMsg]             = useState('');
-  const [facingMode, setFacingMode]         = useState<FacingMode>(
-    () => (localStorage.getItem('preferred_camera') as FacingMode) ?? 'environment',
-  );
+  const [facingMode, setFacingMode]         = useState<FacingMode>(() => {
+    try {
+      const v = localStorage.getItem('preferred_camera');
+      return (v === 'user' || v === 'environment') ? v : 'environment';
+    } catch { return 'environment'; }
+  });
   const [activeExercise, setActiveExercise] = useState<ActiveExercise>('squat');
   const [exerciseResult, setExerciseResult] = useState<AnyResult | null>(null);
 
@@ -272,7 +275,7 @@ export function CameraView() {
             className="camera-control-btn"
             onClick={() => {
               const next: FacingMode = facingMode === 'environment' ? 'user' : 'environment';
-              localStorage.setItem('preferred_camera', next);
+              try { localStorage.setItem('preferred_camera', next); } catch { /* storage bloqueado */ }
               setFacingMode(next);
             }}
             aria-label="Cambiar cámara"

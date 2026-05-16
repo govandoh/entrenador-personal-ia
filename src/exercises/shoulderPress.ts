@@ -17,6 +17,8 @@ const FALLING_PER_FRAME      = 0.5;  // decremento mínimo por frame para contar
 const MIN_FALLING_FRAMES     = 3;    // frames consecutivos de bajada para confirmar que se pasó el pico
 export const GOOD_LOCKOUT_ANGLE = 145; // mínimo ángulo para "extensión completa" (evita hiperextensión a 180°)
 export const SAFE_LOW_ANGLE     =  80; // < este valor → alerta roja (riesgo de impingement del supraespinoso)
+// Cooldown post-rep: absorbe la señal del segundo brazo en press bilaterales (ver DEC-022 — mismo patrón que curl)
+const REP_COOLDOWN_FRAMES    = 15;
 const MIN_VISIBILITY         = 0.5;
 const LATERAL_VIS_DIFF       = 0.35;  // diferencia de visibilidad para detectar vista lateral
 
@@ -36,24 +38,26 @@ export interface ShoulderPressResult {
   activeArm:       'left' | 'right' | 'both';
 }
 
-// Tracker de un solo brazo — polaridad inversa al curl (pico = ángulo MÁXIMO)
+// Tracker de un solo brazo — polaridad inversa al curl (pico = ángulo MÁXIMO).
+// No mantiene contador propio de reps; solo señaliza repCompleted.
+// El contador vive en ShoulderPressTracker para unificar press bilaterales y alternos (ver DEC-022).
 class ArmPressTracker {
   phase         : PressPhase = 'lowered';
-  reps            = 0;
   prevAngle       = 0;    // inicializa bajo porque el brazo empieza a nivel de hombro (~90°)
   maxAngleSeen    = 0;    // acumula el MÁXIMO (opuesto al minAngleSeen del curl)
   peakFired       = false;
   fallingFrames   = 0;
 
-  update(angle: number): { atPeak: boolean; maxAngleReached: number; phase: PressPhase } {
+  update(angle: number): { repCompleted: boolean; atPeak: boolean; maxAngleReached: number; phase: PressPhase } {
     const prevPhase = this.phase;
 
     // Transiciones con histéresis: zona 100°–150° conserva la fase actual
     if      (angle > PRESSED_ANGLE)  this.phase = 'pressed';
     else if (angle < LOWERED_ANGLE)  this.phase = 'lowered';
 
-    // Rep completada: solo si se confirmó el pico (peakFired) — previene reps falsas (ver DEC-017)
-    if (prevPhase === 'pressed' && this.phase === 'lowered' && this.peakFired) this.reps++;
+    // Señalizar rep completada: solo si se confirmó el pico — no incrementa contador propio.
+    // ShoulderPressTracker decide si contar según contexto bilateral/alterno (ver DEC-022).
+    const repCompleted = prevPhase === 'pressed' && this.phase === 'lowered' && this.peakFired;
 
     // Detección de pico real por confirmación de frames consecutivos (ver DEC-016)
     // El pico es el MÁXIMO de ángulo → se confirma cuando el ángulo empieza a BAJAR
@@ -83,12 +87,11 @@ class ArmPressTracker {
     }
 
     this.prevAngle = angle;
-    return { atPeak, maxAngleReached, phase: this.phase };
+    return { repCompleted, atPeak, maxAngleReached, phase: this.phase };
   }
 
   reset(): void {
     this.phase         = 'lowered';
-    this.reps          = 0;
     this.prevAngle     = 0;
     this.maxAngleSeen  = 0;
     this.peakFired     = false;
@@ -97,8 +100,10 @@ class ArmPressTracker {
 }
 
 export class ShoulderPressTracker {
-  private left  = new ArmPressTracker();
-  private right = new ArmPressTracker();
+  private left        = new ArmPressTracker();
+  private right       = new ArmPressTracker();
+  private reps        = 0;
+  private repCooldown = 0;  // frames restantes de cooldown post-rep
 
   update(landmarks: NormalizedLandmark[]): ShoulderPressResult {
     // Visibilidad mínima del trío hombro-codo-muñeca por lado
@@ -129,6 +134,8 @@ export class ShoulderPressTracker {
       };
     }
 
+    if (this.repCooldown > 0) this.repCooldown--;
+
     let leftRes   = null;
     let rightRes  = null;
     let leftAngle  = 0;
@@ -145,6 +152,14 @@ export class ShoulderPressTracker {
         landmarks[LM.RIGHT_SHOULDER], landmarks[LM.RIGHT_ELBOW], landmarks[LM.RIGHT_WRIST]
       );
       rightRes = this.right.update(rightAngle);
+    }
+
+    // OR logic: cualquier brazo que complete el ciclo dispara la rep.
+    // El cooldown absorbe la señal del segundo brazo en press bilaterales (ver DEC-022).
+    const eitherRepCompleted = (leftRes?.repCompleted ?? false) || (rightRes?.repCompleted ?? false);
+    if (eitherRepCompleted && this.repCooldown === 0) {
+      this.reps++;
+      this.repCooldown = REP_COOLDOWN_FRAMES;
     }
 
     // Ángulo primario: el brazo más extendido (MÁXIMO — opuesto al curl que usa mínimo)
@@ -171,7 +186,7 @@ export class ShoulderPressTracker {
 
     return {
       phase,
-      reps: this.left.reps + this.right.reps,
+      reps: this.reps,
       elbowAngle,
       atPeak,
       maxAngleReached,
@@ -183,6 +198,8 @@ export class ShoulderPressTracker {
   reset(): void {
     this.left.reset();
     this.right.reset();
+    this.reps        = 0;
+    this.repCooldown = 0;
   }
 
   private buildFeedback(

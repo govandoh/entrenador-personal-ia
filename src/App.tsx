@@ -5,10 +5,12 @@ import { OnboardingFlow } from './ui/Onboarding/OnboardingFlow';
 const ONBOARDING_KEY = 'ob_complete_v1';
 
 function App() {
-  const [ready, setReady] = useState(() => localStorage.getItem(ONBOARDING_KEY) === '1');
+  const [ready, setReady] = useState(() => {
+    try { return localStorage.getItem(ONBOARDING_KEY) === '1'; } catch { return false; }
+  });
 
   const handleComplete = () => {
-    localStorage.setItem(ONBOARDING_KEY, '1');
+    try { localStorage.setItem(ONBOARDING_KEY, '1'); } catch { /* storage bloqueado o en modo privado */ }
     setReady(true);
   };
 
