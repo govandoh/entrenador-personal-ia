@@ -128,7 +128,7 @@ export class ShoulderPressTracker {
 
     if (!leftCanUse && !rightCanUse) {
       return {
-        phase: 'lowered', reps: this.left.reps + this.right.reps,
+        phase: 'lowered', reps: this.reps,
         feedbackLevel: 'idle', feedbackMessage: 'Asegúrate de que tu brazo sea visible',
         elbowAngle: 0, atPeak: false, maxAngleReached: 0, activeArm: 'both',
       };
