@@ -60,9 +60,11 @@ class ArmPressTracker {
     let atPeak = false;
     if (this.phase === 'pressed') {
       if (angle > this.maxAngleSeen) this.maxAngleSeen = angle;
+      // Solo se resetea fallingFrames si el ángulo sube claramente; los frames estables
+      // (ruido de MediaPipe en el pico overhead) no deben interrumpir la confirmación.
       if (angle < this.prevAngle - FALLING_PER_FRAME) {
         this.fallingFrames++;
-      } else {
+      } else if (angle > this.prevAngle + FALLING_PER_FRAME) {
         this.fallingFrames = 0;
       }
       if (!this.peakFired && this.fallingFrames >= MIN_FALLING_FRAMES) {

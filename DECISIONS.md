@@ -180,8 +180,52 @@ standing     → voz dice solo el número de rep
 
 ---
 
-## DEC-006 · Plugin PWA: diferido (incompatibilidad con Vite 8)
-**Fecha:** 2026-04-29  
-**Contexto:** `vite-plugin-pwa` es la herramienta estándar para generar service worker y validar el manifest en proyectos Vite. Al intentar instalarlo, falló con conflicto de peer dependency: solo soporta hasta Vite 7; el scaffold de Vite 9 instala Vite 8.  
-**Alternativas:** (a) Downgrade a Vite 7; (b) `--legacy-peer-deps` y asumir posible incompatibilidad; (c) escribir el service worker manualmente.  
-**Razón:** El plugin PWA no es necesario para el primer paso (cámara + esqueleto). Se difiere a la semana 5-6 cuando el alcance core esté cerrado. En ese momento se evaluará si el plugin ya actualizó soporte para Vite 8, si conviene hacer downgrade, o si se escribe el SW manualmente con Workbox CLI. No bloquea el desarrollo actual.
+## DEC-006 · PWA implementada manualmente (sin vite-plugin-pwa)
+**Fecha original de diferimiento:** 2026-04-29 · **Fecha de resolución:** 2026-05-15  
+**Contexto:** `vite-plugin-pwa` falló por incompatibilidad de peer dependency con Vite 8 (solo soporta hasta Vite 7). Se había diferido para la semana 5-6.  
+**Alternativas evaluadas en semana 5-6:** (a) Downgrade a Vite 7 — riesgo de romper otras dependencias; (b) `--legacy-peer-deps` — plug-in sin probar con Vite 8, posibles bugs silenciosos; (c) implementación manual del SW + manifest.  
+**Decisión:** Implementación manual. El `public/manifest.json` declara `display: standalone`, `theme_color: #FC4C02`, `background_color: #0a0a0a` y referencia `favicon.svg` como único ícono (escalable SVG, compatible con Chrome/Edge/Firefox; Safari requiere `apple-touch-icon` separado, cubierto con `<link>` en `index.html`). El `public/sw.js` usa estrategia **cache-first para app shell** (mismo origen) y **network-only para CDN externos** (archivos WASM y modelo de MediaPipe son demasiado grandes para el cache del SW; el cache HTTP del browser ya los maneja). El SW se registra en `main.tsx` en el evento `load` para no bloquear el hilo principal durante el arranque. La versión del cache (`CACHE = 'entrenador-ia-v2'`) se sube manualmente con cada deploy para forzar re-descarga en los usuarios con el PWA instalado.  
+**Por qué no Workbox CLI:** Agrega un paso de build extra y una dependencia de CLI. Para un SW de 30 líneas con una sola estrategia, el overhead no está justificado.
+
+---
+
+## DEC-019 · Plataforma de deploy: Vercel
+**Fecha:** 2026-05-15  
+**Contexto:** Cierra la decisión pendiente de sección 5.3 del anteproyecto (GitHub Pages vs. Vercel vs. Netlify). La app necesita deploy en URL pública para la entrega del 22/05.  
+**Alternativas:** (a) GitHub Pages — requiere rama `gh-pages` o configurar Actions; no tiene preview deployments automáticos por PR; solo soporta sitios estáticos sin rewrite rules; (b) Netlify — similar a Vercel en features, interface menos familiar; (c) Vercel — integración directa con GitHub, deploy automático en cada push a `main`, preview URL por rama, zero-config para proyectos Vite (detecta automáticamente el framework y usa `vite build`).  
+**Decisión:** Vercel. El proyecto Vite se detecta automáticamente; no requiere `vercel.json` ni configuración adicional. El output directory `dist/` y el comando `vite build` son inferidos por Vercel. El plan Hobby (gratuito) es suficiente para el alcance del proyecto y no requiere tarjeta de crédito (cumple restricción dura 5).  
+**Impacto:** Cada push a `main` dispara un deploy automático. La URL de producción queda fija para incluir en los entregables del curso.
+
+---
+
+## DEC-020 · HTTPS en desarrollo local: @vitejs/plugin-basic-ssl
+**Fecha:** 2026-05-15  
+**Contexto:** La API `getUserMedia` con `facingMode: 'environment'` (cámara trasera) exige un contexto seguro (HTTPS o `localhost`). Al exponer el dev server en la red local con `host: true` para probar desde el celular, `localhost` ya no aplica — el celular accede por IP (ej. `192.168.x.x`), que es HTTP sin TLS. Cierra la decisión pendiente de sección 5.4 (ngrok vs. deploy continuo).  
+**Alternativas:** (a) ngrok — tunnel HTTPS gratuito pero requiere instalar la herramienta, autenticarse, y la URL cambia en cada sesión; (b) usar directamente la URL de Vercel como entorno de pruebas — implica hacer push por cada cambio, ciclo muy lento; (c) certificado local autofirmado con mkcert — requiere instalar la CA en cada celular de prueba; (d) `@vitejs/plugin-basic-ssl` — genera un certificado autofirmado en memoria, el navegador del celular muestra la advertencia "sitio no seguro" pero se puede ignorar una vez para desarrollo.  
+**Decisión:** `@vitejs/plugin-basic-ssl`. No requiere instalación externa, no tiene tokens que expiren, la URL es siempre la IP local del equipo, y el certificado autofirmado es aceptable para desarrollo (el deploy de producción en Vercel tiene TLS real). La advertencia del navegador se ignora una vez y no vuelve a aparecer en la misma sesión.  
+**Limitación:** iOS Safari rechaza certificados autofirmados con más severidad que Android Chrome. Si se necesita probar en iOS, la alternativa es usar la URL de preview de Vercel.
+
+---
+
+## DEC-021 · Delay de 450 ms al cambiar de cámara en PWA instalada
+**Fecha:** 2026-05-15  
+**Contexto:** Al cambiar entre cámara frontal y trasera desde el PWA instalado (modo standalone), `getUserMedia` lanzaba "Could not start video source" de forma intermitente — error que no aparecía al usar la app desde el navegador. La causa: `track.stop()` es síncrono en la API JavaScript, pero el hardware del dispositivo (sensor de cámara) no libera el recurso de forma inmediata; llamar `getUserMedia` antes de que el hardware esté libre produce la colisión.  
+**Por qué solo en PWA instalada:** El navegador introduce su propio buffer de tiempo entre páginas o pestañas, lo que da margen suficiente para que el hardware se libere. El PWA standalone no tiene ese buffer — el cambio de cámara ocurre dentro del mismo proceso y el ciclo stop → start es inmediato.  
+**Solución:** Flag `cameraStopPendingRef` (booleano) que se activa en el cleanup del `useEffect` cuando se detiene un stream. Al inicio del siguiente `setup()`, si el flag está activo, se espera 450 ms antes de llamar `getUserMedia`. Los 450 ms son un valor empírico conservador que cubre la mayoría de dispositivos Android e iOS. El flag se resetea al inicio del delay para no acumular esperas en cambios rápidos sucesivos.  
+**Alternativas descartadas:** (a) reintentar `getUserMedia` con backoff exponencial — mayor complejidad y el usuario ve el error momentáneamente; (b) detectar el error específico "Could not start video source" y recuperar — frágil, el mensaje de error varía por navegador y versión.
+
+---
+
+## DEC-022 · Curl de bíceps: conteo unificado con cooldown (sin conteo por brazo)
+**Fecha:** 2026-05-15  
+**Contexto:** El diseño original de `BicepCurlTracker` mantenía un contador de reps independiente en cada `ArmTracker` (`left.reps + right.reps`). En vista frontal con curls bilaterales (ambos brazos simultáneos), cada brazo completaba su ciclo y ambos contadores incrementaban, resultando en el doble de reps reales. Sin un modelo de IA que clasifique automáticamente si el ejercicio es unilateral o bilateral, no es posible distinguir el caso sin introducir heurísticas adicionales frágiles.  
+**Alternativas consideradas:**  
+(a) Pedir al usuario que seleccione el modo (unilateral / bilateral) — agrega fricción en la UI y requiere que el usuario entienda la distinción.  
+(b) Detectar el modo automáticamente por correlación temporal entre ambos brazos — requiere buffer de historial de ángulos y lógica de correlación, complejidad desproporcionada al alcance.  
+(c) Conteo unificado en `BicepCurlTracker` con OR logic + cooldown de frames — simple, determinista, cubre los dos casos sin intervención del usuario.  
+**Decisión:** Opción (c). `ArmTracker` ya no mantiene contador propio; emite `repCompleted: boolean` cuando su ciclo cumple todos los gates. `BicepCurlTracker` tiene el único contador `reps` y lo incrementa cuando `leftRes.repCompleted || rightRes.repCompleted` con `repCooldown === 0`. Tras contar, activa un cooldown de **15 frames (~250 ms a 60 fps)**. El cooldown absorbe la señal del segundo brazo en curls bilaterales (llega en 0-50 ms) sin bloquear curls alternos donde el segundo brazo dispara típicamente >500 ms después.  
+**Comportamiento resultante:**  
+- Curl bilateral (barra o mancuernas simultáneas): 1 rep por ciclo.  
+- Curl alterno (mancuernas, un brazo después del otro): 1 rep por brazo → 2 reps por ciclo completo.  
+- Vista lateral (un solo brazo visible): 1 rep por ciclo, igual que antes.  
+**Trade-off aceptado:** En curls alternos muy rápidos (<250 ms entre brazos), el cooldown podría suprimir el segundo brazo. A 60 fps y con la cadencia normal de un curl (>500 ms por brazo), este caso no debería ocurrir en condiciones reales de entrenamiento.

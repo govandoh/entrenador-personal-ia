@@ -196,8 +196,8 @@ Lo que se entrega en Canvas el 22/05 y se presenta el 23/05.
 
 **Directorio de trabajo:** `C:\Dev-AI\entrenador-personal-ia` (fuera de OneDrive — ver DEC-007).
 
-**Hito actual:** Fase 3 — Segundo ejercicio operativo. `BicepCurlTracker` con soporte de vista frontal y lateral (detección automática por diferencia de visibilidad), misma lógica de cima real que sentadillas. Selector de ejercicio en pantalla (botón inferior izquierdo cicla squat ↔ curl). `ExerciseOverlay` ahora genérico (no acoplado a `SquatResult`).
+**Hito actual:** Fase 4 — App completa en producción. Los 3 ejercicios comprometidos están operativos: sentadillas (`SquatTracker`), curl de bíceps (`BicepCurlTracker`, vistas frontal y lateral), y press de hombro (`ShoulderPressTracker`, polaridad invertida, umbrales clínicos). PWA instalable con service worker cache-first y manifest (DEC-006). Deploy automático en Vercel en cada push a `main` (DEC-019). Bug de hardware de cámara en modo standalone corregido con delay de 450 ms (DEC-021). Selector de ejercicio con chips desplazables en barra inferior. Feedback de voz sin colisiones (DEC-016/017).
 
-**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl. Documentadas en `DECISIONS.md` (DEC-001 a DEC-015).
+**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl, `ArmPressTracker` para press, PWA manual, deploy en Vercel, HTTPS local con `@vitejs/plugin-basic-ssl`, delay 450 ms cambio de cámara. Documentadas en `DECISIONS.md` (DEC-001 a DEC-021).
 
-**Próximo paso:** Prueba en celular del curl (frontal y lateral). Luego implementar el tercer ejercicio (`src/exercises/shoulderPress.ts`), deploy a Vercel, y documentación final (`docs/`).
+**Próximo paso:** Documentación final del curso — `docs/descripcion-proyecto.md` y `docs/manual-usuario.md`. Entrega 22/05/2026.

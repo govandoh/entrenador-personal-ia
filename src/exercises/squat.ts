@@ -71,8 +71,10 @@ export class SquatTracker {
     }
     // else: zona 100–160°, la fase se mantiene
 
-    // Contar rep al completar el ciclo squatting → standing
-    if (prevPhase === 'squatting' && this.phase === 'standing') {
+    // Contar rep al completar el ciclo squatting → standing.
+    // El gate bottomFired garantiza que el movimiento tuvo un descenso real confirmado
+    // antes de subir (previene falsas reps por ruido de landmarks — ver DEC-017).
+    if (prevPhase === 'squatting' && this.phase === 'standing' && this.bottomFired) {
       this.reps++;
     }
 
