@@ -6,7 +6,9 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist', 'coverage', 'node_modules']),
+  // `.claude/worktrees` contiene checkouts paralelos (agentes en worktrees aislados);
+  // sin ignorarlos, typescript-eslint detecta varias raíces de tsconfig y falla.
+  globalIgnores(['dist', 'coverage', 'node_modules', '.claude/worktrees']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
