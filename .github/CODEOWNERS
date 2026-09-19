@@ -1,0 +1,61 @@
+# CODEOWNERS de Fitnet — propiedad por workstream (ver docs/WORKSTREAMS.md, plan §3.1)
+#
+# IMPORTANTE: los handles @dev-a … @dev-e, @lead-b y @lead-d son PLACEHOLDERS.
+# Sustituirlos por los usuarios reales de GitHub del equipo (o por teams @org/…)
+# en cuanto se confirmen; GitHub ignora silenciosamente los handles que no existen
+# o que no son colaboradores con permiso de escritura, así que hasta entonces
+# esta protección no aplica. Convención: @lead-b es el Dev B, @lead-d es el Dev D.
+#
+# Reglas: la última línea que coincide gana. Las rutas "objetivo" (packages/*, apps/web, …)
+# aún no existen; se dejan aquí para que la propiedad quede definida antes de la migración.
+
+# ---------- A. Pose & Captura ----------
+/src/pose/                          @dev-a
+/packages/pose-engine/              @dev-a
+/apps/web/src/features/capture/     @dev-a
+/fixtures/                          @dev-a
+
+# ---------- B. Análisis & Runtime ----------
+/src/exercises/                     @dev-b
+/src/geometry/                      @dev-b
+/src/feedback/                      @dev-b
+/packages/analysis-core/            @dev-b
+/packages/ml-runtime/               @dev-b
+
+# ---------- C. ML Training ----------
+/ml/                                @dev-c
+/models/                            @dev-c
+/models/manifest.json               @dev-b @dev-c
+
+# ---------- D. Backend de producto ----------
+/supabase/                          @dev-d
+/packages/domain/                   @dev-d
+/packages/api-client/               @dev-d
+/evals/coach/                       @dev-d
+
+# ---------- E. App & UI ----------
+/src/ui/                            @dev-e
+/src/App.tsx                        @dev-e
+/src/App.css                        @dev-e
+/src/index.css                      @dev-e
+/src/main.tsx                       @dev-e
+/index.html                         @dev-e
+/public/                            @dev-e
+/apps/web/                          @dev-e
+/packages/ui/                       @dev-e
+/e2e/                               @dev-e
+
+# ---------- Co-propiedad: contratos (2 aprobaciones, leads B y D) ----------
+/src/contracts/                     @lead-b @lead-d
+/packages/contracts/                @lead-b @lead-d
+
+# ---------- Decisiones y arquitectura (B, D y E) ----------
+/docs/adr/                          @lead-b @lead-d @dev-e
+/DECISIONS.md                       @lead-b @lead-d @dev-e
+/ARCHITECTURE.md                    @lead-b @lead-d @dev-e
+
+# ---------- Plataforma / DevEx ----------
+/.claude/                           @lead-b @lead-d
+/.github/                           @lead-b @lead-d
+/AGENTS.md                          @lead-b @lead-d
+/CLAUDE.md                          @lead-b @lead-d
