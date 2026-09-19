@@ -12,6 +12,11 @@ dist
 dist-ssr
 *.local
 
+# Tests y compilación incremental
+coverage/
+.vitest/
+*.tsbuildinfo
+
 # Claude Code local config
 .claude/settings.local.json
 
