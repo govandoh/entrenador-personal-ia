@@ -1,0 +1,75 @@
+name: Historia de usuario
+description: Funcionalidad o mejora para el backlog del sprint.
+title: "[Historia] "
+labels: ["historia"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Antes de abrirla, revisa `docs/PRODUCT.md` (alcance) y `docs/WORKSTREAMS.md` (quién posee qué).
+  - type: textarea
+    id: historia
+    attributes:
+      label: Historia
+      description: Formato "Como <rol>, quiero <acción> para <beneficio>".
+      placeholder: Como usuario premium, quiero ver mi pérdida de velocidad por serie para saber cuándo parar.
+    validations:
+      required: true
+  - type: dropdown
+    id: epica
+    attributes:
+      label: Épica
+      options:
+        - Perfiles y cuentas
+        - Análisis 3D (fatiga, errores, velocidad, consistencia)
+        - Rutinas, calendario y métodos de entrenamiento
+        - Planes de entrenadores (marketplace)
+        - Coaching 1:1 con asistente IA
+        - Métricas, rankings y retos
+        - Freemium y pagos
+        - Comunidad
+        - Núcleo de IA
+        - Plataforma / DevEx
+    validations:
+      required: true
+  - type: dropdown
+    id: workstream
+    attributes:
+      label: Workstream responsable
+      options:
+        - A · Pose & Captura
+        - B · Análisis & Runtime
+        - C · ML Training
+        - D · Backend de producto
+        - E · App & UI
+        - Varios (indicar en notas)
+    validations:
+      required: true
+  - type: textarea
+    id: criterios
+    attributes:
+      label: Criterios de aceptación
+      description: Lista verificable. Cada criterio debería poder convertirse en un test.
+      placeholder: |
+        - [ ] Al terminar una serie de sentadilla se muestra "pérdida de velocidad: NN %"
+        - [ ] Con < 3 reps no se muestra el indicador
+        - [ ] Funciona sin conexión (dato calculado en el dispositivo)
+    validations:
+      required: true
+  - type: textarea
+    id: contratos
+    attributes:
+      label: Contratos o métricas que necesita
+      description: ¿Requiere un campo nuevo en `packages/contracts`, una métrica en `docs/METRICS.md` o una tabla nueva? Si sí, probablemente necesita una ADR.
+  - type: textarea
+    id: notas
+    attributes:
+      label: Notas, mockups, enlaces
+  - type: checkboxes
+    id: dod
+    attributes:
+      label: Listo para "Ready" cuando
+      options:
+        - label: Tiene criterios de aceptación verificables
+        - label: Cabe en un PR de < 400 líneas (o está partida)
+        - label: No depende de una decisión pendiente (o la ADR ya existe)

@@ -1,0 +1,66 @@
+name: Propuesta de ADR
+description: Una decisión de arquitectura que hay que tomar o documentar (formato MADR).
+title: "[ADR] "
+labels: ["adr", "arquitectura"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Este issue alimenta la **revisión de arquitectura** de cada sprint. Si la decisión ya se tomó,
+        usa la skill `/adr` para redactarla directamente en `docs/adr/` y enlaza el PR aquí.
+        Índice y numeración: `docs/adr/README.md`.
+  - type: input
+    id: titulo
+    attributes:
+      label: Decisión propuesta (una frase, en voz activa)
+      placeholder: Usar One-Euro filter para suavizar worldLandmarks antes del FeatureExtractor
+    validations:
+      required: true
+  - type: textarea
+    id: contexto
+    attributes:
+      label: Contexto y problema
+      description: Qué obliga a decidir; síntoma, restricción u oportunidad. Cita código o métricas si aplica.
+    validations:
+      required: true
+  - type: textarea
+    id: opciones
+    attributes:
+      label: Opciones consideradas
+      description: Mínimo dos, con pro/contra principal.
+      placeholder: |
+        1. One-Euro filter — bajo retardo, 2 parámetros; hay que calibrar por joint
+        2. EMA simple — trivial; introduce retardo en movimientos rápidos
+        3. Sin suavizado — cero latencia; ruido en velocidad pico
+    validations:
+      required: true
+  - type: textarea
+    id: consecuencias
+    attributes:
+      label: Consecuencias y riesgos
+      description: Qué paquetes, contratos, golden o métricas afecta.
+  - type: checkboxes
+    id: impacto
+    attributes:
+      label: Impacto (marca lo que aplique)
+      options:
+        - label: Cambia `packages/contracts` / `src/contracts` (bump semver, 2 aprobaciones)
+        - label: Cambia `models/manifest.json` o el esquema de features
+        - label: Cambia snapshots golden
+        - label: Añade una dependencia o un servicio externo
+        - label: Afecta datos personales o consentimiento (`docs/DATA-GOVERNANCE.md`)
+  - type: input
+    id: supera
+    attributes:
+      label: ¿Supera o modifica una DEC existente?
+      placeholder: DEC-016
+  - type: dropdown
+    id: urgencia
+    attributes:
+      label: Urgencia
+      options:
+        - Bloquea trabajo del sprint actual
+        - Necesaria para el próximo sprint
+        - Puede esperar a la próxima revisión de arquitectura
+    validations:
+      required: true

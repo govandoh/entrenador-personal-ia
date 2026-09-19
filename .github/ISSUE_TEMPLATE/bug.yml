@@ -1,0 +1,83 @@
+name: Bug
+description: Algo no funciona como debería.
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Si el bug ocurre con la cámara o el conteo de reps, lo más valioso es un **fixture**:
+        graba la secuencia con `?debug=record` y adjúntala (ver skill `/fixture`). Nunca subas video.
+  - type: textarea
+    id: descripcion
+    attributes:
+      label: Qué pasa
+      placeholder: El press de hombro cuenta 2 reps por cada rep bilateral.
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: Qué esperabas
+    validations:
+      required: true
+  - type: textarea
+    id: pasos
+    attributes:
+      label: Pasos para reproducir
+      placeholder: |
+        1. Abrir la PWA instalada
+        2. Elegir "Press de hombro", cámara frontal
+        3. Hacer 5 reps con ambos brazos
+        4. El contador muestra 10
+    validations:
+      required: true
+  - type: input
+    id: dispositivo
+    attributes:
+      label: Dispositivo y navegador
+      placeholder: Pixel 7 / Chrome 128 · iPhone 13 / Safari 17 · PWA instalada o pestaña
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Versión / URL
+      placeholder: URL de producción o preview, commit o fecha
+  - type: dropdown
+    id: area
+    attributes:
+      label: Área
+      options:
+        - Cámara / detección de pose (A)
+        - Conteo de reps / feedback / análisis (B)
+        - Modelos ML (C)
+        - Backend / cuentas / sincronización (D)
+        - UI / onboarding / PWA (E)
+        - Asistente IA (coach)
+        - No sé
+    validations:
+      required: true
+  - type: dropdown
+    id: severidad
+    attributes:
+      label: Severidad
+      options:
+        - Bloqueante (no se puede usar)
+        - Alta (funcionalidad principal mal)
+        - Media (molesto, hay rodeo)
+        - Baja (cosmético)
+    validations:
+      required: true
+  - type: textarea
+    id: evidencia
+    attributes:
+      label: Evidencia
+      description: Fixture `.json` de landmarks, capturas de pantalla, logs de consola. Sin video ni datos personales.
+  - type: checkboxes
+    id: verificaciones
+    attributes:
+      label: Verificaciones
+      options:
+        - label: Busqué issues existentes y no está reportado
+        - label: Adjunté un fixture o los pasos bastan para reproducirlo sin cámara
