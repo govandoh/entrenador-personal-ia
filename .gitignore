@@ -17,8 +17,9 @@ coverage/
 .vitest/
 *.tsbuildinfo
 
-# Claude Code local config
+# Claude Code local config y worktrees de agentes
 .claude/settings.local.json
+.claude/worktrees/
 
 # Editor directories and files
 .vscode/*
