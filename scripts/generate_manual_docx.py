@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Genera docs/manual-usuario.docx a partir del contenido del manual de usuario.
+Genera docs/academico/manual-usuario.docx a partir del contenido del manual de usuario.
 Formato: manual de usuario académico con estilos UMG.
+Entregable histórico del MVP del curso IA26; ver docs/academico/README.md.
 """
 
 from docx import Document
@@ -12,7 +13,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import os
 
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'docs', 'manual-usuario.docx')
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'docs', 'academico', 'manual-usuario.docx')
 
 # ──────────────────────────────────────────────
 # Helpers de formato (compartidos con generate_docx.py)
