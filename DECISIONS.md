@@ -23,5 +23,6 @@ Acceso rápido a las más citadas desde el código:
 | DEC-025 | Service Worker network-first para HTML | [docs/adr/DEC-025-service-worker-network-first.md](docs/adr/DEC-025-service-worker-network-first.md) |
 | DEC-027 | Arquitectura híbrida de IA | [docs/adr/DEC-027-arquitectura-hibrida-ia.md](docs/adr/DEC-027-arquitectura-hibrida-ia.md) |
 | DEC-028 | Monorepo pnpm y fronteras de paquetes | [docs/adr/DEC-028-monorepo-pnpm-fronteras-paquetes.md](docs/adr/DEC-028-monorepo-pnpm-fronteras-paquetes.md) |
+| DEC-034 | Vía de implementación del análisis por IA (propuesta) | [docs/adr/DEC-034-via-implementacion-analisis-ia.md](docs/adr/DEC-034-via-implementacion-analisis-ia.md) |
 
 No agregar decisiones nuevas a este archivo: crear `docs/adr/DEC-NNN-*.md` y actualizar el índice de `docs/adr/README.md`.

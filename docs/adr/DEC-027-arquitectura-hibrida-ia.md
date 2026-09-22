@@ -68,8 +68,13 @@ El LLM (`CoachAssistant`, ver `DEC-033`) recibe **solo métricas estructuradas**
 - Dos implementaciones de features (TypeScript y Python) que deben mantenerse en paridad (test con tolerancia 1e-3).
 - Las constantes en frames deben migrar a tiempo real (`PeakDetector` con `confirmMs`), lo que cambiará los golden con justificación en una DEC.
 
+## Nota posterior (2026-09-22)
+
+La **vía de implementación** de esta arquitectura se detalla en `DEC-034` (propuesta): features por repetición antes que keypoints crudos, esqueleto canónico COCO-17 y modelos entrenados solo con datos propios, MM-Fit o InfiniteRep. Motivo principal: los checkpoints públicos de GCN esquelético (ST-GCN++, CTR-GCN y similares) están entrenados sobre NTU RGB+D, de uso no comercial, por lo que no pueden llegar a producción en un producto con suscripciones. Esta DEC no cambia; `DEC-034` la concreta.
+
 ## Referencias
 
+- `DEC-034` (vía de implementación y restricción de licencias).
 - `ARCHITECTURE.md` (contratos `FeatureExtractor`, `FormAnalyzer`, `FatigueAnalyzer`, `EnsembleAnalyzer`).
 - `docs/METRICS.md`, `docs/ML-PIPELINE.md`, `docs/DATA-GOVERNANCE.md`.
 - `DEC-010`, `DEC-014`, `DEC-016`, `DEC-017` (reglas que se conservan como fallback).
