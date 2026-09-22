@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "fixtures": [
+    {
+      "file": "squat-side-good-01.json",
+      "exercise": "squat",
+      "view": "side",
+      "quality": "good",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Rodilla 172°→82°→172°, 5 reps de 1600 ms, 60 fps, vista lateral."
+    },
+    {
+      "file": "squat-side-shallow-01.json",
+      "exercise": "squat",
+      "view": "side",
+      "quality": "shallow",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 0
+      },
+      "notes": "Rodilla 172°→108°→172°, 5 ciclos; nunca cruza BOTTOM_ANGLE=100 → 0 reps esperadas."
+    },
+    {
+      "file": "squat-side-noisy-01.json",
+      "exercise": "squat",
+      "view": "side",
+      "quality": "noisy",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Como good con jitter gaussiano σ=1.5° recortado a ±3° por pierna y spikes de ±15° de un frame en los frames 174, 402. Semilla fija."
+    },
+    {
+      "file": "squat-side-good-30fps-01.json",
+      "exercise": "squat",
+      "view": "side",
+      "quality": "good-30fps",
+      "source": "synthetic",
+      "fps": 30,
+      "frames": 271,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Rodilla 172°→82°→172°, 5 reps de 1600 ms, 30 fps, vista lateral."
+    },
+    {
+      "file": "curl-front-bilateral-01.json",
+      "exercise": "curl",
+      "view": "front",
+      "quality": "bilateral",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Ambos codos 170°→40°→170° simultáneos, 5 reps. El cooldown de DEC-022 debe absorber la señal del segundo brazo → 5 reps."
+    },
+    {
+      "file": "curl-front-alternating-01.json",
+      "exercise": "curl",
+      "view": "front",
+      "quality": "alternating",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 6
+      },
+      "notes": "Brazos alternos: cada brazo hace 3 curls de 1600 ms con 800 ms de descanso; el derecho va 800 ms desfasado. Esperado 6 reps (3 por brazo)."
+    },
+    {
+      "file": "curl-side-left-01.json",
+      "exercise": "curl",
+      "view": "side",
+      "quality": "left",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Solo el brazo izquierdo visible (derecho con visibilidad 0.2 → vista lateral por LATERAL_VIS_DIFF). 5 reps 170°→40°→170°."
+    },
+    {
+      "file": "curl-front-partial-01.json",
+      "exercise": "curl",
+      "view": "front",
+      "quality": "partial",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 0
+      },
+      "notes": "Ambos codos parten de 120° (< MIN_START_ANGLE=130) → 40° → 120°, 5 ciclos. Esperado 0 reps (rango de inicio insuficiente)."
+    },
+    {
+      "file": "press-front-good-01.json",
+      "exercise": "press",
+      "view": "front",
+      "quality": "good",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5
+      },
+      "notes": "Ambos codos 85°→160°→85°, 5 reps bilaterales."
+    },
+    {
+      "file": "press-front-lowelbow-01.json",
+      "exercise": "press",
+      "view": "front",
+      "quality": "lowelbow",
+      "source": "synthetic",
+      "fps": 60,
+      "frames": 541,
+      "durationMs": 9000,
+      "expected": {
+        "reps": 5,
+        "badFeedback": true
+      },
+      "notes": "Ambos codos 70°→160°→70°: baja por debajo de SAFE_LOW_ANGLE=80 → debe aparecer feedback \"bad\" en la fase lowered."
+    }
+  ]
+}

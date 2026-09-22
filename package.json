@@ -14,6 +14,8 @@
     "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "fixtures:gen": "node scripts/gen-synthetic-fixtures.ts",
+    "fixtures:check": "node scripts/gen-synthetic-fixtures.ts --check",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prepare": "husky",
     "preview": "vite preview"
