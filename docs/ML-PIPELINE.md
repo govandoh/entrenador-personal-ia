@@ -15,13 +15,26 @@
 
 ≥ 20 voluntarios, 3 ejercicios, errores guiados con guion (para cada código de `METRICS.md` §5.2), 2–3 ángulos de cámara, celulares distintos. Meta: ≥ 30 reps por clase de error por sujeto-ángulo.
 
-## 2. Esquema JSON v1 de fixtures y grabaciones
+## 2. Esquemas JSON: v1 (golden, implementado) y v2 (dataset, objetivo)
 
-Compartido por TypeScript (`@fitnet/contracts`, zod) y Python (`ml/schemas.py`, pydantic). `schemaVersion: "1"`.
+Hay **dos esquemas y no compiten**: v1 congela comportamiento, v2 entrena modelos.
+
+**v1 — implementado hoy** (`src/testing/fixtureTypes.ts`, descrito en `fixtures/landmarks/SCHEMA.md`, validado por los golden tests y por `pnpm fixtures:check`). Es el que produce el flag `?debug=record` y el que consumen los tests de reglas:
+
+```jsonc
+{
+  "meta": { "schemaVersion": 1, "exercise": "squat", "view": "side", "quality": "good",
+            "source": "phone", "device": "…", "fps": 30, "recordedAt": "…", "notes": "…" },
+  "frames": [ { "t": 0, "image": [ /* 33 × {x,y,z,visibility} */ ], "world": [ /* … */ ] } ]
+}
+```
+Nombre de archivo: `fixtures/landmarks/<ejercicio>-<vista>-<calidad>-<nn>.json`, con vistas `side` | `front` | `45`.
+
+**v2 — objetivo del dataset de entrenamiento.** Extiende v1 con lo que el ML necesita y los golden no: `labels[]`, `consentId`, `subjectId`, `rpe`, `seq`, metadatos de dispositivo y de versión de MediaPipe, y codificación compacta de landmarks como tuplas. Un fixture v1 es un v2 sin etiquetas. La conversión v1 → v2 es mecánica y vive en `ml/schemas.py`; **no se mezclan ambos en el mismo archivo**. Se define en `@fitnet/contracts` (zod) y `ml/schemas.py` (pydantic) con test de paridad, antes del PR 9.
 
 ```json
 {
-  "schemaVersion": "1",
+  "schemaVersion": "2",
   "meta": {
     "id": "squat_side_good_001",
     "exerciseId": "squat",
@@ -52,8 +65,8 @@ Compartido por TypeScript (`@fitnet/contracts`, zod) y Python (`ml/schemas.py`, 
 - `image`: 33 × `[x, y, z, visibility]` normalizados 0–1 (`z` relativo a cadera, misma escala que `x`).
 - `world`: 33 × `[x, y, z, visibility]` en metros, origen en el centro de cadera; `null` si MediaPipe no lo devolvió.
 - `labels[].start/peak/end` son índices de `frames` (`seq`), no tiempos.
-- Los fixtures **sintéticos** (senoidales con ruido, PR 1) llevan `synthetic: true` y `consentId: null`; se usan solo para golden de reglas, nunca para entrenar.
-- Nombre de archivo: `fixtures/landmarks/<exerciseId>_<view>_<condición>_<nnn>.json`.
+- Los fixtures **sintéticos** (PR 1) llevan `synthetic: true` y `consentId: null`; se usan solo para golden de reglas, nunca para entrenar.
+- Nombre de archivo: el mismo patrón de v1, `fixtures/landmarks/<ejercicio>-<vista>-<calidad>-<nn>.json`; las grabaciones etiquetadas del dataset viven en `ml/data/` con el `meta.id` como nombre.
 
 ## 3. Canonicalización (lo que más importa, más que la arquitectura del modelo)
 

@@ -12,8 +12,8 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 |---|---|---|
 | PR 0 — tooling | pnpm 12 (`packageManager`), Vitest, scripts `typecheck` y `check`, CI en `.github/workflows/ci.yml`, commitlint + husky | **Mergeado en `main`** |
 | Capa agéntica | `.claude/agents/*` (10), `.claude/skills/{adr,fixture,pr-ready,promote-model}`, `.claude/hooks/*.mjs` + `settings.json`, `.claude/README.md`, `.github/CODEOWNERS`, plantillas de PR e issues | **Mergeado en `main`** |
-| `adr/fitnet-fundacion` | ADRs (migración DEC-001..025 + DEC-026..033), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/*`, `README.md`, `CONTRIBUTING.md`, `docs/academico/` | En PR |
-| PR 1 — fixtures y golden | Flag `?debug=record`, esquema `fixtures/landmarks/*.json`, tests de replay con fixtures sintéticos para los 3 trackers | En curso |
+| Fundación documental | ADRs (migración DEC-001..025 + DEC-026..033), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/*`, `README.md`, `CONTRIBUTING.md`, `docs/academico/` | **Mergeado en `main`** |
+| PR 1 — fixtures y golden | Flag `?debug=record`, esquema v1 (`fixtures/landmarks/SCHEMA.md`), generador determinista, 10 fixtures sintéticos, helper de replay y 32 golden tests con snapshots | **Mergeado en `main`** |
 | Tablero | 22 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues
@@ -34,7 +34,17 @@ El mapeo entre las 8 épicas de `PRODUCT.md` y las 10 issues `epic` está en `PR
 - Tres ejercicios operativos con análisis por reglas: sentadilla (`SquatTracker`), curl de bíceps (`BicepCurlTracker`, vistas frontal y lateral), press de hombro (`ShoulderPressTracker`, polaridad invertida, umbrales clínicos).
 - Conteo unificado con OR + cooldown (DEC-022/023), feedback visual (barra inferior) y de voz sin colisiones (DEC-016), onboarding de 4 pantallas, cambio de cámara con delay de 450 ms (DEC-021), SW network-first para HTML (DEC-025), `localStorage` defensivo (DEC-024).
 - Sin backend, sin cuentas, sin recolección de datos. MediaPipe `@mediapipe/tasks-vision@0.10.35`, modelo `pose_landmarker_lite`.
-- CI y Vitest configurados (PR 0), con un único test de `calculateAngle` (`src/geometry/angles.test.ts`, 8 casos). Aún **sin fixtures ni golden** que cubran los trackers (PR 1).
+- CI y Vitest configurados (PR 0): 32 tests verdes — `calculateAngle` (8 casos) y los golden de los 3 trackers sobre 10 fixtures sintéticos (PR 1). Los fixtures reales grabados en celular llegan con la issue #15.
+
+## Comportamiento congelado que hay que revisar
+
+Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (detalle en `fixtures/README.md`). Son el argumento empírico para DEC-027:
+
+1. **El evento de fondo depende de los fps.** La misma trayectoria a 30 y 60 fps cuenta las mismas 5 reps, pero el primer `atBottom` llega 67 ms antes. `RISING_THRESHOLD` compara contra el frame anterior. Lo corrige el PR 7 (umbrales en ms) y exigirá una DEC para actualizar snapshots.
+2. **Un spike de ruido de un frame adelanta el fondo hasta 12 frames**, con lo que la voz felicita antes de que el usuario baje. El gate `bottomFired` sí evita reps falsas. Lo resuelve el suavizado del `FeatureExtractor` (PR 7).
+3. **Un curl parcial deja el tracker atrapado en `flexed`**: 5 ciclos producen una sola transición y 364 frames con el mismo mensaje pegado.
+4. **Una sentadilla sistemáticamente corta no genera ningún feedback**: se queda en `standing` y "Baja un poco más" solo se emite en `squatting`.
+5. Curl bilateral y curl lateral producen resúmenes idénticos, así que ninguno cubre regresiones de `activeArm`.
 
 ## Decisiones recientes
 
