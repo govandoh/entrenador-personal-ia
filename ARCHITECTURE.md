@@ -1,195 +1,192 @@
-# Arquitectura del proyecto
+# Arquitectura de Fitnet
 
-> Documento vivo. Se actualiza a medida que el proyecto evoluciona.  
-> Última actualización: 2026-05-06 — Fase 1b: onboarding PWA de 4 pantallas.
+> Documento vivo. Última actualización: 2026-09-19 (fundación de Fitnet). Las decisiones que sustentan cada parte están en `docs/adr/`; las métricas en `docs/METRICS.md`; el pipeline de datos y modelos en `docs/ML-PIPELINE.md`.
 
----
+## 1. Estado actual (2026-09)
 
-## Visión general
-
-La aplicación es una PWA que corre completamente en el cliente (sin servidor). La cámara del celular alimenta un pipeline de detección de poses que produce landmarks en cada frame; esos landmarks se usan para calcular ángulos articulares, contar repeticiones y dar retroalimentación visual.
+La app en producción es una PWA Vite única (`src/`, 2 318 líneas) que corre completamente en el cliente. Pipeline real, con rutas:
 
 ```
-Cámara (getUserMedia)
-      │
-      ▼
- <video> element  ──────────────────────────────────┐
-      │                                              │
-      ▼                                              ▼
- MediaPipe PoseLandmarker              <canvas> overlay
- detectForVideo(video, timestamp)      DrawingUtils.drawConnectors()
-      │                                DrawingUtils.drawLandmarks()
-      ▼
- landmarks[33]  (x, y, z, visibility)
-      │
-      ▼
- geometry/angles.ts
- calculateAngle(A, B, C) → grados
-      │
-      ▼
- exercises/*.ts
- máquina de estados → phase, reps, feedback
-      │
-      ▼
- ui/FeedbackOverlay.tsx
- color según feedback (verde / amarillo / rojo)
+getUserMedia  (src/pose/camera.ts: startCamera / stopCamera)
+     │
+     ▼
+<video>  ──► PoseLandmarker.detectForVideo(video, t)      src/pose/poseDetector.ts
+              │  modelo pose_landmarker_lite float16, delegate 'GPU', WASM desde jsDelivr @0.10.35
+              │  dibuja el esqueleto con DrawingUtils en el mismo paso (detectAndDraw)
+              ▼
+         result.landmarks[0]  (33 × {x, y, z, visibility}, normalizados 0–1)
+              │            (result.worldLandmarks se descarta)
+              ▼
+         calculateAngle(A, B, C)                            src/geometry/angles.ts (atan2, 0–180°)
+              │
+              ▼
+         Tracker del ejercicio activo                       src/exercises/{squat,bicepCurl,shoulderPress}.ts
+              │  histéresis de umbral doble + gate de confirmación de pico/fondo
+              ▼
+         {phase, reps, feedbackLevel, feedbackMessage, atBottom|atTop|atPeak, min|maxAngleReached}
+              │
+              ├──► ExerciseOverlay (DOM, barra inferior)     src/ui/ExerciseOverlay.tsx
+              └──► reglas de voz (DEC-016) + useSpeech       src/ui/CameraView.tsx l.146-188, src/ui/useSpeech.ts
 ```
 
----
+Orquestación: `src/ui/CameraView.tsx` (299 líneas) monta cámara y detector en un `useEffect`, corre el loop `requestAnimationFrame`, mantiene los tres trackers en `useRef`, elige el tracker con un `if/else` por ejercicio (l. 138-142), aplica la política de voz inline y llama `setExerciseResult(result)` en cada frame. `src/App.tsx` decide entre `OnboardingFlow` y `CameraView` según `localStorage('ob_complete_v1')`.
 
-## Módulos y responsabilidades
+### Deudas que la arquitectura objetivo corrige
 
-### `src/pose/camera.ts`
-Único punto de contacto con la API del navegador para la cámara. Solicita el stream con `getUserMedia`, aplica las constraints de mobile (`facingMode: 'environment'`, resolución ideal 640×480), y conecta el stream al elemento `<video>`. Expone `startCamera()` y `stopCamera()` como funciones puras sin estado interno.
+| Deuda | Dónde | Efecto | Lo corrige |
+|---|---|---|---|
+| Detección y dibujo acoplados | `poseDetector.ts::detectAndDraw` | No se puede detectar sin canvas ni reproducir fixtures sin cámara. | PR 3 (`PoseSource` + `SkeletonRenderer`). |
+| Se descartan `worldLandmarks` | `poseDetector.ts` l.65 | Sin coordenadas 3D métricas no hay velocidad, ROM ni asimetría fiables. | PR 3 (`LandmarkFrame.world`). |
+| Sin interfaz común entre trackers | `SquatResult`/`BicepCurlResult`/`ShoulderPressResult` | `CameraView` conoce los tres tipos y sus eventos (`atBottom`/`atTop`/`atPeak`). | PR 2 (`ExerciseTracker`, `TrackerOutput.events`). |
+| Constantes en frames a 60 fps | `REP_COOLDOWN_FRAMES=15`, `MIN_RISING_FRAMES=3`, `MIN_FALLING_FRAMES=3`, `RISING_THRESHOLD=2` | A 30 fps el cooldown dura el doble; la confirmación de pico cambia por dispositivo. | PR 7 (`PeakDetector` con `confirmMs`). |
+| Duplicación `ArmTracker` / `ArmPressTracker` | `bicepCurl.ts`, `shoulderPress.ts` | Mismo detector de pico con polaridad invertida; `ArmTracker` además exige `MIN_START_ANGLE=130`. | PR 7 (`PeakDetector({polarity})`). |
+| Política de voz inline | `CameraView.tsx` l.146-188 | Dos estrategias (DEC-016) mezcladas con React; imposible probarlas sin montar el componente. | PR 4 (`FeedbackPolicy`). |
+| `setState` por frame | `CameraView.tsx` l.191 | Re-render a 30–60 Hz aunque nada visible cambie. | PR 5 (`onState` solo ante cambios de `reps`/`feedbackLevel`/`feedbackMessage`). |
+| Sin fixtures ni golden | Solo existe `src/geometry/angles.test.ts` | Cualquier refactor de los trackers es a ciegas (el PR 0 ya dejó Vitest y CI listos). | PR 1. |
 
-### `src/pose/poseDetector.ts`
-Encapsula el ciclo de vida de `PoseLandmarker`. Tiene estado interno de módulo (singleton): una vez inicializado, el landmarker se reutiliza en todos los frames. Expone `initPoseDetector()` (async, llamar una vez al montar) y `detectAndDraw()` (llamar en cada frame del loop de animación). El dibujo del esqueleto vive aquí mientras no haya lógica de feedback por color; cuando exista `FeedbackOverlay`, el dibujo se separará.
+Lo que sí se conserva tal cual: algoritmos de histéresis (DEC-010), detección de pico/fondo (DEC-014/016), gate de conteo (DEC-017), conteo unificado con cooldown (DEC-022/023), overlay DOM (DEC-011/012), voz (DEC-013), PWA manual (DEC-006/025), delay de cámara (DEC-021), `localStorage` defensivo (DEC-024).
 
-### `src/ui/Onboarding/`
-Flujo de onboarding de 4 pantallas que se muestra la primera vez que el usuario abre la app (controlado por `localStorage('ob_complete_v1')`).
+## 2. Arquitectura objetivo
 
-- **`OnboardingFlow.tsx`** — Orquestador: mantiene el índice de pantalla activo y renderiza la pantalla correspondiente. La pantalla Splash auto-avanza a los 2.8s; las demás esperan acción del usuario.
-- **`SplashScreen.tsx`** — Logo animado (SVG inline con gradiente verde-teal y landmarks amarillos), nombre de la app y loader de tres puntos pulsantes.
-- **`HowItWorksScreen.tsx`** — Tres step-cards que explican el flujo: apuntar cámara → detección de pose → feedback de técnica. Iconos SVG inline por paso.
-- **`PermissionsScreen.tsx`** — Solicita permisos de cámara (`getUserMedia`) y notificaciones (`Notification.requestPermission`) con contexto claro antes de que el navegador muestre el diálogo nativo. Si el usuario deniega la cámara, CameraView lo maneja con su propio mensaje de error.
-- **`GetStartedScreen.tsx`** — Ilustración SVG del esqueleto de pose detection, selector visual de cámara frontal/trasera (guarda en `localStorage('preferred_camera')`), y botón CTA que llama `onComplete()`.
-- **`onboarding.css`** — Todos los estilos del onboarding aislados. Usa `@keyframes` con `animation-delay` escalonado para el efecto stagger en cada pantalla. Design tokens en `:root`.
-
-**Flujo de datos:**
-```
-App.tsx
-  └─ localStorage('ob_complete_v1') === '1'?
-       No → <OnboardingFlow onComplete={handleComplete} />
-               └─ onComplete() → localStorage.setItem + setReady(true)
-       Sí → <CameraView />
-               └─ useState inicial lee localStorage('preferred_camera')
-```
-
-### `src/ui/CameraView.tsx`
-Componente React responsable del ciclo de vida de la cámara y del ejercicio activo.
-- `squatTrackerRef` / `curlTrackerRef` — instancias en `useRef`. Persisten entre cambios de cámara y de ejercicio.
-- `activeExRef` — ref (no estado) al ejercicio activo, leído en el RAF loop para evitar stale closures.
-- En cada iteración del RAF: llama `detectAndDraw()`, pasa landmarks al tracker activo, dispara voz en transiciones, actualiza `exerciseResult`.
-- Botón inferior izquierdo: selector de ejercicio (cicla squat → curl → …). Al cambiar, ambos trackers se resetean.
-- Botón inferior derecho: selector de cámara frontal/trasera (sin cambios respecto a v1).
-- Renderiza `<ExerciseOverlay>` con el resultado y el nombre del ejercicio activo.
-
-### `src/ui/ExerciseOverlay.tsx`
-Overlay DOM sobre el video (no canvas). Recibe una interfaz mínima `OverlayResult { reps, feedbackLevel, feedbackMessage }` y un prop `exerciseName: string`. Compatible estructuralmente con `SquatResult` y `BicepCurlResult`. Renderiza:
-- Label de ejercicio (top-left, pill semitransparente)
-- Barra inferior (`ex-bottom-bar`): fondo negro 80% + blur, borde izquierdo colorido via `--feedback-color` CSS custom property, mensaje de feedback (izquierda) y contador de reps (derecha).
-- El contador usa `key={result.reps}` para que React remonte el `<span>` y reinicie la animación CSS `ex-rep-pop` en cada nueva rep.
-- `pointer-events: none` en el contenedor — los toques pasan al botón de cámara (z-index: 10).
-
-**Detección de fondo en `SquatTracker`:**
+### 2.1 Paquetes y dirección de dependencias (`DEC-028`)
 
 ```
-Frame N:   kneeAngle baja → minAngleSeen se actualiza, prevKneeAngle = N
-Frame N+1: kneeAngle sube > prevKneeAngle + 2° → atBottom = true (un solo frame)
-           voz evalúa minAngleSeen (no kneeAngle actual)
-Frame N+2: bottomFired = true → atBottom = false en todos los frames restantes
-Al volver a standing → reset: bottomFired = false, minAngleSeen = 180
+                        ┌──────────────────────┐
+                        │  @fitnet/contracts   │  tipos + zod, semver, schemaVersion
+                        └──────────┬───────────┘
+              ┌────────────────────┼─────────────────────┐
+              ▼                    │                     ▼
+   ┌──────────────────┐            │           ┌──────────────────┐
+   │ @fitnet/pose-    │            │           │  @fitnet/domain  │  entidades, puertos, casos de uso
+   │ engine           │            │           └────────┬─────────┘
+   │ (MediaPipe aquí) │            │                    ▼
+   └────────┬─────────┘            │           ┌──────────────────┐
+            ▼                      │           │ @fitnet/api-     │  Supabase, CoachAssistant HTTP,
+   ┌──────────────────┐            │           │ client           │  cola offline
+   │ @fitnet/analysis-│            │           └──────────────────┘
+   │ core             │            │
+   └────────┬─────────┘            │
+            ▼                      │
+   ┌──────────────────┐            │
+   │ @fitnet/ml-      │            │
+   │ runtime (ONNX)   │            │
+   └──────────────────┘            │
+                                   ▼
+                    ┌──────────────────────────┐
+                    │  @fitnet/ui   +  apps/web │  importa todo; nadie la importa
+                    └──────────────────────────┘
 ```
 
-`GOOD_DEPTH_ANGLE` se exporta desde `squat.ts` para que `CameraView` use el mismo umbral sin duplicarlo.
-
-### `src/ui/useSpeech.ts`
-Hook de voz que envuelve `window.speechSynthesis`. Expone `speak(text)` memoizado con `useCallback`. Cancela la locución anterior antes de cada nueva para evitar cola de mensajes. Idioma: `es-ES`. Disparado desde `CameraView` solo en transiciones de estado (no por frame) vía `prevRef`.
-
-### `src/geometry/angles.ts`
-Módulo de geometría pura sin dependencias externas. Expone:
-- `Point2D` — tipo mínimo `{ x: number; y: number }`. Compatible estructuralmente con `NormalizedLandmark` de MediaPipe (que tiene campos adicionales `z` y `visibility`).
-- `calculateAngle(A, B, C): number` — ángulo en el vértice B usando `atan2`. Rango: 0–180°. Sin efectos secundarios; apto para pruebas unitarias aisladas.
-
 ```
-radians = atan2(Cy−By, Cx−Bx) − atan2(Ay−By, Ax−Bx)
-degrees = |radians × 180/π|
-if degrees > 180 → degrees = 360 − degrees
+contracts ← pose-engine ← analysis-core ← ml-runtime
+contracts ← domain ← api-client
+apps/web importa todo; nada importa apps/web
 ```
 
-### `src/exercises/squat.ts`
-Máquina de estados para sentadilla. Exporta la clase `SquatTracker` con:
-- `update(landmarks: NormalizedLandmark[]): SquatResult` — recibe los 33 landmarks del frame actual, devuelve fase, reps, nivel de feedback y mensaje.
-- `reset()` — reinicia la fase y el contador.
+Restricciones aplicadas por eslint (`import/no-restricted-paths`): `@mediapipe/tasks-vision` solo en `pose-engine`; `onnxruntime-web` solo en `ml-runtime`; SDK de Supabase y `supabase/` solo en `api-client`; `analysis-core` sin React ni DOM (corre en Node con fixtures). `analysis-core` usa `contracts.Landmark`, no el tipo de MediaPipe (mismo patrón que `Point2D`, DEC-009).
 
-**Diagrama de estados:**
+Layout completo de directorios: `AGENTS.md` y `DEC-028`.
+
+### 2.2 Contratos núcleo (`packages/contracts`)
+
+Firmas resumidas; la fuente de verdad será el código TypeScript + zod del paquete. Todo tipo persistido lleva `schemaVersion`.
+
+```ts
+// Pose
+interface LandmarkFrame { t: number; seq: number; image: Landmark[33]; world?: Landmark[33]; view: 'front' | 'side' | 'unknown' }
+interface PoseSource   { start(): Promise<void>; stop(): void; onFrame(cb: (f: LandmarkFrame) => void): void }
+//   implementaciones: CameraPoseSource (getUserMedia + MediaPipe), ReplayPoseSource (fixture JSON)
+interface SkeletonRenderer { draw(frame: LandmarkFrame): void }          // separa dibujo de detección
+
+// Features
+interface FeatureVector { angles: Record<JointId, number>; angVel: Record<JointId, number> /* deg/s por Δt */;
+                          symmetry: Record<string, number>; trajectory: number[]; visibility: number[]; schemaVersion: string }
+interface FeatureExtractor { push(frame: LandmarkFrame): FeatureVector }
+
+// Trackers y segmentación
+type RepEvent = { kind: 'peak' | 'complete'; t: number; extremeAngle: number }
+interface TrackerOutput { phase: string; reps: number; feedbackLevel: FeedbackLevel; feedbackMessage: string; events: RepEvent[] }
+interface ExerciseTracker { exerciseId: ExerciseId; update(frame: LandmarkFrame, features?: FeatureVector): TrackerOutput; reset(): void }
+class PeakDetector { constructor(opts: { polarity: 'min' | 'max'; confirmMs: number; minDeltaDeg: number }) }  // reemplaza ArmTracker/ArmPressTracker
+interface RepSegmenter { push(frame, features): RepWindow | null }      // RuleRepSegmenter (histéresis actual) | MlRepSegmenter
+
+// Forma y fatiga
+interface FormAssessment { score: number /* 0-100 */; confidence: number; source: 'rules' | 'ml' | 'ensemble';
+                           errors: { code: FormErrorCode; severity: number; evidence: unknown }[] }
+interface FormAnalyzer   { analyzeRep(window: RepWindow): Promise<FormAssessment> }  // RuleBasedAnalyzer | MlAnalyzer | EnsembleAnalyzer
+interface FatigueEstimate { velocityDeclinePct: number; romDeclinePct: number; tempoCv: number; consistency: number }
+interface FatigueAnalyzer { push(rep: RepSummary): FatigueEstimate }
+
+// Feedback
+interface FeedbackPolicy { decide(input: { output: TrackerOutput; assessment?: FormAssessment; fatigue?: FatigueEstimate; now: number }): FeedbackAction[] }
+//   PeakAtEndOfEffortPolicy (curl, press) | MidRangePeakPolicy (sentadilla) — codifican DEC-016; repPhrase() vive aquí
+interface FeedbackSink { emit(action: FeedbackAction): void }            // SpeechSink, StoreSink
+
+// Captura y modelos
+interface SessionRecorder { begin(meta: { consentId: string; exerciseId; device }): void; record(frame, features, output): void; label(l: Label): void; end(): Blob /* json-v1 */ }
+interface ModelRegistry  { resolve(task: ModelTask, exerciseId: ExerciseId): Promise<InferenceSession> }  // lee models/manifest.json (sha256, featureSchemaVersion)
+
+// Nube
+interface CoachAssistant { summarizeSession(input): Promise<SessionSummary>; suggestRoutineAdjustments(input): Promise<RoutineAdjustment[]>; trainerDigest(input): Promise<TrainerDigest> }
+//   puerto; la implementación vive detrás de la Edge Function `coach` (DEC-033)
 ```
-         kneeAngle > 160°               kneeAngle < 100°
-standing ──────────────────► transition ◄──────────────────── squatting
-   ▲                           │   ▲                              │
-   │     kneeAngle > 160°      ▼   │      kneeAngle < 100°        │
-   └─────────────────────── (zona) ────────────────────────────────┘
-                           100°–160°
-                         (conserva fase)
 
-Rep contada: squatting → standing
+### 2.3 `AnalysisPipeline` (sin React)
+
+```
+PoseSource ──frame──► SkeletonRenderer.draw
+                 └──► FeatureExtractor.push ──features──► ExerciseTracker.update ──output──► SessionRecorder.record
+                                                                      │
+                                                        evento 'complete' (por rep)
+                                                                      ▼
+                                   FormAnalyzer.analyzeRep(RepWindow)  (async; ML en Web Worker)
+                                                                      ▼
+                                   FatigueAnalyzer.push(RepSummary)
+                                                                      ▼
+                                   FeedbackPolicy.decide({output, assessment, fatigue, now}) ──► FeedbackSink[] (SpeechSink, StoreSink)
 ```
 
-**Umbrales:** `STANDING_ANGLE=160°`, `BOTTOM_ANGLE=100°`, `GOOD_DEPTH=90°`.  
-**Feedback:** verde `<90°`, amarillo `100–90°`, idle en transición/de pie.  
-**Visibilidad:** si algún landmark clave (caderas, rodillas, tobillos) tiene `visibility < 0.5`, se retorna feedback idle sin resetear el estado interno.
+- `onState` se dispara solo cuando cambian `reps`, `feedbackLevel` o `feedbackMessage` (elimina el `setState` por frame).
+- Estado de UI en un store pequeño (zustand) `useWorkoutStore`; hook `useAnalysisPipeline()` conserva el delay de 450 ms de DEC-021.
+- `CameraView` se descompone en `WorkoutScreen = <CameraStage/> + <ExerciseOverlay/> + <ExerciseChips/> + <CameraToggle/>`, cada uno ≤ 60 líneas.
+- `EnsembleAnalyzer` avanza por ejercicio: sombra → ponderado → ML primario con reglas de fallback si `confidence < τ` (DEC-027).
 
-### `src/exercises/bicepCurl.ts`
-Segundo ejercicio implementado. Exporta `BicepCurlTracker` con el mismo contrato que `SquatTracker` (`update()` / `reset()`).
+### 2.4 Migración por PRs (strangler; la app se despliega tras cada uno)
 
-**Landmarks usados:** LEFT_SHOULDER(11)→LEFT_ELBOW(13)→LEFT_WRIST(15) y RIGHT_SHOULDER(12)→RIGHT_ELBOW(14)→RIGHT_WRIST(16).
+| PR | Cambio | Red de seguridad | Estado |
+|---|---|---|---|
+| 0 | Tooling: pnpm, Vitest, scripts `typecheck` y `check`, GitHub Actions (lint/typecheck/test/build), commitlint + husky, plantilla de PR, CODEOWNERS, capa agéntica `.claude/`. | No toca `src/`. | **Completado** |
+| 1 | **Fixtures primero.** Flag dev `?debug=record` en `CameraView` que descarga `{t, landmarks, worldLandmarks}[]` como JSON. Grabar 3–5 secuencias por ejercicio (lateral/frontal, buena/corta, ruidosa). Tests `exercises/*.test.ts` que reproducen fixtures contra los trackers actuales; snapshot golden de `{reps, transiciones, frames de pico}`. Arranca con fixtures sintéticos (senoidales con ruido). | Congela el comportamiento actual antes de refactorizar. | En curso (`feat/fixtures-golden`) |
+| 2 | `src/contracts/` con `LandmarkFrame`, `TrackerOutput`, `ExerciseTracker`; adaptadores finos sobre los 3 trackers; `CameraView` itera `Record<ExerciseId, ExerciseTracker>` y elimina el `if/else` de `CameraView.tsx:138-142`. | Golden sin cambios. | Pendiente |
+| 3 | Partir `poseDetector.ts` en `detect(video, t) → {image, world}` + `SkeletonRenderer`; `CameraPoseSource` y `ReplayPoseSource`. | Ya estaba previsto en el ARCHITECTURE.md del MVP. | Pendiente |
+| 4 | Extraer `FeedbackPolicy` (ambas estrategias) de `CameraView.tsx:146-188` a `src/feedback/`; tests con secuencias sintéticas (cooldown, utterance combinado, sin colisión). | `CameraView` baja a ~150 líneas. | Pendiente |
+| 5 | `AnalysisPipeline` + store + `useAnalysisPipeline`; `CameraView → WorkoutScreen`. Playwright smoke con `--use-fake-device-for-media-stream`. | Pipeline probado por replay. | Pendiente |
+| 6 | Convertir a workspace pnpm; mover carpetas a `packages/*` con sus tests (`git mv`, sin cambios de lógica). | CI verde. | Pendiente |
+| 7 | `FeatureExtractor` v1 (ángulos con `calculateAngle` existente, angVel, simetría, trayectorias normalizadas); `PeakDetector` basado en tiempo reemplaza conteos de frames (golden actualizados con DEC). | Fixtures con timestamps reales. | Pendiente |
+| 8 | Modo captura/etiquetado: ruta `/capture`, pantalla de consentimiento, chips de etiqueta (ejercicio, límites de rep propuestos por el tracker de reglas, tags de error), export JSON; subida a Storage cuando exista auth. | Detrás de feature flag. | Pendiente |
+| 9 | Scaffold `ml/`: espejo pydantic de `LandmarkFrame`/`FeatureVector`, JSON→Parquet, test de paridad de features TS vs Python (tolerancia 1e-3), modelos baseline, export ONNX, reporte de evaluación. | Gate de modelo. | Pendiente |
+| 10 | `ml-runtime` + `ModelRegistry` + `MlAnalyzer` en Worker; `EnsembleAnalyzer` en modo sombra → ponderado → ML primario con fallback. | Flag por ejercicio. | Pendiente |
+| 11+ | `domain`, `api-client`, auth/perfiles/sincronización de sesiones, Edge Function `coach` (Claude), rutinas/calendario, entrenadores, pagos, comunidad. | Puertos mockeados en tests. | Pendiente |
 
-**Detección de vista:**
-- Visibilidad mínima del trío hombro-codo-muñeca por lado.
-- Si `|visLeft - visRight| > 0.35` → vista lateral: solo el brazo más visible.
-- Si diferencia menor → vista frontal/45°: ambos brazos.
+### 2.5 Quality gates (CI en cada PR)
 
-**Clase interna `ArmTracker`:** Máquina de estados para un solo brazo. Usa el mismo algoritmo de "inversión de tendencia" que `SquatTracker` para detectar la cima real:
-```
-bajando (ángulo decreciente) → silencio (acumulando minAngleSeen)
-cima real (ángulo sube +2°)  → atTop = true, evalúa minAngleSeen
-subiendo → silencio
-extendido → voz dice el número de rep
-```
+1. `pnpm check` = `pnpm lint` (incluirá las fronteras entre paquetes tras el PR 6) + `pnpm typecheck` + `pnpm test` + `pnpm build`, tal como lo ejecuta `.github/workflows/ci.yml`.
+2. Cobertura mínima por paquete (`analysis-core` ≥ 80 %).
+3. Regresión golden: fixtures reproducidos por cada `ExerciseTracker`, `FeedbackPolicy` y `FormAnalyzer`; cambiar un snapshot exige enlazar una DEC (un script lo verifica).
+4. Paridad de features TS vs Python sobre el mismo fixture.
+5. Gate de modelo: `ml/eval.py` escribe `reports/<task>@<version>.json`; CI lo compara con `ml/thresholds.yaml` y con la versión promovida; un PR que toca `models/manifest.json` falla sin reporte aprobado y `sha256` coincidente.
+6. Playwright smoke: onboarding → workout con cámara falsa → chips → replay de fixture muestra reps ≥ 1; manifest y SW registrados.
+7. Vercel preview por PR; presupuesto Lighthouse (shell ≤ 350 kB gz; modelos lazy).
+8. Edge Functions con tests y esquemas zod de entrada/salida.
 
-**Umbrales:** `EXTENDED_ANGLE=160°`, `FLEXED_ANGLE=60°`, `GOOD_FORM_ANGLE=50°`.
+### 2.6 Backend y nube
 
-**Conteo:** Cada `ArmTracker` lleva sus propias reps; `BicepCurlTracker.reps` = suma de ambos. Soporta reps alternas (mancuernas) y simultáneas (barra).
+Supabase `us-east-1` (`DEC-029`): Postgres con RLS, Auth, Storage (grabaciones de landmarks con consentimiento), Realtime (chat 1:1 por Broadcast desde trigger), Edge Functions (`coach` con Claude, webhooks de Recurrente/Paddle), `pg_cron` (rankings materializados, agregados nocturnos, ping anti-pausa). Solo `@fitnet/api-client` conoce al proveedor; `@fitnet/domain` define los puertos. Modelo de dominio en `docs/DOMAIN.md`.
 
-### `src/exercises/` (próximas semanas)
-Los ejercicios pendientes (press de hombro, plancha, lunges) seguirán el patrón de `SquatTracker` y `BicepCurlTracker`. Cuando haya 3+ ejercicios se evaluará si extraer `baseExercise.ts` con la lógica compartida.
+## 3. Decisiones de diseño que se mantienen del MVP
 
-### `src/storage/session.ts` (próximas semanas)
-Wrapper de `localStorage` para persistir el historial de sesiones (ejercicio, reps, duración, fecha). No depende de ningún otro módulo del proyecto.
-
----
-
-## Decisiones de diseño
-
-### Video + Canvas superpuestos
-El video ocupa la pantalla completa con `object-fit: cover`. El canvas se superpone con `position: absolute; inset: 0` y el mismo tamaño CSS. El canvas tiene fondo transparente por defecto, así el video se ve a través de él y solo el esqueleto dibujado es visible.
-
-**Por qué no dibujar directamente sobre el video:** El elemento `<video>` no expone un contexto 2D. El canvas es el único mecanismo estándar para superponer gráficos sobre un stream de video en el browser.
-
-**Dimensiones internas del canvas:** En cada frame, `canvas.width` y `canvas.height` se sincronizan con `video.videoWidth` y `video.videoHeight` (resolución real del stream). El CSS estira el canvas para llenar el contenedor. Esto garantiza que los landmarks (que vienen normalizados 0–1 por MediaPipe) se dibujen con la misma relación de aspecto que el video real.
-
-### Singleton de módulo para PoseLandmarker
-`PoseLandmarker` se crea una vez y se guarda en una variable de módulo (`let landmarker`). La inicialización es cara (descarga del modelo ~5 MB, compilación WASM); rehacerla en cada render o en cada montaje de componente sería un error de rendimiento severo. El patrón de singleton de módulo es más simple que un Context de React y suficiente para este caso donde solo hay una instancia activa de la cámara.
-
-### Separación de inicialización y detección
-`initPoseDetector()` es una operación async de una sola vez. `detectAndDraw()` es síncrona y se llama 30-60 veces por segundo. Mantenerlas separadas permite que el componente muestre un estado de carga mientras el modelo se descarga, sin bloquear el hilo principal.
-
-### Loop de animación en React (`useEffect` + `requestAnimationFrame`)
-El loop de `requestAnimationFrame` se inicia dentro de `useEffect` y se cancela con `cancelAnimationFrame` en el cleanup. La variable `cancelled` (flag booleano local al efecto) previene actualizaciones de estado sobre un componente ya desmontado, lo que generaría memory leaks y warnings de React.
-
-### `facingMode: 'environment'` como default
-La cámara trasera del celular tiene mejor calidad óptica y permite al usuario verse a sí mismo durante el ejercicio usando la pantalla como espejo. Para ejercicios donde el usuario necesita ver sus propias manos (bíceps curl), esta configuración es la correcta. Si en el futuro se necesita la cámara frontal, se expone como parámetro de `startCamera()`.
-
-### Mobile-first: `dvw` / `dvh` y `viewport-fit=cover`
-Se usa `100dvw` / `100dvh` (dynamic viewport units) en lugar de `100vw` / `100vh` porque en móviles las barras del navegador cambian de tamaño al hacer scroll, y las unidades dinámicas se adaptan a ese cambio. `viewport-fit=cover` en el meta viewport permite que el contenido llegue hasta el notch en iPhones con `padding-safe-area` cuando sea necesario.
-
----
-
-## Lo que está pendiente de arquitectura
-
-| Área | Decisión pendiente |
-|---|---|
-| Separación de dibujo y feedback | Cuando exista la lógica de color (verde/rojo/amarillo), `detectAndDraw` se dividirá: MediaPipe detecta, `FeedbackOverlay` dibuja según el nivel de feedback |
-| Routing entre pantallas | Al agregar `ExerciseSelector`, se necesita decidir si usar estado de React (`useState`) o un router mínimo (`wouter` o React Router). Preferir estado hasta que la complejidad lo justifique |
-| Plugin PWA | Diferido hasta semana 5-6. Ver DEC-006 en `DECISIONS.md` |
-| Plataforma de deploy | GitHub Pages, Vercel o Netlify. Sin decidir aún |
+- **Video + canvas superpuestos** (`object-fit: cover`, canvas sincronizado con `videoWidth/videoHeight` en cada frame) para que los landmarks normalizados se dibujen con la relación de aspecto real.
+- **Singleton de módulo para `PoseLandmarker`**: la inicialización (descarga del modelo, compilación WASM) es cara y solo hay una cámara activa. En el layout objetivo vive dentro de `CameraPoseSource`.
+- **`facingMode: 'environment'` por defecto**, con preferencia persistida en `localStorage('preferred_camera')` y validación explícita (DEC-024).
+- **Unidades `dvw`/`dvh` y `viewport-fit=cover`** para móviles.
+- **Overlay DOM** en lugar de texto en canvas (DEC-011/012).
