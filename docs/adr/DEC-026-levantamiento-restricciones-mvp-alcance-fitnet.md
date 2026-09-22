@@ -60,8 +60,19 @@ El alcance se organiza en cuatro fases (detalle en `docs/PRODUCT.md`): Fase 1 n�
 - Aparecen obligaciones legales nuevas: entidad legal para cobrar (ver `DEC-030`), aviso de privacidad por datos de salud alojados en EE. UU. (ver `DEC-029`).
 - La app en producción del MVP debe seguir funcionando durante toda la migración (estrategia strangler en `ARCHITECTURE.md`).
 
+## Nota posterior (2026-09-22) — modificada por `DEC-035`
+
+Esta ADR asumió explotación comercial. El alcance aclarado es que **Fitnet no saldrá a la venta**: es un proyecto de seminario y el modelo de negocio es objeto de análisis, no de facturación. Cambian tres puntos de la tabla de arriba:
+
+- **Cero costos** vuelve a ser absoluto, sin la coletilla "mientras no haya ingresos". No hay tope que fijar: todo va sobre planes gratuitos.
+- **Deploy gratuito**: Vercel Hobby se queda. La migración a Cloudflare Pages o Vercel Pro solo existía por la prohibición de uso comercial de ese plan y queda sin efecto.
+- **Obligaciones legales**: no hace falta entidad legal, NIT ni cuenta bancaria. El aviso de privacidad sigue siendo exigible por ética de investigación con los voluntarios del sprint de datos.
+
+El alcance funcional no se reduce: suscripciones, planes premium y cuota de entrenadores se implementan completos contra un proveedor simulado (`DEC-035`).
+
 ## Referencias
 
+- `DEC-035` (proyecto académico sin facturación real).
 - `CLAUDE.md` del MVP (historial git anterior a esta ADR), sección "Restricciones duras".
 - `docs/PRODUCT.md`, `docs/STATUS.md`, `docs/DATA-GOVERNANCE.md`.
 - `DEC-027`, `DEC-028`, `DEC-029`, `DEC-030`.

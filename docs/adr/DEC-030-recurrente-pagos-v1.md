@@ -52,8 +52,15 @@ v1: liquidación **manual mensual** a partir de una tabla ledger (`payouts`) que
 - Payouts manuales en v1: carga operativa mensual y riesgo de error humano hasta automatizar.
 - Requiere entidad legal y NIT antes de cobrar el primer quetzal.
 
+## Nota posterior (2026-09-22) — reinterpretada por `DEC-035`
+
+Fitnet no saldrá a la venta: es un proyecto de seminario. **Esta ADR deja de ser una integración a construir y pasa a ser un estudio comparativo**, insumo del análisis de rentabilidad. Recurrente queda documentado como el proveedor que se elegiría, con su comisión aproximada de 4.5 % más IVA, para el cálculo de márgenes y del punto de equilibrio.
+
+Lo que se construye en su lugar: un puerto `PaymentProvider` con una implementación `MockPaymentProvider`. El flujo de suscripción, los estados, el webhook que escribe `subscriptions`, la función `is_premium(uid)` y el ledger de liquidaciones se implementan completos y demostrables; solo el cobro es ficticio. Los tres pendientes de equipo que listaba esta ADR (entidad legal, moneda, forma de la cuota) dejan de bloquear desarrollo y pasan a ser variables del análisis financiero.
+
 ## Referencias
 
+- `DEC-035` (proyecto académico sin facturación real).
 - Recurrente: https://recurrente.com
 - Paddle: https://www.paddle.com
 - Países soportados por Stripe: https://stripe.com/global
