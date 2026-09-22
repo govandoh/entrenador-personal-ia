@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { startCamera, stopCamera } from '../pose/camera';
-import { initPoseDetector, detectAndDraw } from '../pose/poseDetector';
+import { initPoseDetector, detectAndDraw, getLastWorldLandmarks } from '../pose/poseDetector';
+import { RECORD_MODE, captureFrame, downloadFixture, type RecordedFrame } from '../testing/fixtureRecorder';
 import { SquatTracker, GOOD_DEPTH_ANGLE } from '../exercises/squat';
 import { BicepCurlTracker, GOOD_FORM_ANGLE } from '../exercises/bicepCurl';
 import { ShoulderPressTracker, GOOD_LOCKOUT_ANGLE } from '../exercises/shoulderPress';
@@ -58,6 +59,9 @@ function serializeError(err: unknown): string {
   try { return JSON.stringify(err); } catch { return String(err); }
 }
 
+/** Cada cuántos frames se refresca el contador del botón de grabación. */
+const RECORD_UI_EVERY = 15;
+
 function repPhrase(n: number): string {
   if (n === 1)        return 'Una';
   if (n % 10 === 0)   return `${n}. ¡Excelente ritmo!`;
@@ -86,6 +90,8 @@ export function CameraView() {
   const lastSpeakTimeRef     = useRef<number>(0);
   // Flag para delay de liberación de hardware al cambiar de cámara
   const cameraStopPendingRef = useRef(false);
+  // Buffer del modo grabación (?debug=record). Vacío y sin uso fuera del flag.
+  const recordingRef = useRef<RecordedFrame[]>([]);
 
   const [status, setStatus]                 = useState<Status>('loading');
   const [errorMsg, setErrorMsg]             = useState('');
@@ -97,6 +103,8 @@ export function CameraView() {
   });
   const [activeExercise, setActiveExercise] = useState<ActiveExercise>('squat');
   const [exerciseResult, setExerciseResult] = useState<AnyResult | null>(null);
+  // Solo se actualiza en modo grabación, y cada RECORD_UI_EVERY frames.
+  const [recordedCount, setRecordedCount]   = useState(0);
 
   const speak = useSpeech();
 
@@ -135,6 +143,15 @@ export function CameraView() {
 
           if (landmarkSets.length > 0) {
             const ex = activeExRef.current;
+
+            // Modo grabación de fixtures (?debug=record): acumular el frame crudo.
+            // Fuera del flag esto es una comparación booleana por frame.
+            if (RECORD_MODE) {
+              const buf = recordingRef.current;
+              buf.push(captureFrame(performance.now(), landmarkSets[0], getLastWorldLandmarks()));
+              if (buf.length % RECORD_UI_EVERY === 0) setRecordedCount(buf.length);
+            }
+
             const result: AnyResult = (() => {
               if (ex === 'squat') return squatTrackerRef.current.update(landmarkSets[0]);
               if (ex === 'curl')  return curlTrackerRef.current.update(landmarkSets[0]);
@@ -230,6 +247,11 @@ export function CameraView() {
     curlFormFeedbackRef.current  = '';
     pressFormFeedbackRef.current = '';
     setExerciseResult(null);
+    // Un fixture pertenece a un solo ejercicio: cambiar de chip descarta lo grabado.
+    if (RECORD_MODE) {
+      recordingRef.current = [];
+      setRecordedCount(0);
+    }
   }
 
   const mirrorStyle = facingMode === 'user' ? { transform: 'scaleX(-1)' } : undefined;
@@ -255,6 +277,22 @@ export function CameraView() {
           result={exerciseResult}
           exerciseName={EXERCISE_NAMES[activeExercise]}
         />
+      )}
+
+      {/* Modo grabación de fixtures — solo con ?debug=record (ver fixtures/README.md) */}
+      {RECORD_MODE && status === 'ready' && (
+        <button
+          className="record-fixture-btn"
+          onClick={() => {
+            const frames = recordingRef.current;
+            if (frames.length === 0) return;
+            downloadFixture(activeExRef.current, frames);
+            recordingRef.current = [];
+            setRecordedCount(0);
+          }}
+        >
+          Guardar grabación ({recordedCount} frames)
+        </button>
       )}
 
       {status === 'ready' && (

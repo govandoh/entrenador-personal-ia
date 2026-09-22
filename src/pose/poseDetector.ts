@@ -2,6 +2,7 @@ import {
   PoseLandmarker,
   FilesetResolver,
   DrawingUtils,
+  type Landmark,
   type NormalizedLandmark,
 } from '@mediapipe/tasks-vision';
 
@@ -14,6 +15,13 @@ const MODEL_URL =
 
 let landmarker: PoseLandmarker | null = null;
 let drawingUtils: DrawingUtils | null = null;
+
+// Landmarks 3D en metros (origen en la cadera) de la última detección. MediaPipe ya los
+// calcula en cada `detectForVideo`, así que guardarlos cuesta una asignación por frame.
+// Existen para que el modo `?debug=record` pueda exportarlos sin rediseñar este módulo;
+// el PR 3 del plan sustituye este singleton por `detect(video, t) → { image, world }`
+// + `SkeletonRenderer`, y entonces esta función desaparece.
+let lastWorldLandmarks: Landmark[] | null = null;
 
 export async function initPoseDetector(): Promise<void> {
   if (landmarker) return;
@@ -45,6 +53,7 @@ export function detectAndDraw(
   canvas.height = video.videoHeight;
 
   const result = landmarker.detectForVideo(video, timestampMs);
+  lastWorldLandmarks = result.worldLandmarks[0] ?? null;
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -63,4 +72,12 @@ export function detectAndDraw(
   }
 
   return result.landmarks;
+}
+
+/**
+ * `worldLandmarks` de la última llamada a `detectAndDraw` (null si no hubo persona).
+ * Solo la usa el modo de grabación de fixtures; ver el comentario de `lastWorldLandmarks`.
+ */
+export function getLastWorldLandmarks(): Landmark[] | null {
+  return lastWorldLandmarks;
 }
