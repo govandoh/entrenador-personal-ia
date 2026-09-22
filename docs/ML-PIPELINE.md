@@ -95,13 +95,16 @@ Aplicada de forma idéntica en `analysis-core` (TS) y `ml/features/` (Python), c
 | EC3D | Sin licencia comercial explícita | **Solo prototipos y benchmarks**; ningún peso entrenado con él se publica en `models/manifest.json`. |
 | REHAB24-6 | No comercial | Solo prototipos y benchmarks. |
 | Fitness-AQA | No comercial | Solo prototipos y benchmarks. |
+| FLEX | No comercial, acceso por solicitud | Solo prototipos y benchmarks. |
+| **Checkpoints preentrenados sobre NTU RGB+D** (ST-GCN++, CTR-GCN, HD-GCN, SkateFormer, ProtoGCN…) | Código Apache-2.0 o MIT, pero los **pesos** derivan de datos de uso académico no comercial | **Prohibidos en producción.** Admisibles solo como techo de comparación en `ml/`; ningún peso derivado se publica en `models/manifest.json`. Ver `DEC-034`. |
 
-Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | ["product"]`; `ml/train` rechaza mezclar datasets `prototype` en un run marcado `--for-product`.
+Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | ["product"]`; `ml/train` rechaza mezclar datasets `prototype` en un run marcado `--for-product`. La misma regla aplica a pesos de partida: un run `--for-product` solo admite inicialización aleatoria o checkpoints propios.
 
 ## 6. Entrenamiento
 
 - Framework: PyTorch. Cómputo: Kaggle (≈ 30 h GPU/semana) para modelos secuenciales; CPU en GitHub Actions para modelos pequeños o re-entrenos.
-- Modelos v1: clasificador de ejercicio (GRU 2 capas o TCN, 100k–300k parámetros); analizador de forma por rep (TCN o GCN ligero multi-label, empezando por sentadilla); fatiga sin modelo (reglas de `METRICS.md` §3), opcional Random Forest después.
+- Modelos por fase (`DEC-034`): **Fase 1**, analizador de forma por repetición sobre *features* derivadas (gradient boosting o MLP pequeño por ejercicio, entrenable con 300–1000 reps, sin ONNX); **Fase 2**, clasificador de ejercicio (GRU 2 capas o TCN, 100k–300k parámetros) preentrenado con MM-Fit e InfiniteRep; **Fase 3**, ST-GCN++ (≈1,4 M) entrenado **desde cero** sobre COCO-17 con datos propios, cuando el dataset alcance miles de reps. Fatiga sin modelo (reglas de `METRICS.md` §3), opcional Random Forest después.
+- Representación de esqueleto: **COCO-17**, subconjunto exacto de los 33 landmarks de MediaPipe. No se mapea a NTU-25 (exigiría interpolar columna y cuello).
 - Cada run registra: commit de `ml/`, `featureSchemaVersion`, datasets y licencias usados, semilla, hiperparámetros, hash de los datos.
 - Export: `ml/export_onnx.py` con **opset fijo** (declarado en `ml/thresholds.yaml`), verificación de que la salida ONNX coincide con PyTorch sobre un batch de prueba.
 

@@ -62,8 +62,9 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-031](DEC-031-onnx-runtime-web-wasm-hf-hub.md) | ONNX Runtime Web (WASM) + Hugging Face Hub para modelos | 2026-09-19 | Aceptada |
 | [DEC-032](DEC-032-organizacion-agentica-workstreams-codeowners.md) | Organización agéntica, workstreams y CODEOWNERS | 2026-09-19 | Aceptada |
 | [DEC-033](DEC-033-claude-coach-assistant-edge-function.md) | Claude `claude-opus-5` para `CoachAssistant` vía Edge Function | 2026-09-19 | Aceptada |
+| [DEC-034](DEC-034-via-implementacion-analisis-ia.md) | Vía de implementación del análisis por IA: features por repetición, COCO-17, sin pesos contaminados | 2026-09-22 | **Propuesta** |
 
-Próximo número libre: **DEC-034**.
+Próximo número libre: **DEC-035**.
 
 ## Decisiones que ya se sabe que harán falta
 
