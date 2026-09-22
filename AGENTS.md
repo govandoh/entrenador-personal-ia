@@ -86,7 +86,7 @@ apps/web importa todo; nada importa apps/web
 - **PR pequeño** (< 400 líneas), 1 revisor obligatorio (2 si toca contratos o `docs/adr/`), squash merge, plantilla `.github/PULL_REQUEST_TEMPLATE.md` con checklist DoD.
 - **Definition of Done:** tests verdes; golden intactos o DEC enlazada; docs del paquete actualizadas; preview probado en celular; entrada en CHANGELOG si aplica; `docs/STATUS.md` actualizado si cambió el estado del proyecto.
 - **Antes de un cambio grande, proponer plan** (archivos a tocar, contratos afectados) y esperar aprobación.
-- El trabajo se organiza en issues de GitHub con etiquetas `epic`, `historia`, `adr`, `equipo` y `ws:a`..`ws:e`, agrupadas por hito (`Sprint 0 — Fundación`, `Sprint 1 — Migración y datos`). Ver `docs/STATUS.md`.
+- El trabajo se organiza en issues de GitHub con etiquetas `epic`, `historia`, `adr`, `equipo` y `ws:A-pose`..`ws:E-app` (`ws:todos` para lo transversal), agrupadas por hito (`Sprint 0 — Fundación`, `Sprint 1 — Migración y datos`). Ver `docs/STATUS.md`.
 
 ## Dónde está cada cosa
 
