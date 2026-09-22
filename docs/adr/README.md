@@ -23,7 +23,7 @@ Las ADR son inmutables: si una decisión cambia, se escribe una DEC nueva y la a
 5. Abrir PR con título `docs(adr): DEC-NNN <título>`. Requiere **2 aprobaciones** (leads de B, D y E revisan `docs/adr/`; si la DEC toca `packages/contracts`, deben aprobar B y D).
 6. La ADR se discute en la revisión de arquitectura de 30 min del sprint; al hacer merge el estado pasa a `Aceptada`.
 
-En Claude Code, la skill `/adr` genera el borrador a partir de la conversación (`.claude/skills/adr`, rama `chore/agentes`); el agente `adr-scribe` mantiene este índice.
+En Claude Code, la skill `/adr` genera el borrador a partir de la conversación (`.claude/skills/adr`); el agente `adr-scribe` mantiene este índice.
 
 ## Índice
 

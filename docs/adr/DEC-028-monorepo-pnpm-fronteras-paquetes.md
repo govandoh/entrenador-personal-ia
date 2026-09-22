@@ -63,7 +63,9 @@ Se ejecuta por PRs numerados 0–11 (tabla completa en `ARCHITECTURE.md`): fixtu
 
 ### Tooling asociado
 
-pnpm workspaces, Vitest 4 + Playwright, commitlint + husky, script `typecheck`, GitHub Actions (lint/typecheck/test/build), Vercel preview por PR. Cobertura mínima por paquete: `analysis-core` ≥ 80 %. Presupuesto Lighthouse: shell ≤ 350 kB gz, modelos cargados de forma perezosa.
+pnpm workspaces, Vitest + Playwright, commitlint + husky, scripts `typecheck` y `check`, GitHub Actions (lint/typecheck/test/build), Vercel preview por PR. Cobertura mínima por paquete: `analysis-core` ≥ 80 %. Presupuesto Lighthouse: shell ≤ 350 kB gz, modelos cargados de forma perezosa.
+
+El PR 0 ya dejó en `main` la base no-workspace: `pnpm@12.4.2` fijado en `packageManager`, Vitest 5, `pnpm check`, CI y commitlint. La conversión a workspace ocurre en el PR 6.
 
 ## Consecuencias
 

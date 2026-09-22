@@ -1,203 +1,95 @@
-# Entrenador Personal con Estimación de Poses en Tiempo Real
+@AGENTS.md
 
-> Contexto persistente del proyecto para Claude Code. Este archivo se lee al inicio de cada sesión.
+# CLAUDE.md — Fitnet (específico de Claude Code)
 
----
+Todo el contexto del proyecto, las reglas duras, la propiedad por workstream y la regla de oro están en `AGENTS.md` (incluido arriba). Este archivo solo añade lo que aplica a Claude Code. El estado actual del proyecto está en `docs/STATUS.md`; no se duplica aquí.
 
-## 1. Qué es este proyecto
+## Cómo trabajar en una sesión
 
-Aplicación web progresiva (PWA) que funciona como entrenador personal usando la cámara del celular del usuario. La app detecta el cuerpo en tiempo real con el modelo pre-entrenado **MediaPipe Pose** de Google, calcula ángulos articulares, cuenta repeticiones, y entrega retroalimentación visual sobre la calidad de ejecución.
+1. **Ubícate antes de tocar nada.** Lee `docs/STATUS.md` (hito actual, PRs en curso, issues abiertas) y, según la historia, `ARCHITECTURE.md` y `docs/WORKSTREAMS.md` para saber qué paquete/directorio es tuyo. Si la tarea cruza una frontera de paquete, detente y pide un cambio de contrato (issue con la plantilla `adr` + `/adr`), no lo resuelvas con un import cruzado.
+2. **Propón un plan antes de cambios grandes.** Para cualquier cambio que toque más de un módulo, un contrato, un umbral o un snapshot golden: lista archivos a tocar/crear, contratos afectados y cómo se va a probar. Espera aprobación antes de escribir código.
+3. **No instalar dependencias sin avisar.** Cualquier `pnpm add`/`npm install` se discute primero y, si se aprueba, se documenta (DEC si es una tecnología nueva). No introducir frameworks ni servicios fuera de los decididos en `docs/adr/`.
+4. **Documentar decisiones vía `/adr`.** Si durante la sesión se toma una decisión técnica (umbral nuevo, proveedor, patrón), invoca `/adr` para generar el borrador MADR en `docs/adr/` y añade la fila al índice. No dejes decisiones solo en comentarios de código o en el mensaje de commit.
+5. **Probar en celular es la verdad.** Cualquier cambio en cámara, detección, trackers, voz o PWA se valida en un celular real (`pnpm dev` con HTTPS local o preview de Vercel). Indica explícitamente qué no pudiste probar en desktop.
+6. **No cambies snapshots golden** (`fixtures/`, tests `*.test.ts` con snapshots) sin una DEC enlazada. Si un cambio legítimo los altera, crea la DEC primero.
+7. **Cierra la sesión dejando rastro.** Si cambió el estado del proyecto (PR mergeado, hito alcanzado, decisión tomada), actualiza `docs/STATUS.md` con la fecha. El agente `docs-keeper` puede hacerlo por ti.
+8. **Comentarios en código:** explican el "por qué" (cálculos geométricos, máquinas de estados, umbrales), citando la DEC (`// ver DEC-016`). Español o inglés, consistente dentro del archivo.
 
-**Área de IA del curso:** Análisis de imágenes (visión por computadora, detección de poses).
+## Skills disponibles (`.claude/skills/`)
 
-**Contexto académico:** Proyecto final del curso de Inteligencia Artificial (IA26), Universidad Mariano Gálvez de Guatemala, Facultad de Ingeniería en Sistemas. Equipo de 5 integrantes. Entrega final: 22/05/2026. Presentación: 23/05/2026. Valor: 15 puntos.
-
----
-
-## 2. Restricciones duras (no negociables)
-
-Estas restricciones existen por requerimientos del curso, del equipo, o del alcance acordado en el anteproyecto. Claude Code debe respetarlas siempre.
-
-1. **Mobile-first obligatorio.** La app corre en el navegador del celular del usuario, usando la cámara del dispositivo vía `getUserMedia`. No se desarrolla para webcam de escritorio. Cualquier prueba o demo se hace en celular.
-2. **Sin backend.** Todo el procesamiento ocurre en el dispositivo del usuario. No hay servidor, no hay base de datos remota, no hay APIs de pago. Si se necesita persistencia, se usa `localStorage` o `IndexedDB`.
-3. **Stack fijo.** MediaPipe JS SDK + JavaScript + HTML5 Canvas + `getUserMedia`. Framework frontend a elegir entre **React** o **Vue** (decisión pendiente, ver sección 5). No introducir otros frameworks (Angular, Svelte, etc.) sin discusión explícita con el equipo.
-4. **Deploy gratuito.** GitHub Pages, Vercel o Netlify (plan free). No usar servicios que requieran tarjeta de crédito.
-5. **Cero costos económicos.** El proyecto no tiene presupuesto. Cualquier sugerencia de servicios de pago debe declinarse y proponer alternativa gratuita.
-6. **Documentación e interfaz en español.** El equipo y el curso son en español. Comentarios de código pueden ir en español o inglés (consistencia dentro del archivo), pero los textos visibles al usuario y la documentación entregable son en español.
-
----
-
-## 3. Alcance comprometido vs. alcance aspiracional
-
-### Comprometido (parte de la entrega del 22/05)
-
-- Detección de pose en tiempo real desde cámara del celular usando MediaPipe Pose JS.
-- Cálculo de ángulos articulares (rodilla, codo, hombro, cadera) mediante trigonometría.
-- Máquina de estados para conteo de repeticiones por ejercicio.
-- Sistema de evaluación de forma con retroalimentación visual (verde/amarillo/rojo) basado en rangos angulares.
-- Entre **3 y 5 ejercicios concretos**: sentadillas, bíceps curl, press de hombro, plancha, lunges (los últimos dos son opcionales según tiempo).
-- Instalable como PWA (manifest, service worker básico).
-- Deploy funcional en URL pública.
-
-### Aspiracional (solo si sobra tiempo, no comprometido)
-
-Estas ideas están registradas pero el equipo NO se comprometió a entregarlas. No invertir esfuerzo aquí hasta que el alcance comprometido esté cerrado.
-
-1. Clasificador automático de ejercicio (Random Forest o SVM con scikit-learn, entrenado con secuencias de los 33 keypoints).
-2. Clasificador binario de "buena forma vs. mala forma" entrenado con ejemplos reales en lugar de reglas fijas.
-3. Historial de sesiones con análisis de tendencias (mejora/retroceso del usuario en el tiempo).
-
-**Nota sobre legitimidad de IA:** El equipo discutió que MediaPipe por sí solo es inferencia con un modelo pre-entrenado, lo cual sí califica como aplicación de IA (visión por computadora) pero deja todo el "sabor a ML" del lado de Google. Si el catedrático cuestiona el componente propio de IA, las extensiones aspiracionales (especialmente el clasificador de ejercicios) son la respuesta. Esto está documentado para que el equipo lo tenga presente, no como compromiso.
-
----
-
-## 4. Stack tecnológico
-
-| Capa | Tecnología | Notas |
+| Skill | Qué hace | Cuándo usarla |
 |---|---|---|
-| Detección de pose | MediaPipe Pose JS SDK | 33 puntos corporales, modelo pre-entrenado de Google |
-| Cámara | API `getUserMedia` (browser nativa) | Constraints: `facingMode: 'environment'` o `'user'` según ejercicio |
-| Lenguaje | JavaScript (ES2020+) | TypeScript opcional, decidir al inicio |
-| Framework UI | React **o** Vue (pendiente) | Ver sección 5 |
-| Renderizado overlay | HTML5 Canvas API | Dibujar esqueleto y feedback sobre el video |
-| Cálculos | Trigonometría propia, `Math.atan2` | Sin librerías de ML adicionales |
-| PWA | Service Worker + Web App Manifest | Workbox opcional para simplificar el SW |
-| Versionado | Git + GitHub | Repo público o privado del equipo |
-| Deploy | GitHub Pages / Vercel / Netlify | Decidir cuál al final de semana 1 |
-| Editor | VS Code (recomendado) | Live Server para desarrollo local |
+| `/adr` | Crea `docs/adr/DEC-NNN-<slug>.md` desde la conversación, actualiza los índices y propone el commit en rama `adr/*`. | Al tomar cualquier decisión técnica. |
+| `/fixture` | Guía para grabar con `?debug=record`, nombrar, validar el esquema v1, registrar el fixture y crear su golden. | Al añadir un ejercicio, vista de cámara o caso de error. |
+| `/promote-model` | Verifica el reporte contra `ml/thresholds.yaml` y el `sha256`, actualiza `models/manifest.json` y exige DEC. | Solo en ramas `adr/*` o `contracts/*`, con reporte aprobado. |
+| `/pr-ready` | Corre lint/typecheck/test/build, revisa el diff, exige DEC si toca rutas protegidas y arma el cuerpo del PR. | Antes de abrir cualquier PR. |
 
----
+## Hooks (`.claude/settings.json` + `.claude/hooks/*.mjs`)
 
-## 5. Decisiones técnicas pendientes
+Scripts Node ESM sin dependencias; leen el evento por stdin y corren desde la raíz del repo.
 
-Decisiones que el equipo debe tomar en la primera semana. Si Claude Code se topa con una de estas, debe pausar y preguntar al usuario en lugar de elegir por su cuenta.
+| Evento | Script | Efecto |
+|---|---|---|
+| `PreToolUse` (Edit/Write/MultiEdit) | `guard-protected-paths.mjs` | **Bloquea** (exit 2) ediciones en `packages/contracts/**`, `src/contracts/**` y `models/manifest.json` si la rama no empieza por `adr/` o `contracts/`. Cambia de rama o pide el cambio de contrato. |
+| `PostToolUse` (Edit/Write/MultiEdit) | `lint-on-edit.mjs` | `eslint --fix` sobre el `.ts`/`.tsx` editado si hay `node_modules`; nunca falla el paso. |
+| `Stop` | `remind-status.mjs` | Recuerda actualizar `docs/STATUS.md` si hubo cambios en `src/`, `packages/`, `apps/`, `ml/` o `supabase/` sin tocarlo. Solo avisa. |
 
-1. **React vs. Vue.** Ambos son viables. Criterio sugerido: cuál conoce mejor la mayoría del equipo. Si están iguales, React tiene más ejemplos de MediaPipe en GitHub.
-2. **JavaScript vs. TypeScript.** TypeScript da seguridad de tipos pero suma curva de aprendizaje. Para 6 semanas y un equipo de 5, JS plano probablemente es más realista.
-3. **Plataforma de deploy.** GitHub Pages es la más simple si el repo es público. Vercel da preview deployments por PR (útil si trabajan con ramas). Netlify es similar a Vercel.
-4. **Estrategia de testing en celulares.** ngrok para exponer localhost al celular durante desarrollo, o usar el deploy de Vercel/Netlify como entorno de pruebas continuo.
+`.claude/settings.local.json` es personal y está en `.gitignore`; los hooks de `settings.json` se **acumulan** con los locales, no se reemplazan (cómo desactivarlos: `.claude/README.md`). No pongas ahí reglas que el equipo deba compartir.
 
----
+## Agentes
 
-## 6. Estructura de carpetas propuesta
+Los diez agentes de `.claude/agents/` (`architect-guardian`, `adr-scribe`, `pose-engine-dev`, `analysis-dev`, `ml-engineer`, `backend-dev`, `ui-dev`, `qa-engineer`, `coach-prompt-engineer`, `docs-keeper`) están en la tabla de `AGENTS.md` y descritos en `.claude/README.md`. La sesión principal orquesta: delega a un agente solo trabajo dentro de su propiedad y compone los resultados. Un agente nunca redelega su tarea completa a otro.
 
-Esta es una propuesta inicial. Ajustar al framework elegido (la estructura cambia un poco entre React y Vue).
+## Tareas típicas y dónde van
+
+Antes de editar, ubica la historia en esta tabla; si no encaja en una sola fila, es un cambio de contrato.
+
+| Historia | Directorio hoy (`src/`) | Directorio objetivo | Workstream / agente | Necesita DEC |
+|---|---|---|---|---|
+| Ajustar un umbral angular o el cooldown de un tracker | `src/exercises/*.ts` | `packages/analysis-core` | B / `analysis-dev` | Sí (cambia golden) |
+| Añadir un ejercicio nuevo | `src/exercises/` + chip en `CameraView.tsx` | `analysis-core` (tracker) + `contracts` (`ExerciseId`) + `ui` (chip) | B + E; contrato → issue + DEC | Sí |
+| Cambiar la frase de voz o la prioridad entre mensajes | `CameraView.tsx` l.146-188 | `analysis-core/feedback` (`FeedbackPolicy`) | B | Si cambia DEC-016 |
+| Conservar `worldLandmarks` o cambiar el modelo de MediaPipe | `src/pose/poseDetector.ts` | `packages/pose-engine` | A / `pose-engine-dev` | Sí si cambia versión/modelo |
+| Grabar o añadir un fixture | — (PR 1) | `fixtures/landmarks/` + `*.test.ts` | A (fixture) y B (golden) | No |
+| Pantalla nueva, estilos, onboarding, PWA | `src/ui/`, `public/` | `apps/web`, `packages/ui` | E / `ui-dev` | No, salvo dependencia nueva |
+| Tabla, política RLS, Edge Function | — | `supabase/`, `packages/domain`, `api-client` | D / `backend-dev` | Sí si cambia el modelo de dominio |
+| Prompt o esquema de salida del coach | — | `supabase/functions/coach/`, `evals/coach/` | D / `coach-prompt-engineer` | No, salvo cambio de modelo |
+| Entrenar, evaluar o promover un modelo | — | `ml/`, `reports/`, `models/manifest.json` | C / `ml-engineer` (+ B para manifest) | Promoción vía gate, no DEC |
+| Nueva métrica visible al usuario | — | `docs/METRICS.md` primero, luego `analysis-core` y `domain` | B + D | Sí |
+
+## Convenciones de código
+
+- Identificadores en inglés; textos de UI y mensajes de voz en español (`es-ES`).
+- Constantes de umbral en mayúsculas con unidad en el nombre o el comentario (`GOOD_DEPTH_ANGLE = 90 // grados`); las temporales nuevas van en milisegundos, no en frames (`confirmMs`, no `MIN_RISING_FRAMES`).
+- Todo módulo de `analysis-core` (hoy `src/exercises`, `src/geometry`) debe ser puro: sin React, sin DOM, sin `performance.now()` interno (recibe `t` del frame).
+- Prettier con configuración por defecto; ESLint del repo. No desactivar reglas inline sin comentario que lo justifique.
+- Tests junto al código (`squat.test.ts` al lado de `squat.ts`); fixtures en `fixtures/landmarks/`.
+
+## Al cerrar la sesión
+
+1. `pnpm check` en verde (o `/pr-ready`, que además revisa el diff y arma el cuerpo del PR).
+2. Si tocaste cámara, trackers, voz o PWA: confirma en el mensaje final qué probaste en celular y qué no.
+3. Si hubo una decisión: DEC creada con `/adr` y fila en `docs/adr/README.md`.
+4. Si cambió el estado: `docs/STATUS.md` con fecha (el hook `Stop` te lo recuerda).
+5. Commit con conventional commit en español — commitlint rechaza cualquier otro formato. No hagas push a `main`.
+
+## Comandos útiles
 
 ```
-entrenador-personal-ia/
-├── CLAUDE.md                    # Este archivo
-├── README.md                    # Descripción pública del proyecto
-├── ARCHITECTURE.md              # Decisiones de diseño (crear cuando aplique)
-├── DECISIONS.md                 # Log de decisiones técnicas (crear al tomar la primera)
-├── package.json
-├── public/
-│   ├── manifest.json            # Web App Manifest (PWA)
-│   ├── icons/                   # Íconos de la PWA
-│   └── service-worker.js        # Service Worker
-├── src/
-│   ├── pose/                    # Lógica de MediaPipe e integración de cámara
-│   │   ├── poseDetector.js
-│   │   └── camera.js
-│   ├── exercises/               # Un archivo por ejercicio + máquina de estados
-│   │   ├── squat.js
-│   │   ├── bicepCurl.js
-│   │   ├── shoulderPress.js
-│   │   └── plank.js
-│   ├── geometry/                # Cálculo de ángulos y utilidades
-│   │   └── angles.js
-│   ├── ui/                      # Componentes de interfaz
-│   │   ├── ExerciseSelector.*
-│   │   ├── FeedbackOverlay.*
-│   │   └── RepCounter.*
-│   ├── storage/                 # localStorage / IndexedDB para historial
-│   └── App.*                    # Entry point
-├── docs/
-│   ├── manual-usuario.md        # Manual de usuario (entregable del curso)
-│   └── descripcion-proyecto.md  # Documento de descripción (entregable del curso)
-└── .github/
-    └── workflows/               # GitHub Actions para deploy automático
+pnpm install            # Node 22+, pnpm 12 (corepack enable)
+pnpm dev                # Vite con HTTPS local (@vitejs/plugin-basic-ssl) y host expuesto a la LAN
+pnpm build              # tsc -b && vite build
+pnpm lint               # eslint .
+pnpm typecheck          # tsc --noEmit (app y node)
+pnpm test               # vitest run
+pnpm check              # lint + typecheck + test + build (lo mismo que corre CI)
 ```
 
----
+Ver `CONTRIBUTING.md` para el setup completo, cómo probar en celular y cómo grabar fixtures.
 
-## 7. División de responsabilidades del equipo
+## Qué no hacer en este repo
 
-| Rol | Responsabilidad principal | Archivos/módulos |
-|---|---|---|
-| Integrante 1 | MediaPipe + cámara | `src/pose/`, integración de `getUserMedia` |
-| Integrantes 2 y 3 | Lógica de ejercicios | `src/exercises/`, `src/geometry/` |
-| Integrante 4 | UI/UX móvil | `src/ui/`, `public/manifest.json`, estilos |
-| Integrante 5 | Testing, docs, deploy, PM | `docs/`, `.github/workflows/`, informes de avance |
-
-El **PM** es quien sube los informes de avance a Canvas en las fechas comprometidas (30/04 y 16/05). Cada informe no entregado penaliza 10% de la nota final.
-
----
-
-## 8. Cronograma (6 semanas)
-
-| Semana | Fechas aprox. | Hito | Entregable interno |
-|---|---|---|---|
-| 1-2 | 13/04 - 26/04 | Setup + detección de pose funcionando en celular | Prototipo con cámara + esqueleto en pantalla |
-| 3-4 | 27/04 - 10/05 | Motor de ejercicios completo (3-5 ejercicios) | Conteo de reps y feedback funcional. **Informe 30/04.** |
-| 5-6 | 11/05 - 22/05 | UI final, testing, docs, deploy | App lista. **Informe 16/05.** Entrega 22/05. |
-
----
-
-## 9. Convenciones de código
-
-- **Idioma de comentarios:** español preferido para lógica de dominio (ejercicios, ángulos), inglés aceptable para utilidades genéricas. Consistencia dentro del archivo.
-- **Nombres de variables:** inglés (estándar de la industria, mejor para colaboración futura).
-- **Formato:** Prettier con configuración por defecto. ESLint con `eslint:recommended`.
-- **Commits:** mensajes en español o inglés, consistentes. Formato sugerido: `tipo(scope): descripción` (ej. `feat(squat): agregar deteccion de fase descendente`).
-- **Branches:** `main` siempre desplegable. Trabajo en ramas `feat/*`, `fix/*`. PRs revisados por al menos otro integrante antes de merge.
-
----
-
-## 10. Cómo Claude Code debe trabajar en este proyecto
-
-Instrucciones operativas para las sesiones interactivas.
-
-1. **Antes de cualquier cambio significativo, proponer plan.** Si el usuario pide "implementá la detección de sentadillas", primero mostrá qué archivos vas a tocar/crear y qué lógica vas a aplicar. Esperá aprobación antes de escribir código.
-2. **No instalar dependencias sin avisar.** Cualquier `npm install` se discute primero. El equipo quiere mantener `package.json` limpio y entendible.
-3. **No introducir tecnologías fuera del stack acordado** sin discusión explícita. Si encontrás que falta algo, proponelo como opción, no lo agregues unilateralmente.
-4. **Probar en celular es la verdad.** Cualquier código relacionado con cámara o detección debe asumir que la prueba real es en celular. Comentar limitaciones de testing en desktop cuando aplique.
-5. **Documentar decisiones en `DECISIONS.md`.** Cuando el equipo tome una decisión técnica (React vs. Vue, plataforma de deploy, etc.), agregar entrada en ese archivo con fecha, contexto, alternativas consideradas y razón.
-6. **Respetar el alcance comprometido vs. aspiracional.** No empezar a entrenar clasificadores de scikit-learn hasta que el alcance core esté entregado.
-7. **Comentarios en código:** explicar el "por qué" de decisiones no obvias (especialmente en cálculos geométricos y máquinas de estados), no el "qué" (que ya se ve en el código).
-
----
-
-## 11. Recursos de referencia
-
-- MediaPipe Pose (oficial): https://developers.google.com/mediapipe/solutions/vision/pose_landmarker
-- MediaPipe JS examples: https://github.com/google/mediapipe
-- LearnOpenCV tutoriales: https://learnopencv.com/
-- MDN PWA: https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps
-- `getUserMedia` MDN: https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia
-
----
-
-## 12. Entregables del curso
-
-Lo que se entrega en Canvas el 22/05 y se presenta el 23/05.
-
-1. **Link de la PWA desplegada**, accesible desde cualquier navegador móvil.
-2. **Documento de descripción del proyecto** (arquitectura, decisiones técnicas, resultados). Vive en `docs/descripcion-proyecto.md`.
-3. **Manual de usuario** con instrucciones de uso. Vive en `docs/manual-usuario.md`.
-4. **Código fuente** en repositorio de GitHub (link incluido).
-
----
-
-## 13. Estado actual del proyecto
-
-> **Esta sección se actualiza cada vez que el proyecto avanza.** Claude Code debe mantenerla viva.
-
-**Última actualización:** 2026-05-21
-
-**Directorio de trabajo:** `C:\Dev-AI\entrenador-personal-ia` (fuera de OneDrive — ver DEC-007).
-
-**Hito actual:** Fase 5 — Proyecto completo y listo para entrega. App en producción con los 3 ejercicios operativos. Documentación del curso finalizada: `docs/descripcion-proyecto.md` (descriptor técnico con redacción académica, 12 secciones) y `docs/manual-usuario.md` (manual de usuario con todos los casos de uso, 11 secciones, 29 espacios para capturas de pantalla). Ambos documentos exportados a Word para entrega en Canvas. Los 3 ejercicios comprometidos están operativos: sentadillas (`SquatTracker`), curl de bíceps (`BicepCurlTracker`, vistas frontal y lateral), y press de hombro (`ShoulderPressTracker`, polaridad invertida, umbrales clínicos). Conteo unificado con OR logic + cooldown en curl y press (DEC-022/023). PWA instalable con service worker (SW network-first para HTML, cache-first para assets — DEC-025) y manifest (DEC-006). Deploy automático en Vercel en cada push a `main` (DEC-019). Bug de hardware de cámara en modo standalone corregido con delay de 450 ms (DEC-021). localStorage con try/catch y validación de valor en todos los puntos de acceso (DEC-024). Selector de ejercicio con chips desplazables en barra inferior. Feedback de voz sin colisiones (DEC-016/017).
-
-**Decisiones técnicas tomadas:** React, Vite, TypeScript, `@mediapipe/tasks-vision` (Tasks API), WASM vía CDN jsDelivr, directorio en `C:\Dev-AI`, onboarding CSS nativo, `calculateAngle` con `atan2`, histéresis de umbral doble, overlay DOM con barra inferior, `SpeechSynthesis` para voz, `ArmTracker` interno para bicep curl, `ArmPressTracker` para press, conteo unificado OR+cooldown en curl y press, PWA manual, SW network-first para HTML, deploy en Vercel, HTTPS local con `@vitejs/plugin-basic-ssl`, delay 450 ms cambio de cámara, localStorage defensivo. Documentadas en `DECISIONS.md` (DEC-001 a DEC-025).
-
-**Próximo paso:** Entrega en Canvas el 22/05/2026 — link PWA en Vercel + link repositorio GitHub + `descripcion-proyecto.docx` + `manual-usuario.docx`. Presentación 23/05/2026.
+- No leer ni editar `docs/academico/`: son entregables históricos del curso.
+- No cambiar `public/sw.js` sin subir la constante `CACHE` (`DEC-025`).
+- No enviar landmarks, métricas ni ningún dato de usuario a servicios externos desde el cliente; todo pasa por `api-client` y las Edge Functions (`DEC-029`, `DEC-033`).
+- No escribir docs nuevos en la raíz: van en `docs/` con una responsabilidad por archivo (tabla en `AGENTS.md`).

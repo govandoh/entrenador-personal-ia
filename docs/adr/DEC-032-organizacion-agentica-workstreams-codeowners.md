@@ -29,7 +29,7 @@ Cinco desarrolladores y varias sesiones de IA (Claude Code, Codex, Cursor, Gemin
 
 `packages/contracts` es co-propiedad de B y D (2 aprobaciones). `docs/adr/` requiere aprobación de B, D y E. `.github/CODEOWNERS` codifica esta tabla; hasta tener los usuarios de GitHub de los otros cuatro desarrolladores se usan placeholders `@dev-a`..`@dev-e`.
 
-### Agentes (`.claude/agents/<nombre>.md`, creados en la rama `chore/agentes`)
+### Agentes (`.claude/agents/<nombre>.md`)
 
 | Agente | Responsabilidad única | Herramientas | Límite |
 |---|---|---|---|
@@ -50,11 +50,11 @@ La sesión principal actúa como orquestador y compone agentes; ningún agente d
 
 `/adr` (crear ADR desde la conversación), `/fixture` (guía para grabar y registrar un fixture), `/promote-model` (validar reporte + `sha256` + manifest), `/pr-ready` (corre lint/typecheck/test/golden y arma la descripción del PR con checklist DoD).
 
-### Hooks (`.claude/settings.json`, compartido en el repo)
+### Hooks (`.claude/settings.json` + `.claude/hooks/*.mjs`, compartidos en el repo)
 
-- `PreToolUse`: bloquea `Edit`/`Write` en `packages/contracts/**` y `models/manifest.json` salvo que la rama sea `adr/*` o `contracts/*`.
-- `PostToolUse`: ejecuta `pnpm lint --fix` sobre los archivos editados.
-- `Stop`: recuerda actualizar `docs/STATUS.md` si hubo cambios en `packages/`.
+- `PreToolUse` (`guard-protected-paths.mjs`): bloquea `Edit`/`Write`/`MultiEdit` en `packages/contracts/**`, `src/contracts/**` y `models/manifest.json` salvo que la rama sea `adr/*` o `contracts/*`.
+- `PostToolUse` (`lint-on-edit.mjs`): ejecuta `eslint --fix` sobre los archivos `.ts`/`.tsx` editados.
+- `Stop` (`remind-status.mjs`): recuerda actualizar `docs/STATUS.md` si hubo cambios en `src/`, `packages/`, `apps/`, `ml/` o `supabase/`.
 
 ### Regla de oro (en `AGENTS.md`)
 
