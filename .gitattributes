@@ -1,0 +1,4 @@
+# Los fixtures y los snapshots golden se generan con finales de línea LF. Fijarlos evita
+# diffs espurios y que `pnpm fixtures:check` falle en Windows por la conversión CRLF.
+fixtures/landmarks/*.json   text eol=lf
+*.snap                      text eol=lf
