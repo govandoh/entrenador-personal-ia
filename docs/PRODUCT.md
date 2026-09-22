@@ -56,11 +56,13 @@ Perfil público opcional, seguir a otros usuarios, compartir logros y retos.
 
 Criterios: todo lo social es opt-in; por defecto nada del usuario es visible a terceros; moderación básica (reportar, bloquear).
 
-### E8. Modelo freemium y pagos
+### E8. Modelo freemium y pagos (simulados)
 
-Suscripción premium para usuarios y fee mensual para entrenadores, cobrados con Recurrente (`DEC-030`); entitlements derivados de la suscripción y aplicados en RLS (`DEC-029`).
+Suscripción premium para usuarios y fee mensual para entrenadores; entitlements derivados de la suscripción y aplicados en RLS (`DEC-029`).
 
-Criterios: el checkout es alojado por el proveedor; el estado premium lo escribe únicamente el webhook; al vencer la suscripción las funciones premium se degradan sin perder datos; los pagos a entrenadores del marketplace se liquidan mensualmente desde un ledger.
+**El cobro es simulado** (`DEC-035`): Fitnet es un proyecto de seminario y no factura. Se implementa el puerto `PaymentProvider` con `MockPaymentProvider`, que genera sesiones de checkout ficticias y permite forzar los estados de suscripción desde una pantalla de demostración. Todo lo demás se construye como en producción.
+
+Criterios: el estado premium lo escribe únicamente el manejador de webhooks con clave de servicio; al vencer la suscripción las funciones premium se degradan sin perder datos; los pagos a entrenadores se registran en un ledger liquidable; la interfaz indica de forma inequívoca que el pago es simulado. Sustituir el proveedor simulado por uno real debe ser cambiar una implementación del puerto, nada más.
 
 Épicas transversales (no funcionales): **Núcleo de IA** (pipeline de datos, modelos, gates; issue #9) y **Plataforma/DevEx** (monorepo, CI, quality gates, backend base, agentes; issue #10).
 
@@ -86,7 +88,21 @@ Criterios: el checkout es alojado por el proveedor; el estado premium lo escribe
 | Publicar planes en el marketplace | No | No | Sí (comisión por venta, pendiente de definir) |
 | Segunda opinión por imagen clave (`DEC-027`) | No | Sí, bajo demanda y con tope mensual | — |
 
-Pendientes del equipo: precios en GTQ o USD, fee de entrenador plano vs. porcentaje, tope de costo del asistente IA por usuario premium/mes, entidad legal (`STATUS.md`).
+Los precios y la forma de la cuota de entrenador dejan de ser pendientes de implementación y pasan a ser **variables del análisis de rentabilidad** (`DEC-035` §4): alimentan el cálculo de margen por usuario y del punto de equilibrio. Sigue pendiente el tope de costo del asistente de IA por usuario premium al mes, que sí es una restricción técnica real porque el proyecto opera con planes gratuitos.
+
+## Naturaleza del proyecto y análisis de negocio
+
+Fitnet es un **proyecto de seminario universitario**. Ninguna versión sale a la venta, no hay clientes y no se factura (`DEC-035`). El modelo de negocio existe como objeto de estudio, y el trabajo incluye un análisis formal de mercado, costos, rentabilidad y proyección, que vive **fuera de este repositorio**.
+
+El repositorio le aporta los insumos técnicos verificables:
+
+| Insumo | De dónde sale |
+|---|---|
+| Escalones de precio y umbrales de migración de cada proveedor | `DEC-029` (backend y hosting) |
+| Comisión del proveedor de pagos que se habría elegido | `DEC-030`, ahora estudio comparativo |
+| Costo del asistente de IA por usuario según volumen de llamadas | `DEC-033` y el registro de uso de la Edge Function |
+| Costo de comercializar el núcleo de IA | `DEC-034` nota posterior: lo que costaría reemplazar los pesos académicos por un modelo propio entrenado desde cero |
+| Costo de cómputo del entrenamiento | `ML-PIPELINE.md` §6, horas de GPU consumidas |
 
 ## Roadmap por fases
 
@@ -95,6 +111,6 @@ Pendientes del equipo: precios en GTQ o USD, fee de entrenador plano vs. porcent
 | **1. Núcleo de IA + plataforma** | Tooling y CI, fixtures y golden, contratos, pipeline sin React, monorepo; captura con consentimiento, sprint de datos, primeros modelos (clasificador, errores de sentadilla) en modo sombra; métricas de fatiga por reglas. | E2, Núcleo IA, Plataforma | PR 0–10 de `ARCHITECTURE.md` §2.4 |
 | **2. Perfiles, rutinas, calendario** | Supabase (auth, esquema, RLS), sincronización de sesiones con cola offline, perfiles y objetivos, catálogo de ejercicios, rutinas con métodos, calendario. | E1, E3, E4 | PR 11+, `DEC-029` |
 | **3. Entrenadores, marketplace, coaching** | Rol entrenador, planes, marketplace, relación de coaching, chat en tiempo real, Edge Function `coach` con Claude, digest semanal. | E5, E6 (panel y retos) | `DEC-033` |
-| **4. Comunidad y pagos** | Rankings públicos con anti-trampa, comunidad opt-in, Recurrente (premium + fee), Paddle, hosting comercial de la PWA. | E6 (rankings), E7, E8 | `DEC-030`, DEC pendiente de hosting |
+| **4. Comunidad y pagos simulados** | Rankings públicos con anti-trampa, comunidad opt-in, puerto `PaymentProvider` con proveedor simulado, entitlements y ledger de liquidaciones. El hosting se queda en Vercel Hobby. | E6 (rankings), E7, E8 | `DEC-035`, `DEC-030` como estudio |
 
 Cada fase produce releases desplegables; la app actual (3 ejercicios) sigue en producción durante toda la Fase 1.

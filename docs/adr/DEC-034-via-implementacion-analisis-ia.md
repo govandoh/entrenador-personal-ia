@@ -94,9 +94,22 @@ Embeddings de secuencia más prototipos o k-NN permiten **identificar** un ejerc
 | 2 | ≥ 90 % accuracy LOSO en los 3 ejercicios; p95 < 15 ms | reporte de evaluación |
 | 3 | Mejora sobre la Fase 1 en al menos dos códigos de error, con latencia por repetición < 300 ms en gama media | comparación contra el modelo promovido |
 
+## Nota posterior (2026-09-22) — el bloqueo comercial desaparece (`DEC-035`)
+
+El argumento para descartar los checkpoints preentrenados era el uso comercial. Fitnet **no saldrá a la venta**: es un proyecto de seminario, y la cesión de NTU RGB+D contempla precisamente el uso académico y de investigación. Los pesos de ST-GCN++, CTR-GCN, HD-GCN y ProtoGCN quedan **permitidos en el prototipo**, con tres condiciones: este repositorio no los redistribuye, todo modelo derivado se marca en `models/manifest.json` con `provenance: "academic-pretrained"` y `commercialUse: false`, y cada entrenamiento registra su checkpoint de partida y su licencia.
+
+Efecto sobre las tres fases, que se conservan en el mismo orden:
+
+- **Fase 1** no cambia y sigue siendo la primera. Es el piso comparativo, el respaldo en ejecución y lo que resuelve los cuatro fallos del contexto con el menor esfuerzo.
+- **Fase 2** no cambia.
+- **Fase 3** pasa de "entrenar una red de grafos desde cero con miles de repeticiones" a **afinar un backbone preentrenado con cientos**, congelando el backbone y entrenando cabezas ligeras por ejercicio. Eso la vuelve alcanzable dentro del plazo del seminario. La representación canónica sigue siendo COCO-17, que es la que usan los checkpoints publicados por PYSKL y mmaction2, así que la decisión de no mapear a NTU-25 se mantiene y además se refuerza.
+
+Queda un entregable nuevo derivado de esto: **el costo de comercializar**, es decir, lo que costaría sustituir los pesos académicos por un modelo entrenado desde cero. Se cuantifica en repeticiones adicionales de dataset propio, horas de cómputo y tiempo de ingeniería, y es una línea del análisis de rentabilidad.
+
 ## Referencias
 
-- `DEC-027` (arquitectura híbrida), `DEC-031` (runtime de inferencia), `DEC-026` (uso comercial), `DEC-030` (suscripciones).
+- `DEC-035` (proyecto académico sin facturación real).
+- `DEC-027` (arquitectura híbrida), `DEC-031` (runtime de inferencia), `DEC-026` (alcance y reglas), `DEC-030` (estudio de proveedores de pago).
 - `fixtures/README.md` (los cuatro comportamientos congelados), `docs/METRICS.md` §5 (códigos de error), `docs/ML-PIPELINE.md` (licencias de datasets y gate de promoción).
 - NTU RGB+D, términos de uso: https://rose1.ntu.edu.sg/dataset/actionRecognition/
 - PYSKL (ST-GCN++, Apache-2.0): https://github.com/kennymckormick/pyskl

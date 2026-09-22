@@ -50,7 +50,9 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 | DEC | Decisión |
 |---|---|
-| DEC-026 | Se levantan "sin backend" y "cero costos"; se conserva mobile-first y español; nueva regla: el video nunca sale del dispositivo. |
+| DEC-026 | Se levantan "sin backend" y "cero costos"; se conserva mobile-first y español; nueva regla: el video nunca sale del dispositivo. Modificada por DEC-035. |
+| DEC-034 | Vía de implementación del análisis por IA en tres fases, con COCO-17 como representación canónica. Propuesta, ajustada por DEC-035. |
+| DEC-035 | **Fitnet es un proyecto de seminario y no factura.** Pagos simulados con un puerto intercambiable, cero costo absoluto, pesos preentrenados de licencia académica permitidos en el prototipo, y análisis de rentabilidad como entregable fuera del repositorio. |
 | DEC-027 | Arquitectura híbrida de IA: modelos pequeños on-device + LLM en la nube solo con métricas; reglas como fallback. |
 | DEC-028 | Monorepo pnpm con paquetes `@fitnet/*` y fronteras de dependencias; migración strangler en PRs 0–11. |
 | DEC-029 | Supabase (`us-east-1`) como backend. |
@@ -79,7 +81,7 @@ Detalle de cada PR y su red de seguridad: `ARCHITECTURE.md` §2.4.
 |---|---|---|
 | 1 | Usuarios de GitHub de los otros 4 desarrolladores (colaboradores y CODEOWNERS reales; hoy placeholders `@dev-a`..`@dev-e`, `@lead-b`, `@lead-d`, que GitHub ignora en silencio). | #18 |
 | 2 | ¿Renombrar el repo a `fitnet`? ¿Público (branch protection gratis) o privado (Student Pack)? | #19 |
-| 3 | Confirmar el levantamiento de "sin backend / cero costos" y el tope mensual aceptable antes de ingresos. | #19, #20 |
-| 4 | Entidad legal: empresa en Guatemala (Recurrente + banco local) vs. Stripe Atlas. Precios en GTQ o USD; fee de entrenador plano vs. porcentaje. | #20 |
+| 3 | ~~Tope de gasto mensual~~. **Resuelto por `DEC-035`:** el proyecto no factura, así que la regla es cero costo y todo va sobre planes gratuitos. | — |
+| 4 | ~~Entidad legal y proveedor de pagos~~. **Resuelto por `DEC-035`:** los pagos son simulados, no hace falta entidad ni NIT. Precios y forma de la cuota pasan a ser variables del análisis de rentabilidad. | #20, reconvertida |
 | 5 | Crear el GitHub Project "Fitnet": requiere que el token de `gh` tenga el scope `project` (`gh auth refresh -s project`). | #21 |
 | 6 | Tope de costo del asistente IA por usuario premium/mes; frescura de rankings y reglas anti-trampa; aviso de privacidad por datos de salud alojados en EE. UU. (`DATA-GOVERNANCE.md` §5). | #22 |

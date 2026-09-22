@@ -49,8 +49,9 @@ Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `sr
 4. **Español en UI y documentación entregable; identificadores de código en inglés.** Sin emojis en docs ni código.
 5. **No cambiar snapshots golden sin una DEC enlazada en el PR.** Los fixtures de `fixtures/landmarks/` congelan el comportamiento en producción.
 6. **`packages/contracts/**`, `src/contracts/**` y `models/manifest.json` solo se editan en ramas `adr/*` o `contracts/*`**, con 2 aprobaciones y bump semver (`docs/WORKSTREAMS.md`). En Claude Code lo bloquea el hook `guard-protected-paths.mjs`; en el PR lo exige CODEOWNERS.
-7. **Cero costo mientras no haya ingresos.** Free tiers; cualquier gasto nuevo requiere DEC.
-8. **No instalar dependencias ni introducir tecnologías sin discutirlo**; si hace falta, proponerlo como opción con su DEC.
+7. **Cero costo, sin excepciones.** Fitnet es un proyecto de seminario y no factura (`DEC-035`): todo va sobre planes gratuitos (Supabase Free, Vercel Hobby, Kaggle, GitHub Actions, Hugging Face). Cualquier gasto real requiere DEC y aprobación explícita.
+8. **Los pagos son simulados.** Se implementa el puerto `PaymentProvider` con `MockPaymentProvider`; el flujo es completo y demostrable, pero ningún cobro es real y la interfaz debe decirlo. Nunca integrar una pasarela real ni pedir datos de tarjeta.
+9. **No instalar dependencias ni introducir tecnologías sin discutirlo**; si hace falta, proponerlo como opción con su DEC.
 
 ## Dirección de dependencias
 
