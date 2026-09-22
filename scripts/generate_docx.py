@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-Genera docs/descripcion-proyecto.docx a partir del contenido del descriptor de proyecto.
+Genera docs/academico/descripcion-proyecto.docx a partir del contenido del descriptor de proyecto.
 Formato: manual técnico académico con estilos UMG.
+Entregable histórico del MVP del curso IA26; ver docs/academico/README.md.
 """
 
 from docx import Document
@@ -12,7 +13,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 import os
 
-OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'docs', 'descripcion-proyecto.docx')
+OUTPUT_PATH = os.path.join(os.path.dirname(__file__), '..', 'docs', 'academico', 'descripcion-proyecto.docx')
 
 # ──────────────────────────────────────────────
 # Helpers de formato

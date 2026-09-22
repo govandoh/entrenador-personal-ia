@@ -1,0 +1,73 @@
+# Registro de decisiones de arquitectura (ADR)
+
+## Qué es una ADR
+
+Una *Architecture Decision Record* documenta una decisión técnica relevante: qué problema había, qué opciones se consideraron, qué se eligió y qué consecuencias se aceptan. Fitnet usa el formato **MADR 4.0** adaptado al español (`TEMPLATE.md`). Cada decisión tiene un identificador `DEC-NNN` estable que se cita en código, commits y PRs (por ejemplo `// ver DEC-016`).
+
+Las ADR son inmutables: si una decisión cambia, se escribe una DEC nueva y la anterior pasa a estado `Reemplazada por DEC-MMM`. Las DEC-001 a DEC-025 provienen del MVP académico y se migraron 1:1 desde el antiguo `DECISIONS.md` conservando fecha y contenido.
+
+## Cuándo se necesita una ADR
+
+- Introducir o quitar una dependencia, servicio externo o proveedor.
+- Cambiar un contrato de `packages/contracts` o un esquema persistido (`schemaVersion`).
+- Cambiar un umbral, constante o algoritmo que altere los snapshots golden de `analysis-core`.
+- Cambiar la dirección de dependencias entre paquetes o la propiedad de un directorio.
+- Cualquier decisión que un revisor (humano o `architect-guardian`) detecte como implícita en un PR.
+
+## Cómo proponer una
+
+1. Crear una rama `adr/<slug>` desde `main`.
+2. Copiar `TEMPLATE.md` a `DEC-NNN-<slug>.md` con el siguiente número libre de la tabla; estado `Propuesta`.
+3. Rellenar contexto, opciones (mínimo dos reales), decisión y consecuencias. Enlazar código, DEC previas y fuentes externas.
+4. Añadir la fila en la tabla de este README y, si el estado cambia a `Aceptada`, en `DECISIONS.md` (índice corto de la raíz).
+5. Abrir PR con título `docs(adr): DEC-NNN <título>`. Requiere **2 aprobaciones** (leads de B, D y E revisan `docs/adr/`; si la DEC toca `packages/contracts`, deben aprobar B y D).
+6. La ADR se discute en la revisión de arquitectura de 30 min del sprint; al hacer merge el estado pasa a `Aceptada`.
+
+En Claude Code, la skill `/adr` genera el borrador a partir de la conversación (`.claude/skills/adr`); el agente `adr-scribe` mantiene este índice.
+
+## Índice
+
+| DEC | Título | Fecha | Estado |
+|---|---|---|---|
+| [DEC-001](DEC-001-framework-ui-react.md) | Framework UI: React | 2026-04-29 | Aceptada |
+| [DEC-002](DEC-002-build-tool-vite.md) | Build tool: Vite | 2026-04-29 | Aceptada |
+| [DEC-003](DEC-003-lenguaje-typescript.md) | Lenguaje: TypeScript | 2026-04-29 | Aceptada |
+| [DEC-004](DEC-004-mediapipe-tasks-vision.md) | API de MediaPipe: `@mediapipe/tasks-vision` (Tasks API) | 2026-04-29 | Aceptada |
+| [DEC-005](DEC-005-wasm-mediapipe-cdn-jsdelivr.md) | Carga del WASM de MediaPipe: CDN (jsDelivr) | 2026-04-29 | Aceptada |
+| [DEC-006](DEC-006-pwa-manual-sin-plugin.md) | PWA implementada manualmente (sin vite-plugin-pwa) | 2026-05-15 | Aceptada |
+| [DEC-007](DEC-007-directorio-desarrollo-fuera-onedrive.md) | Directorio de desarrollo: `C:\Dev-AI` (fuera de OneDrive) | 2026-04-29 | Aceptada |
+| [DEC-008](DEC-008-onboarding-react-css-nativo.md) | Onboarding: implementado en React con CSS nativo | 2026-05-06 | Aceptada |
+| [DEC-009](DEC-009-angulos-atan2-point2d.md) | Cálculo de ángulos: `atan2` con tipo propio `Point2D` | 2026-05-06 | Aceptada |
+| [DEC-010](DEC-010-sentadilla-histeresis-umbral-doble.md) | Máquina de estados de sentadilla: histéresis de umbral doble | 2026-05-06 | Aceptada |
+| [DEC-011](DEC-011-feedback-overlay-dom.md) | Feedback de ejercicio: overlay DOM sobre canvas | 2026-05-06 | Aceptada |
+| [DEC-012](DEC-012-overlay-barra-inferior.md) | Overlay de feedback: barra inferior de ancho completo | 2026-05-06 | Aceptada |
+| [DEC-013](DEC-013-voz-speech-synthesis.md) | Retroalimentación por voz: Web Speech API (`SpeechSynthesis`) | 2026-05-06 | Aceptada |
+| [DEC-014](DEC-014-fondo-real-minimo-local.md) | Detección de fondo real: mínimo local por giro de ángulo | 2026-05-06 | Aceptada |
+| [DEC-015](DEC-015-curl-cima-inversion-tendencia-vistas.md) | Curl de bíceps: detección de cima por inversión de tendencia + soporte frontal/lateral | 2026-05-15 | Aceptada |
+| [DEC-016](DEC-016-feedback-voz-confirmacion-frames-prioridad.md) | Arquitectura de feedback de voz: confirmación por frames y prioridad sin colisiones | 2026-05-15 | Aceptada |
+| [DEC-017](DEC-017-conteo-reps-gate-confirmacion.md) | Conteo de reps: gate obligatorio por confirmación de cima/fondo | 2026-05-15 | Aceptada |
+| [DEC-018](DEC-018-press-hombro-angulos-polaridad-pico.md) | Press de hombro: ángulos seguros, polaridad invertida y detección de pico | 2026-05-15 | Aceptada |
+| [DEC-019](DEC-019-deploy-vercel.md) | Plataforma de deploy: Vercel | 2026-05-15 | Aceptada |
+| [DEC-020](DEC-020-https-local-basic-ssl.md) | HTTPS en desarrollo local: `@vitejs/plugin-basic-ssl` | 2026-05-15 | Aceptada |
+| [DEC-021](DEC-021-delay-450ms-cambio-camara.md) | Delay de 450 ms al cambiar de cámara en PWA instalada | 2026-05-15 | Aceptada |
+| [DEC-022](DEC-022-curl-conteo-unificado-cooldown.md) | Curl de bíceps: conteo unificado con cooldown | 2026-05-15 | Aceptada |
+| [DEC-023](DEC-023-press-conteo-unificado-cooldown.md) | Press de hombro: conteo unificado con cooldown | 2026-05-16 | Aceptada |
+| [DEC-024](DEC-024-localstorage-defensivo.md) | `localStorage` defensivo: try/catch y validación de valor | 2026-05-16 | Aceptada |
+| [DEC-025](DEC-025-service-worker-network-first.md) | Service Worker: network-first para HTML, cache-first para assets | 2026-05-16 | Aceptada |
+| [DEC-026](DEC-026-levantamiento-restricciones-mvp-alcance-fitnet.md) | Levantamiento de las restricciones del MVP y alcance de Fitnet | 2026-09-19 | Aceptada |
+| [DEC-027](DEC-027-arquitectura-hibrida-ia.md) | Arquitectura híbrida de IA (on-device + LLM solo con métricas; reglas como fallback) | 2026-09-19 | Aceptada |
+| [DEC-028](DEC-028-monorepo-pnpm-fronteras-paquetes.md) | Monorepo pnpm, paquetes `@fitnet/*` y fronteras de dependencias | 2026-09-19 | Aceptada |
+| [DEC-029](DEC-029-supabase-backend.md) | Supabase (`us-east-1`) como backend de producto | 2026-09-19 | Aceptada |
+| [DEC-030](DEC-030-recurrente-pagos-v1.md) | Recurrente como proveedor de pagos v1 (Paddle secundario) | 2026-09-19 | Aceptada |
+| [DEC-031](DEC-031-onnx-runtime-web-wasm-hf-hub.md) | ONNX Runtime Web (WASM) + Hugging Face Hub para modelos | 2026-09-19 | Aceptada |
+| [DEC-032](DEC-032-organizacion-agentica-workstreams-codeowners.md) | Organización agéntica, workstreams y CODEOWNERS | 2026-09-19 | Aceptada |
+| [DEC-033](DEC-033-claude-coach-assistant-edge-function.md) | Claude `claude-opus-5` para `CoachAssistant` vía Edge Function | 2026-09-19 | Aceptada |
+
+Próximo número libre: **DEC-034**.
+
+## Decisiones que ya se sabe que harán falta
+
+- Hosting comercial de la PWA al lanzar planes de pago (Cloudflare Pages vs. Vercel Pro), ver `DEC-029`.
+- Migración de constantes en frames a tiempo real (`PeakDetector` con `confirmMs`), con actualización de golden, ver `DEC-027` y PR 7 en `ARCHITECTURE.md`.
+- Reglas anti-trampa y frescura de rankings, ver `docs/METRICS.md`.
+- Renombrado del repositorio a `fitnet` y visibilidad pública/privada, ver `docs/STATUS.md`.
