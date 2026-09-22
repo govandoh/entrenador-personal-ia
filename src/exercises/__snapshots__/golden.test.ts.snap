@@ -1,0 +1,644 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`BicepCurlTracker (golden) > curl-front-alternating-01: 6 reps (3 por brazo, desfase de 800 ms) 1`] = `
+{
+  "feedbackLevels": {
+    "good": 102,
+    "idle": 241,
+    "warning": 198,
+  },
+  "frames": 541,
+  "peakFrames": [
+    83,
+    131,
+    227,
+    275,
+    371,
+    419,
+  ],
+  "repFrames": [
+    118,
+    166,
+    262,
+    310,
+    406,
+    454,
+  ],
+  "reps": 6,
+  "transitions": [
+    {
+      "frame": 66,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 166,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 210,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 310,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 354,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 454,
+      "from": "flexed",
+      "to": "extended",
+    },
+  ],
+}
+`;
+
+exports[`BicepCurlTracker (golden) > curl-front-bilateral-01: 5 reps (el cooldown de DEC-022 absorbe el segundo brazo) 1`] = `
+{
+  "feedbackLevels": {
+    "good": 85,
+    "idle": 281,
+    "warning": 175,
+  },
+  "frames": 541,
+  "peakFrames": [
+    83,
+    179,
+    275,
+    371,
+    467,
+  ],
+  "repFrames": [
+    118,
+    214,
+    310,
+    406,
+    502,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 66,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 118,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 162,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 214,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 258,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 310,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 354,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 406,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 450,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 502,
+      "from": "flexed",
+      "to": "extended",
+    },
+  ],
+}
+`;
+
+exports[`BicepCurlTracker (golden) > curl-front-partial-01: 0 reps porque parte de 120° (< MIN_START_ANGLE=130) 1`] = `
+{
+  "feedbackLevels": {
+    "good": 115,
+    "idle": 62,
+    "warning": 364,
+  },
+  "frames": 541,
+  "peakFrames": [
+    84,
+  ],
+  "repFrames": [],
+  "reps": 0,
+  "transitions": [
+    {
+      "frame": 62,
+      "from": "extended",
+      "to": "flexed",
+    },
+  ],
+}
+`;
+
+exports[`BicepCurlTracker (golden) > curl-side-left-01: 5 reps con solo el brazo izquierdo visible 1`] = `
+{
+  "feedbackLevels": {
+    "good": 85,
+    "idle": 281,
+    "warning": 175,
+  },
+  "frames": 541,
+  "peakFrames": [
+    83,
+    179,
+    275,
+    371,
+    467,
+  ],
+  "repFrames": [
+    118,
+    214,
+    310,
+    406,
+    502,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 66,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 118,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 162,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 214,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 258,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 310,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 354,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 406,
+      "from": "flexed",
+      "to": "extended",
+    },
+    {
+      "frame": 450,
+      "from": "extended",
+      "to": "flexed",
+    },
+    {
+      "frame": 502,
+      "from": "flexed",
+      "to": "extended",
+    },
+  ],
+}
+`;
+
+exports[`ShoulderPressTracker (golden) > press-front-good-01: 5 reps sin feedback de riesgo 1`] = `
+{
+  "feedbackLevels": {
+    "good": 130,
+    "idle": 316,
+    "warning": 95,
+  },
+  "frames": 541,
+  "peakFrames": [
+    84,
+    180,
+    276,
+    372,
+    468,
+  ],
+  "repFrames": [
+    112,
+    208,
+    304,
+    400,
+    496,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 67,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 112,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 163,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 208,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 259,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 304,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 355,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 400,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 451,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 496,
+      "from": "pressed",
+      "to": "lowered",
+    },
+  ],
+}
+`;
+
+exports[`ShoulderPressTracker (golden) > press-front-lowelbow-01: produce feedback "bad" al bajar de SAFE_LOW_ANGLE=80 1`] = `
+{
+  "feedbackLevels": {
+    "bad": 166,
+    "good": 115,
+    "idle": 175,
+    "warning": 85,
+  },
+  "frames": 541,
+  "peakFrames": [
+    84,
+    180,
+    276,
+    372,
+    468,
+  ],
+  "repFrames": [
+    108,
+    204,
+    300,
+    396,
+    492,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 68,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 108,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 164,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 204,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 260,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 300,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 356,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 396,
+      "from": "pressed",
+      "to": "lowered",
+    },
+    {
+      "frame": 452,
+      "from": "lowered",
+      "to": "pressed",
+    },
+    {
+      "frame": 492,
+      "from": "pressed",
+      "to": "lowered",
+    },
+  ],
+}
+`;
+
+exports[`SquatTracker (golden) > squat-side-good-01: cuenta las 5 reps 1`] = `
+{
+  "feedbackLevels": {
+    "good": 95,
+    "idle": 286,
+    "warning": 160,
+  },
+  "frames": 541,
+  "peakFrames": [
+    90,
+    186,
+    282,
+    378,
+    474,
+  ],
+  "repFrames": [
+    115,
+    211,
+    307,
+    403,
+    499,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 64,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 115,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 160,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 211,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 256,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 307,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 352,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 403,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 448,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 499,
+      "from": "squatting",
+      "to": "standing",
+    },
+  ],
+}
+`;
+
+exports[`SquatTracker (golden) > squat-side-good-30fps-01: misma trayectoria a 30 fps 1`] = `
+{
+  "feedbackLevels": {
+    "good": 45,
+    "idle": 141,
+    "warning": 85,
+  },
+  "frames": 271,
+  "peakFrames": [
+    43,
+    91,
+    139,
+    187,
+    235,
+  ],
+  "repFrames": [
+    58,
+    106,
+    154,
+    202,
+    250,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 32,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 58,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 80,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 106,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 128,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 154,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 176,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 202,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 224,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 250,
+      "from": "squatting",
+      "to": "standing",
+    },
+  ],
+}
+`;
+
+exports[`SquatTracker (golden) > squat-side-noisy-01: el ruido no crea reps falsas (misma cuenta que good) 1`] = `
+{
+  "feedbackLevels": {
+    "good": 88,
+    "idle": 292,
+    "warning": 161,
+  },
+  "frames": 541,
+  "peakFrames": [
+    78,
+    174,
+    275,
+    370,
+    470,
+  ],
+  "repFrames": [
+    114,
+    210,
+    307,
+    403,
+    498,
+  ],
+  "reps": 5,
+  "transitions": [
+    {
+      "frame": 65,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 114,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 160,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 210,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 257,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 307,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 353,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 403,
+      "from": "squatting",
+      "to": "standing",
+    },
+    {
+      "frame": 448,
+      "from": "standing",
+      "to": "squatting",
+    },
+    {
+      "frame": 498,
+      "from": "squatting",
+      "to": "standing",
+    },
+  ],
+}
+`;
+
+exports[`SquatTracker (golden) > squat-side-shallow-01: 0 reps porque nunca cruza BOTTOM_ANGLE=100 1`] = `
+{
+  "feedbackLevels": {
+    "idle": 541,
+  },
+  "frames": 541,
+  "peakFrames": [],
+  "repFrames": [],
+  "reps": 0,
+  "transitions": [],
+}
+`;

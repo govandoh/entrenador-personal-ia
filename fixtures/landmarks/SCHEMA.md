@@ -109,20 +109,28 @@ Las comprueba `src/exercises/golden.test.ts`:
 Tamaño orientativo: < 2 MB por archivo. Si una grabación real se pasa, recortarla al tramo
 con las reps.
 
-## Divergencias con la skill `/fixture`
+## Divergencias pendientes de unificar
 
-La skill `.claude/skills/fixture/SKILL.md` se escribió en paralelo a este PR y describe
-algunos campos distintos. Esta implementación sigue el esquema aprobado en el plan
+Tres documentos describen el "esquema v1" y se escribieron en paralelo: este (la
+implementación que corre en los tests), la skill `.claude/skills/fixture/SKILL.md` y
+`docs/ML-PIPELINE.md` §2. Esta implementación sigue el esquema aprobado en el plan
 (Parte 2.3, PR 1). Equivalencias:
 
-| Skill `/fixture` | Esquema v1 implementado |
-|---|---|
-| `view: lateral \| frontal \| diag45` | `view: side \| front \| 45` |
-| `fpsApprox` | `fps` |
-| `recordedAt: AAAA-MM-DD` | `recordedAt`: ISO-8601 completo |
-| `meta.expected` | `expected` en la entrada de `index.json` |
-| `meta.camera`, `meta.consentId` | no existen todavía (llegan con el modo captura, PR 8) |
-| índice en `fixtures/index.json` | índice en `fixtures/landmarks/index.json` |
-| `world` obligatorio | `world` opcional (ausente en fixtures sintéticos) |
+| Campo | Aquí (implementado) | Skill `/fixture` | `docs/ML-PIPELINE.md` |
+|---|---|---|---|
+| Versión | `meta.schemaVersion: 1` (número) | `meta.schemaVersion: 1` | `schemaVersion: "1"` en la raíz (string) |
+| Ejercicio | `meta.exercise` | `meta.exercise` | `meta.exerciseId` |
+| Vista | `side` \| `front` \| `45` | `lateral` \| `frontal` \| `diag45` | `side` \| `front` |
+| Landmarks | objetos `{ x, y, z, visibility }` | objetos | tuplas `[x, y, z, visibility]` |
+| fps | `meta.fps` (número) | `meta.fpsApprox` | `meta.fps: { nominal, measuredMean }` |
+| Reps esperadas | `expected` en `index.json` | `meta.expected` | en `labels[]` |
+| Nombre | `squat-side-good-01.json` | `squat-lateral-good-01.json` | `squat_side_good_001.json` |
+| Índice | `fixtures/landmarks/index.json` | `fixtures/index.json` | (no define índice) |
+| `world` | opcional (ausente en sintéticos) | obligatorio | obligatorio, `null` si falta |
+| No implementados | — | `camera`, `consentId` | `seq`, `labels[]`, `subjectId`, `rpe`, `mediapipe`, `synthetic` |
 
-Hay que unificar ambos documentos antes del PR 8; queda anotado en el PR.
+Los campos que faltan (`consentId`, `labels[]`, `seq`, `subjectId`) corresponden al modo
+captura y al pipeline de ML, que llegan en los PRs 8 y 9. La unificación debería hacerse
+en `packages/contracts` con un esquema zod único antes del PR 9, que es cuando Python
+tiene que leer estos mismos archivos; hasta entonces manda `src/testing/fixtureTypes.ts`,
+que es el único que está cubierto por tests.
