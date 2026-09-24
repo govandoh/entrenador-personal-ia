@@ -197,5 +197,165 @@ export const PRESS_3D: ExerciseDefinition3D = {
   calibrateDuringSet: false,
 };
 
-export const DEFINITIONS_3D = { squat: SQUAT_3D, curl: CURL_3D, press: PRESS_3D } as const;
+// ─────────────────────── Ola 1: peso corporal (DEC-056, issue #39) ───────────────────────
+//
+// Umbrales iniciales propuestos en este repositorio, no calibrados todavía con personas:
+// se ajustan con las grabaciones por guion (DEC-055) y cualquier cambio que altere tests
+// de comportamiento exige DEC.
+
+/** Codo por debajo de este ángulo = flexión profunda, en grados. */
+export const PUSHUP_GOOD_DEPTH_DEG = 90;
+/** Línea hombros-cadera-tobillos por debajo de este ángulo = cadera fuera de línea, en grados. */
+export const PUSHUP_MIN_BODY_LINE_DEG = 160;
+/** Rodilla delantera por debajo de este ángulo = zancada profunda, en grados. */
+export const LUNGE_GOOD_DEPTH_DEG = 100;
+/** Inclinación del tronco en la zancada que dispara `trunk_lean`, en grados. */
+export const LUNGE_MAX_TRUNK_LEAN_DEG = 35;
+/** Cadera por encima de este ángulo = extensión completa del puente, en grados. */
+export const BRIDGE_GOOD_EXTENSION_DEG = 165;
+
+function mid(w: readonly Landmark3D[], a: number, b: number): Landmark3D {
+  return { x: (w[a].x + w[b].x) / 2, y: (w[a].y + w[b].y) / 2, z: (w[a].z + w[b].z) / 2 };
+}
+
+/**
+ * Alineación del cuerpo en tabla (flexión, plancha): ángulo hombros-cadera-tobillos con los
+ * puntos medios (los hombros son más anchos que la cadera; por un solo lado la línea recta
+ * mide ~171°) y si la cadera queda por debajo (+y) de la recta hombros-tobillos.
+ */
+export function bodyLine(w: readonly Landmark3D[]): { angle: number; hipBelow: boolean } {
+  const sh = mid(w, LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER);
+  const hip = mid(w, LM.LEFT_HIP, LM.RIGHT_HIP);
+  const an = mid(w, LM.LEFT_ANKLE, LM.RIGHT_ANKLE);
+  const angle = calculateAngle3D(sh, hip, an);
+  // Altura de la recta hombros→tobillos en la posición de la cadera (proyección sobre la recta).
+  const d = subtract(an, sh);
+  const len2 = d.x * d.x + d.y * d.y + d.z * d.z || 1;
+  const t = ((hip.x - sh.x) * d.x + (hip.y - sh.y) * d.y + (hip.z - sh.z) * d.z) / len2;
+  const lineY = sh.y + t * d.y;
+  return { angle, hipBelow: hip.y > lineY };
+}
+
+const BODY_LINE_LANDMARKS = [
+  LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER, LM.LEFT_HIP, LM.RIGHT_HIP, LM.LEFT_ANKLE, LM.RIGHT_ANKLE,
+] as const;
+
+export const PUSHUP_3D: ExerciseDefinition3D = {
+  id: 'pushup',
+  name: 'Flexiones',
+  sides: 'either',
+  sideLandmarks: { left: armSideLandmarks('left'), right: armSideLandmarks('right') },
+  extraLandmarks: [],
+  sideAngle: elbowAngle,
+  combine: 'mean',
+  // Brazos extendidos > 150°, abajo < 100°.
+  cycle: { polarity: 'min', restDeg: 150, effortDeg: 100, confirmMarginDeg: CONFIRM_MARGIN_DEG },
+  perSideCycles: false,
+  cooldownMs: 0,
+  shape: { effortIsMinimum: true, concentricFirst: false },
+  quality: { minRomDegrees: 40, minDurationMs: 600, maxDurationMs: 10000, minSmoothness: 0.35 },
+  formCheck(ctx: FormContext) {
+    if (areVisible(ctx.world, BODY_LINE_LANDMARKS, MIN_VISIBILITY)) {
+      const line = bodyLine(ctx.world);
+      if (line.angle < PUSHUP_MIN_BODY_LINE_DEG) {
+        return line.hipBelow
+          ? { code: 'hip_sag', level: 'bad', message: 'Aprieta el abdomen, la cadera se cae' }
+          : { code: 'hip_pike', level: 'warning', message: 'Baja la cadera, cuerpo en línea recta' };
+      }
+    }
+    return null;
+  },
+  phaseFeedback(ctx: FormContext) {
+    if (ctx.phase === 'rest') return { level: 'idle', message: 'Listo, baja el pecho' };
+    if (ctx.peakReached) {
+      return ctx.extremeDeg <= PUSHUP_GOOD_DEPTH_DEG
+        ? { level: 'good', message: '¡Buena bajada! Empuja el suelo' }
+        : { level: 'warning', message: 'Sube. En la próxima, baja más el pecho' };
+    }
+    return ctx.primaryAngle <= PUSHUP_GOOD_DEPTH_DEG
+      ? { level: 'good', message: '¡Buena profundidad!' }
+      : { level: 'warning', message: 'Baja más el pecho' };
+  },
+  notVisibleMessage: 'Ponte de perfil a la cámara, con el cuerpo completo a la vista',
+  calibrateDuringSet: true,
+};
+
+export const LUNGE_3D: ExerciseDefinition3D = {
+  id: 'lunge',
+  name: 'Zancadas',
+  sides: 'either',
+  sideLandmarks: {
+    left:  [SIDE.left.hip, SIDE.left.knee, SIDE.left.ankle],
+    right: [SIDE.right.hip, SIDE.right.knee, SIDE.right.ankle],
+  },
+  extraLandmarks: [LM.LEFT_SHOULDER, LM.RIGHT_SHOULDER],
+  sideAngle: (w, s) => calculateAngle3D(w[SIDE[s].hip], w[SIDE[s].knee], w[SIDE[s].ankle]),
+  // La rodilla que más se dobla es la de la pierna delantera.
+  combine: 'min',
+  cycle: { polarity: 'min', restDeg: 160, effortDeg: 110, confirmMarginDeg: CONFIRM_MARGIN_DEG },
+  perSideCycles: false,
+  cooldownMs: 0,
+  shape: { effortIsMinimum: true, concentricFirst: false },
+  quality: { minRomDegrees: 40, minDurationMs: 800, maxDurationMs: 15000, minSmoothness: 0.35 },
+  formCheck(ctx: FormContext) {
+    if (ctx.phase === 'effort' && torsoLean(ctx.world) > LUNGE_MAX_TRUNK_LEAN_DEG) {
+      return { code: 'trunk_lean', level: 'bad', message: 'Tronco erguido, no te inclines hacia adelante' };
+    }
+    return null;
+  },
+  phaseFeedback(ctx: FormContext) {
+    if (ctx.phase === 'rest') return { level: 'idle', message: 'Listo, da el paso y baja' };
+    if (ctx.peakReached) {
+      return ctx.extremeDeg <= LUNGE_GOOD_DEPTH_DEG
+        ? { level: 'good', message: '¡Buena profundidad! Sube con la pierna delantera' }
+        : { level: 'warning', message: 'Sube. En la próxima, baja un poco más' };
+    }
+    return ctx.primaryAngle <= LUNGE_GOOD_DEPTH_DEG
+      ? { level: 'good', message: '¡Buena profundidad!' }
+      : { level: 'warning', message: 'Baja un poco más' };
+  },
+  notVisibleMessage: 'Asegúrate de que tus piernas sean visibles',
+  calibrateDuringSet: true,
+};
+
+export const BRIDGE_3D: ExerciseDefinition3D = {
+  id: 'bridge',
+  name: 'Puente de glúteo',
+  sides: 'either',
+  sideLandmarks: {
+    left:  [SIDE.left.shoulder, SIDE.left.hip, SIDE.left.knee],
+    right: [SIDE.right.shoulder, SIDE.right.hip, SIDE.right.knee],
+  },
+  extraLandmarks: [],
+  sideAngle: (w, s) => calculateAngle3D(w[SIDE[s].shoulder], w[SIDE[s].hip], w[SIDE[s].knee]),
+  combine: 'mean',
+  // Cadera en el suelo < 145°; el ciclo cuenta desde 158° para poder avisar de una
+  // extensión incompleta (158–165°) en vez de ignorarla. El esfuerzo es el máximo.
+  cycle: { polarity: 'max', restDeg: 145, effortDeg: 158, confirmMarginDeg: 6 },
+  perSideCycles: false,
+  cooldownMs: 0,
+  shape: { effortIsMinimum: false, concentricFirst: true },
+  quality: { minRomDegrees: 25, minDurationMs: 800, maxDurationMs: 15000, minSmoothness: 0.35 },
+  formCheck() {
+    return null;
+  },
+  phaseFeedback(ctx: FormContext) {
+    if (ctx.phase === 'rest') return { level: 'idle', message: 'Listo, sube la cadera' };
+    if (ctx.peakReached) {
+      return ctx.extremeDeg >= BRIDGE_GOOD_EXTENSION_DEG
+        ? { level: 'good', message: '¡Cadera arriba! Baja controlado' }
+        : { level: 'warning', message: 'Baja. En la próxima, sube más la cadera' };
+    }
+    return ctx.primaryAngle >= BRIDGE_GOOD_EXTENSION_DEG
+      ? { level: 'good', message: '¡Aprieta los glúteos arriba!' }
+      : { level: 'warning', message: 'Sube más la cadera' };
+  },
+  notVisibleMessage: 'Acuéstate de perfil a la cámara, con hombros y rodillas a la vista',
+  calibrateDuringSet: false,
+};
+
+export const DEFINITIONS_3D = {
+  squat: SQUAT_3D, curl: CURL_3D, press: PRESS_3D,
+  pushup: PUSHUP_3D, lunge: LUNGE_3D, bridge: BRIDGE_3D,
+} as const;
 export type Exercise3DId = keyof typeof DEFINITIONS_3D;

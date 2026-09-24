@@ -52,7 +52,7 @@ describe('KnnPoseClassifier: identificar el ejercicio', () => {
   })
 
   it('expone las etiquetas y el tamaño del modelo', () => {
-    expect(knn.labels).toEqual(['curl-biceps', 'press-hombro', 'sentadilla'])
+    expect(knn.labels).toEqual(Object.keys(DEMOS).sort())
     expect(knn.size).toBe(train.length)
   })
 })

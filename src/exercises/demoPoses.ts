@@ -262,6 +262,145 @@ function pressPose(p: number): Landmark3D[] {
   });
 }
 
+// ─────────────────────── Ola 1: peso corporal (DEC-056) ───────────────────────
+//
+// Añadidas en este repositorio (no vienen de fitnetv2). Mismo método: unos pocos ángulos
+// por instante y cinemática directa. Los pies no quedan fijos al suelo en la zancada ni
+// en el puente: para medir ángulos no hace falta, y simplifica la geometría.
+
+function sub(a: Vec3, b: Vec3): Vec3 {
+  return v(a.x - b.x, a.y - b.y, a.z - b.z);
+}
+function unit(a: Vec3): Vec3 {
+  const n = Math.hypot(a.x, a.y, a.z) || 1;
+  return v(a.x / n, a.y / n, a.z / n);
+}
+
+/** Traslada el esqueleto para que el centro de la cadera quede en el origen, como `worldLandmarks`. */
+function centeredOnHips(w: Landmark3D[]): Landmark3D[] {
+  const cx = (w[LM.LEFT_HIP].x + w[LM.RIGHT_HIP].x) / 2;
+  const cy = (w[LM.LEFT_HIP].y + w[LM.RIGHT_HIP].y) / 2;
+  const cz = (w[LM.LEFT_HIP].z + w[LM.RIGHT_HIP].z) / 2;
+  return w.map(q => ({ ...q, x: q.x - cx, y: q.y - cy, z: q.z - cz }));
+}
+
+/**
+ * Flexión de brazos, de perfil. p = 0 brazos extendidos, p = 1 pecho abajo.
+ * Antebrazo vertical sobre la mano; el cuerpo es una tabla recta de hombros a tobillos,
+ * con los tobillos a la altura del suelo.
+ */
+function pushUpPose(p: number): Landmark3D[] {
+  const elbowAngle = lerp(170, 78, p);           // ángulo interior del codo
+  const armTilt = (180 - elbowAngle) * DEG;      // el brazo se inclina hacia los pies
+  const FLOOR_Y = 0;
+  const ANKLE_ABOVE_FLOOR = 0.05;
+  const BODY = TORSO + THIGH + SHIN;
+
+  const arm = (side: number) => {
+    const wrist = v(side * 0.22, FLOOR_Y, 0);
+    const elbow = add(wrist, v(side * -0.02, -FOREARM, 0));
+    const shoulder = add(elbow, v(side * -0.02, -Math.cos(armTilt) * UPPER_ARM, Math.sin(armTilt) * UPPER_ARM));
+    return { wrist, elbow, shoulder };
+  };
+  const L = arm(1);
+  const R = arm(-1);
+  const shoulderMid = scale(add(L.shoulder, R.shoulder), 0.5);
+
+  // Tobillos en el suelo, detrás de los hombros (+z), con la tabla recta.
+  const drop = FLOOR_Y - ANKLE_ABOVE_FLOOR - shoulderMid.y;
+  const along = Math.sqrt(Math.max(0, BODY * BODY - drop * drop));
+  const bodyDir = unit(v(0, drop, along));
+  const at = (d: number, side: number, half: number) => add(add(shoulderMid, scale(bodyDir, d)), v(side * half, 0, 0));
+
+  const spineUp = scale(bodyDir, -1);
+  return centeredOnHips(toLandmarks({
+    shoulderL: L.shoulder, shoulderR: R.shoulder,
+    elbowL: L.elbow, elbowR: R.elbow, wristL: L.wrist, wristR: R.wrist,
+    hipL: at(TORSO, 1, HIP_HALF), hipR: at(TORSO, -1, HIP_HALF),
+    kneeL: at(TORSO + THIGH, 1, HIP_HALF), kneeR: at(TORSO + THIGH, -1, HIP_HALF),
+    ankleL: at(BODY, 1, HIP_HALF), ankleR: at(BODY, -1, HIP_HALF),
+    spineUp,
+    chestForward: v(0, 1, 0),
+  }));
+}
+
+/**
+ * Zancada con la pierna izquierda adelante, de perfil. p = 0 de pie en paso largo con las
+ * piernas rectas, p = 1 abajo con las dos rodillas cerca de 90°.
+ */
+function lungePose(p: number): Landmark3D[] {
+  const frontThigh = lerp(20, 85, p);   // grados desde la vertical, hacia adelante
+  const frontShin = lerp(20, 0, p);     // la tibia delantera queda vertical abajo
+  const backThigh = lerp(20, 5, p);     // grados desde la vertical, hacia atrás
+  const backShin = lerp(20, 80, p);     // la tibia trasera se acerca a la horizontal
+  const torsoLean = lerp(0, 8, p);
+
+  const down = (deg: number, forward: boolean) =>
+    v(0, Math.cos(deg * DEG), (forward ? -1 : 1) * Math.sin(deg * DEG));
+
+  const hipL = v(HIP_HALF, 0, 0);
+  const hipR = v(-HIP_HALF, 0, 0);
+  const kneeL = add(hipL, scale(down(frontThigh, true), THIGH));
+  const ankleL = add(kneeL, scale(down(frontShin, true), SHIN));
+  const kneeR = add(hipR, scale(down(backThigh, false), THIGH));
+  const ankleR = add(kneeR, scale(down(backShin, false), SHIN));
+
+  const spineUp = sagittalUp(torsoLean);
+  const shoulderMid = scale(spineUp, TORSO);
+  const shoulderL = add(shoulderMid, v(SHOULDER_HALF, 0, 0));
+  const shoulderR = add(shoulderMid, v(-SHOULDER_HALF, 0, 0));
+  const armDown = v(0, 1, 0);
+  const elbowL = add(shoulderL, scale(armDown, UPPER_ARM));
+  const elbowR = add(shoulderR, scale(armDown, UPPER_ARM));
+
+  return toLandmarks({
+    hipL, hipR, kneeL, kneeR, ankleL, ankleR, shoulderL, shoulderR,
+    elbowL, elbowR,
+    wristL: add(elbowL, scale(armDown, FOREARM)),
+    wristR: add(elbowR, scale(armDown, FOREARM)),
+    spineUp,
+    chestForward: v(0, Math.sin(torsoLean * DEG), -Math.cos(torsoLean * DEG)),
+  });
+}
+
+/**
+ * Puente de glúteo, acostado boca arriba y de perfil. p = 0 cadera en el suelo, p = 1
+ * cadera arriba con hombro, cadera y rodilla en línea. La cabeza apunta a -z y el pecho
+ * mira hacia arriba (-y).
+ */
+function bridgePose(p: number): Landmark3D[] {
+  const torsoLift = lerp(0, 30, p);     // elevación del tronco sobre el suelo, grados
+  const thighRise = lerp(50, 32, p);    // elevación del muslo sobre la horizontal, grados
+  const shinFromVertical = lerp(40, 12, p);
+
+  const shoulderMid = v(0, 0, -TORSO);
+  const torsoDir = v(0, -Math.sin(torsoLift * DEG), Math.cos(torsoLift * DEG)); // de hombros a cadera
+  const hipMid = add(shoulderMid, scale(torsoDir, TORSO));
+  const thighDir = v(0, -Math.sin(thighRise * DEG), Math.cos(thighRise * DEG));
+  const kneeMid = add(hipMid, scale(thighDir, THIGH));
+  const shinDir = v(0, Math.cos(shinFromVertical * DEG), Math.sin(shinFromVertical * DEG));
+  const ankleMid = add(kneeMid, scale(shinDir, SHIN));
+
+  const pair = (mid: Vec3, half: number) => [add(mid, v(half, 0, 0)), add(mid, v(-half, 0, 0))];
+  const [shoulderL, shoulderR] = pair(shoulderMid, SHOULDER_HALF);
+  const [hipL, hipR] = pair(hipMid, HIP_HALF);
+  const [kneeL, kneeR] = pair(kneeMid, HIP_HALF);
+  const [ankleL, ankleR] = pair(ankleMid, HIP_HALF);
+  // Brazos apoyados en el suelo a lo largo del cuerpo.
+  const armDir = v(0, 0, 1);
+  const elbowL = add(shoulderL, scale(armDir, UPPER_ARM));
+  const elbowR = add(shoulderR, scale(armDir, UPPER_ARM));
+
+  return centeredOnHips(toLandmarks({
+    hipL, hipR, kneeL, kneeR, ankleL, ankleR, shoulderL, shoulderR,
+    elbowL, elbowR,
+    wristL: add(elbowL, scale(armDir, FOREARM)),
+    wristR: add(elbowR, scale(armDir, FOREARM)),
+    spineUp: unit(sub(shoulderMid, hipMid)),
+    chestForward: v(0, -1, 0),
+  }));
+}
+
 // ─────────────────────────────── Definición de las demos ───────────────────────────────
 
 export interface DemoPhase {
@@ -333,6 +472,54 @@ export const DEMOS: Record<string, DemoDefinition> = {
     ),
     measureLabel: 'Codo',
     targetText: `La app cuenta la extensión como completa por encima de ${GOOD_LOCKOUT_ANGLE}° de codo.`,
+  },
+  flexiones: {
+    initialRotation: -Math.PI / 2,
+    phases: [
+      { label: 'Brazos extendidos, cuerpo en tabla', durationMs: 500, from: 0, to: 0 },
+      { label: 'Baja el pecho con el cuerpo recto', durationMs: 1500, from: 0, to: 1 },
+      { label: 'Abajo, codos cerca del cuerpo', durationMs: 300, from: 1, to: 1 },
+      { label: 'Empuja el suelo', durationMs: 1000, from: 1, to: 0 },
+    ],
+    pose: pushUpPose,
+    measure: w => (
+      calculateAngle3D(w[LM.LEFT_SHOULDER], w[LM.LEFT_ELBOW], w[LM.LEFT_WRIST]) +
+      calculateAngle3D(w[LM.RIGHT_SHOULDER], w[LM.RIGHT_ELBOW], w[LM.RIGHT_WRIST])
+    ) / 2,
+    measureLabel: 'Codo',
+    targetText: 'La app cuenta la bajada como completa por debajo de 90° de codo.',
+  },
+  zancadas: {
+    initialRotation: -Math.PI / 2.6,
+    phases: [
+      { label: 'Paso largo, tronco erguido', durationMs: 500, from: 0, to: 0 },
+      { label: 'Baja recto, sin inclinarte', durationMs: 1400, from: 0, to: 1 },
+      { label: 'Rodillas cerca de 90°', durationMs: 300, from: 1, to: 1 },
+      { label: 'Sube empujando con la pierna delantera', durationMs: 1100, from: 1, to: 0 },
+    ],
+    pose: lungePose,
+    measure: w => Math.min(
+      calculateAngle3D(w[LM.LEFT_HIP], w[LM.LEFT_KNEE], w[LM.LEFT_ANKLE]),
+      calculateAngle3D(w[LM.RIGHT_HIP], w[LM.RIGHT_KNEE], w[LM.RIGHT_ANKLE]),
+    ),
+    measureLabel: 'Rodilla delantera',
+    targetText: 'La app cuenta la zancada como profunda por debajo de 100° de rodilla.',
+  },
+  'puente-gluteo': {
+    initialRotation: -Math.PI / 2,
+    phases: [
+      { label: 'Acostado, rodillas dobladas', durationMs: 500, from: 0, to: 0 },
+      { label: 'Sube la cadera apretando glúteos', durationMs: 1000, from: 0, to: 1 },
+      { label: 'Arriba: hombros, cadera y rodillas en línea', durationMs: 500, from: 1, to: 1 },
+      { label: 'Baja controlado', durationMs: 1300, from: 1, to: 0 },
+    ],
+    pose: bridgePose,
+    measure: w => (
+      calculateAngle3D(w[LM.LEFT_SHOULDER], w[LM.LEFT_HIP], w[LM.LEFT_KNEE]) +
+      calculateAngle3D(w[LM.RIGHT_SHOULDER], w[LM.RIGHT_HIP], w[LM.RIGHT_KNEE])
+    ) / 2,
+    measureLabel: 'Cadera',
+    targetText: 'La app cuenta la extensión como completa por encima de 165° de cadera.',
   },
 };
 
