@@ -26,6 +26,8 @@ interface SetHudProps {
   engine3D: boolean;
   onFinish: () => void;
   onCancel: () => void;
+  /** Tarjeta de consejos, si la persona la tiene visible. */
+  tips?: ReactNode;
 }
 
 const ISLAND_ICON: Record<FeedbackLevel, ReactNode> = {
@@ -40,7 +42,7 @@ const ISLAND_ICON: Record<FeedbackLevel, ReactNode> = {
  * que dice la voz, métricas y barra de repeticiones. Solo cambia cuando cambia el HUD
  * (una repetición, un aviso), nunca por cuadro.
  */
-export function SetHud({ ex, hud, target, engine3D, onFinish, onCancel }: SetHudProps) {
+export function SetHud({ ex, hud, target, engine3D, onFinish, onCancel, tips }: SetHudProps) {
   const timed = target === null;
   const technique = hud.qualities.length > 0
     ? Math.round((hud.qualities.filter(q => q === 'good').length / hud.qualities.length) * 100)
@@ -62,9 +64,10 @@ export function SetHud({ ex, hud, target, engine3D, onFinish, onCancel }: SetHud
         </span>
       </div>
 
+      {tips}
       <div className="hud__spacer" />
 
-      <section className="hud__panel">
+      <section className="hud__panel" data-minimap-floor>
         <div className="hud__metrics">
           <div><span className="muted">{EXTREME_LABEL[ex]}</span><strong className="display-number">{hud.extreme === null ? '—' : `${hud.extreme}°`}</strong></div>
           {!timed && (

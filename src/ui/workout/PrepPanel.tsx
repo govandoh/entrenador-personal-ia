@@ -12,6 +12,7 @@ interface PrepPanelProps {
   tilt: number | null;
   bubbleRef: RefObject<HTMLDivElement | null>;
   onStart: () => void;
+  onTechnique: () => void;
 }
 
 function Check({ state }: { state: 'ok' | 'pending' | 'progress' }) {
@@ -27,7 +28,7 @@ function Check({ state }: { state: 'ok' | 'pending' | 'progress' }) {
  * La burbuja la mueve el bucle de cuadros sobre `bubbleRef`; aquí solo se pinta el estado,
  * que cambia pocas veces. La serie arranca sola cuando los tres puntos siguen listos.
  */
-export function PrepPanel({ ex, exercises, names, onSelect, prep, tilt, bubbleRef, onStart }: PrepPanelProps) {
+export function PrepPanel({ ex, exercises, names, onSelect, prep, tilt, bubbleRef, onStart, onTechnique }: PrepPanelProps) {
   const levelled = prep.levelOk !== false;
   const levelText = prep.levelOk === null
     ? 'Sin sensor de movimiento: apoya el celular derecho'
@@ -46,13 +47,16 @@ export function PrepPanel({ ex, exercises, names, onSelect, prep, tilt, bubbleRe
         <span className="level__text">{levelText}</span>
       </div>
 
-      <section className="prep__card" aria-label="Antes de empezar">
+      <section className="prep__card" aria-label="Antes de empezar" data-minimap-floor>
         <div className="chip-row prep__chips" role="radiogroup" aria-label="Ejercicio">
           {exercises.map(id => (
             <button key={id} className="chip" role="radio" aria-checked={id === ex} onClick={() => onSelect(id)}>{names[id]}</button>
           ))}
         </div>
-        <h2 className="card-title">Antes de empezar</h2>
+        <div className="prep__head">
+          <h2 className="card-title">Antes de empezar</h2>
+          <button className="btn btn--ghost prep__technique" onClick={onTechnique}>Ver técnica</button>
+        </div>
         <ul className="prep__list" aria-live="polite">
           <li><Check state={levelled ? 'ok' : 'pending'} />Celular apoyado y nivelado</li>
           <li><Check state={prep.bodyOk ? 'ok' : 'pending'} />{ex === 'curl' || ex === 'press' ? 'Torso y brazos dentro del cuadro' : 'Cuerpo completo dentro del cuadro'}</li>

@@ -24,7 +24,11 @@ import { AUTO_START_MS, LEVEL_OK_DEG, bodyInFrame, bubbleOffset, isReady, phoneT
 import { PrepPanel } from './PrepPanel';
 import { SetHud, type HudState } from './SetHud';
 import { SetSummaryView } from './SetSummaryView';
-import { IconBack, IconSwitchCamera, IconVoice, IconVoiceOff } from '../components/icons';
+import { IconBack, IconBulb, IconCube, IconSwitchCamera, IconVoice, IconVoiceOff } from '../components/icons';
+import { MiniMap3D, type MiniMapHandle } from './MiniMap3D';
+import { SetTips } from './SetTips';
+import { TechniqueSheet } from '../technique/TechniqueSheet';
+import type { Landmark3D } from '../../geometry/vectors3d';
 import './workout.css';
 
 type Status = 'loading' | 'ready' | 'error';
@@ -38,6 +42,8 @@ const MOTION_PERMISSION_WAIT_MS = 1500;
 const BUBBLE_TRAVEL_RATIO = 0.35;
 /** Suavizado de la burbuja por cuadro: sigue al sensor sin temblar (DESIGN.md §6). */
 const BUBBLE_SMOOTHING = 0.18;
+/** Intervalo mínimo entre actualizaciones del mini mapa 3D, en ms (~25 fps bastan para verlo fluido). */
+const MINI_MAP_EVERY_MS = 40;
 /** Cada cuántos frames se refresca el contador del botón de grabación. */
 const RECORD_UI_EVERY = 15;
 
@@ -57,7 +63,8 @@ const EMPTY_HUD: HudState = { reps: 0, level: 'idle', message: '', extreme: null
 export function WorkoutScreen() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const { voiceEnabled } = useAppState();
+  const { voiceEnabled, view } = useAppState();
+  const [techniqueOpen, setTechniqueOpen] = useState(false);
   const initialEx = params.get('ex');
   const targetReps = Number(params.get('reps')) || DEFAULT_TARGET_REPS;
 
@@ -110,11 +117,16 @@ export function WorkoutScreen() {
   const bubblePos = useRef({ x: 0, y: 0 });
   const recordingRef = useRef<RecordedFrame[]>([]);
   const startSetRef = useRef<() => void>(() => {});
+  // Mini mapa 3D (DEC-061): se alimenta desde el bucle, como mucho cada MINI_MAP_EVERY_MS.
+  const miniRef = useRef<MiniMapHandle | null>(null);
+  const miniVisibleRef = useRef(view.showMiniMap);
+  const lastMiniRef = useRef(0);
 
   const rawSpeak = useSpeech();
   const speak = useCallback((text: string) => { if (voiceRef.current && text) rawSpeak(text); }, [rawSpeak]);
 
   useEffect(() => { voiceRef.current = voiceEnabled; }, [voiceEnabled]);
+  useEffect(() => { miniVisibleRef.current = view.showMiniMap; }, [view.showMiniMap]);
   useEffect(() => { exRef.current = ex; }, [ex]);
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
@@ -259,12 +271,18 @@ export function WorkoutScreen() {
         if (buf.length % RECORD_UI_EVERY === 0) setRecordedCount(buf.length);
       }
 
+      // Lo que muestra el mini mapa: el esqueleto ya nivelado y calibrado en el motor 3D,
+      // el que da MediaPipe en el 2D.
+      let liveWorld: readonly Landmark3D[] | null = world;
+
       if (phaseRef.current === 'prep') {
         updateBubble(worldDown);
         let calibration: number | null = null;
         if (engine3D && world && pipelineRef.current) {
           // En preparación solo se aprende la calibración de pie (el contador no cuenta).
-          calibration = pipelineRef.current.prepare({ world, t: now, worldDown }).diagnostics.calibrationProgress;
+          const prepared = pipelineRef.current.prepare({ world, t: now, worldDown });
+          calibration = prepared.diagnostics.calibrationProgress;
+          liveWorld = prepared.world;
         } else if (engine3D) {
           calibration = 0;
         }
@@ -294,14 +312,22 @@ export function WorkoutScreen() {
             const input = { world, t: now, worldDown };
             if (current === 'plank') {
               const prepared = pipelineRef.current.prepare(input);
+              liveWorld = prepared.world;
               handlePlank(plankRef.current.update(prepared.world, now), now);
             } else {
-              handle3D(pipelineRef.current.process(input), current, now);
+              const out = pipelineRef.current.process(input);
+              liveWorld = out.world;
+              handle3D(out, current, now);
             }
           }
         } else {
           handle2D(landmarkSets[0], current, now);
         }
+      }
+
+      if (liveWorld && miniVisibleRef.current && now - lastMiniRef.current >= MINI_MAP_EVERY_MS) {
+        lastMiniRef.current = now;
+        miniRef.current?.updateLive(liveWorld);
       }
 
       rafRef.current = requestAnimationFrame(loop);
@@ -445,12 +471,28 @@ export function WorkoutScreen() {
           <span>Serie {setNumber}</span>
         </div>
         {levelPill}
-        <button className="icon-btn icon-btn--glass" aria-label={voiceEnabled ? 'Silenciar voz' : 'Activar voz'} aria-pressed={voiceEnabled}
-          onClick={() => appActions.setVoice(!voiceEnabled)}>
-          {voiceEnabled ? <IconVoice /> : <IconVoiceOff />}
-        </button>
-        <button className="icon-btn icon-btn--glass" aria-label="Cambiar cámara" onClick={switchCamera}><IconSwitchCamera /></button>
       </header>}
+
+      {/* Herramientas en columna: se leen de un vistazo y no compiten con el título (DEC-061). */}
+      {phase !== 'summary' && (
+        <div className="workout__tools" role="toolbar" aria-label="Opciones del entrenamiento">
+          <button className="icon-btn icon-btn--glass" aria-label={voiceEnabled ? 'Silenciar voz' : 'Activar voz'} aria-pressed={voiceEnabled}
+            onClick={() => appActions.setVoice(!voiceEnabled)}>
+            {voiceEnabled ? <IconVoice /> : <IconVoiceOff />}
+          </button>
+          <button className="icon-btn icon-btn--glass" aria-label="Cambiar cámara" onClick={switchCamera}><IconSwitchCamera /></button>
+          <button className="icon-btn icon-btn--glass" aria-label={view.showMiniMap ? 'Ocultar el modelo 3D' : 'Mostrar el modelo 3D'}
+            aria-pressed={view.showMiniMap} onClick={() => appActions.setView({ showMiniMap: !view.showMiniMap })}><IconCube /></button>
+          {phase === 'active' && (
+            <button className="icon-btn icon-btn--glass" aria-label={view.showTips ? 'Ocultar consejos' : 'Mostrar consejos'}
+              aria-pressed={view.showTips} onClick={() => appActions.setView({ showTips: !view.showTips })}><IconBulb /></button>
+          )}
+        </div>
+      )}
+
+      {status === 'ready' && phase !== 'summary' && view.showMiniMap && (
+        <MiniMap3D ref={miniRef} demoId={catalogIdFor(ex)} layoutKey={phase} onHide={() => appActions.setView({ showMiniMap: false })} />
+      )}
 
       {shownStatus === 'loading' && <p className="workout__status" role="status">Preparando la cámara y el detector…</p>}
       {shownStatus === 'error' && <p className="workout__status workout__status--error" role="alert">No se pudo iniciar la cámara: {shownError}</p>}
@@ -465,6 +507,7 @@ export function WorkoutScreen() {
           tilt={tilt}
           bubbleRef={bubbleRef}
           onStart={() => startSetRef.current()}
+          onTechnique={() => setTechniqueOpen(true)}
         />
       )}
 
@@ -476,8 +519,10 @@ export function WorkoutScreen() {
           engine3D={usesEngine3D(ex)}
           onFinish={finishSet}
           onCancel={nextSet}
+          tips={view.showTips ? <SetTips exerciseId={catalogIdFor(ex)} onHide={() => appActions.setView({ showTips: false })} /> : null}
         />
       )}
+      {techniqueOpen && <TechniqueSheet exerciseId={catalogIdFor(ex)} onClose={() => setTechniqueOpen(false)} />}
 
       {phase === 'summary' && summary && (
         <SetSummaryView

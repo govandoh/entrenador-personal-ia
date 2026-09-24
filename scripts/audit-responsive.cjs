@@ -150,6 +150,11 @@ async function withSafe(ctx, dev) {
     await page.goto(BASE + '#/rutinas'); await page.waitForTimeout(500);
     await page.getByRole('tab', { name: /Semana 2/ }).click(); await page.waitForTimeout(600);
     all.push(...await audit(page, dev, 'premium'));
+    // Ficha de técnica con el modelo 3D.
+    await page.goto(BASE + '#/ejercicios'); await page.reload(); await page.waitForTimeout(600);
+    await page.locator('.exercise-row').first().click();
+    await page.getByRole('button', { name: 'Ver técnica en 3D' }).click(); await page.waitForTimeout(1500);
+    all.push(...await audit(page, dev, 'tecnica'));
 
     // Cuestionario completo, con el paso 3 en "casa con equipo".
     await page.goto(BASE + '#/cuestionario'); await page.waitForTimeout(500);
@@ -166,6 +171,9 @@ async function withSafe(ctx, dev) {
     await page.getByRole('button', { name: 'Empezar serie' }).click({ timeout: 3000 }).catch(() => {});
     await page.waitForTimeout(800);
     all.push(...await audit(page, dev, 'entrenar-serie'));
+    await page.getByRole('button', { name: 'Mostrar consejos' }).click({ timeout: 3000 }).catch(() => {});
+    await page.waitForTimeout(500);
+    all.push(...await audit(page, dev, 'entrenar-serie-consejos'));
     await page.getByRole('button', { name: 'Terminar serie' }).click({ timeout: 3000 }).catch(() => {});
     await page.waitForTimeout(800);
     all.push(...await audit(page, dev, 'entrenar-resumen'));
