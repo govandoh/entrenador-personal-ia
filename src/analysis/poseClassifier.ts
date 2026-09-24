@@ -1,4 +1,4 @@
-import { POSE_EMBEDDING_SIZE, POSE_EMBEDDING_VERSION } from '../geometry/poseEmbedding';
+import { POSE_EMBEDDING_SIZE, POSE_EMBEDDING_VERSION } from '../geometry/poseEmbedding.ts';
 
 /**
  * Clasificador k-NN de posturas sobre el vector de `poseEmbedding` (ver DEC-055).

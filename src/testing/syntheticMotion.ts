@@ -7,9 +7,9 @@
  * Lo que NO cubren: la calidad de los landmarks reales. Eso solo se prueba en celular.
  */
 
-import type { Landmark3D, Vec3 } from '../geometry/vectors3d';
-import type { DemoDefinition, DemoPhase } from '../exercises/demoPoses';
-import { sampleDemo } from '../exercises/demoPoses';
+import type { Landmark3D, Vec3 } from '../geometry/vectors3d.ts';
+import type { DemoDefinition, DemoPhase } from '../exercises/demoPoses.ts';
+import { sampleDemo } from '../exercises/demoPoses.ts';
 
 const DEG = Math.PI / 180;
 

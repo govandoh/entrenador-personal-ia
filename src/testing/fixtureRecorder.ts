@@ -24,7 +24,7 @@ import {
   type FixtureFrame,
   type FixtureLandmark,
   type LandmarkFixture,
-} from './fixtureTypes';
+} from './fixtureTypes.ts';
 
 /** ¿La URL pide el modo grabación? Se evalúa una sola vez al cargar el módulo. */
 export const RECORD_MODE: boolean = (() => {

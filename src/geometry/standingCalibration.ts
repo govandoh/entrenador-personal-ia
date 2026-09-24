@@ -1,8 +1,8 @@
 import {
   LM, WORLD_UP, angleBetween, calculateAngle3D, midpoint, normalize, subtract,
   type Landmark3D, type Vec3,
-} from './vectors3d';
-import { alignToGravity } from './gravityAlign';
+} from './vectors3d.ts';
+import { alignToGravity } from './gravityAlign.ts';
 
 /**
  * Calibración de la vertical con la postura de pie (ver DEC-053).

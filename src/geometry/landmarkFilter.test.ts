@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { LandmarkSmoother, OneEuroFilter } from './landmarkFilter'
-import { DEMOS } from '../exercises/demoPoses'
-import { jitter, seededGauss } from '../testing/syntheticMotion'
-import { LM } from './vectors3d'
+import { LandmarkSmoother, OneEuroFilter } from './landmarkFilter.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { jitter, seededGauss } from '../testing/syntheticMotion.ts'
+import { LM } from './vectors3d.ts'
 
 function std(values: number[]): number {
   const m = values.reduce((a, v) => a + v, 0) / values.length

@@ -2,9 +2,9 @@ import { describe, expect, it } from 'vitest'
 import {
   LM, angleBetween, areVisible, asymmetryRatio, calculateAngle3D, getBodyOrientation,
   getTorsoInclination, type Vec3,
-} from './vectors3d'
-import { DEMOS } from '../exercises/demoPoses'
-import { tiltPose } from '../testing/syntheticMotion'
+} from './vectors3d.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { tiltPose } from '../testing/syntheticMotion.ts'
 
 const o: Vec3 = { x: 0, y: 0, z: 0 }
 

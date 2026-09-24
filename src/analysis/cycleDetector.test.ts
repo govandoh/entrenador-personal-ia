@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { CycleDetector, type CycleConfig, type CycleUpdate } from './cycleDetector'
+import { CycleDetector, type CycleConfig, type CycleUpdate } from './cycleDetector.ts'
 
 const feed = (d: CycleDetector, angles: number[]): CycleUpdate[] => angles.map(a => d.update(a))
 

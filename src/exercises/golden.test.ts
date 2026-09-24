@@ -13,17 +13,17 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { SquatTracker } from './squat';
-import { BicepCurlTracker } from './bicepCurl';
-import { ShoulderPressTracker } from './shoulderPress';
-import { replay } from '../testing/replay';
+import { SquatTracker } from './squat.ts';
+import { BicepCurlTracker } from './bicepCurl.ts';
+import { ShoulderPressTracker } from './shoulderPress.ts';
+import { replay } from '../testing/replay.ts';
 import {
   FIXTURE_FILENAME_RE,
   FIXTURE_SCHEMA_VERSION,
   POSE_LANDMARK_COUNT,
   type FixtureIndex,
   type LandmarkFixture,
-} from '../testing/fixtureTypes';
+} from '../testing/fixtureTypes.ts';
 
 // Carga estática vía Vite: evita depender de `node:fs` en el proyecto de la app.
 const FIXTURE_MODULES = import.meta.glob('../../fixtures/landmarks/*.json', {

@@ -1,7 +1,7 @@
 import {
   LM, calculateAngle3D, getTorsoInclination, midpoint, subtract, magnitude,
   type Landmark3D, type Vec3,
-} from './vectors3d';
+} from './vectors3d.ts';
 
 /**
  * Normalización y vector de rasgos de una pose para el clasificador k-NN (ver DEC-055).

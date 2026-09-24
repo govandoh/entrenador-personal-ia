@@ -9,7 +9,7 @@
  * Sin dependencias de Node ni del DOM: los tres trackers son clases puras.
  */
 
-import type { FixtureLandmark, LandmarkFixture } from './fixtureTypes';
+import type { FixtureLandmark, LandmarkFixture } from './fixtureTypes.ts';
 
 /** Campos comunes a `SquatResult`, `BicepCurlResult` y `ShoulderPressResult`. */
 export interface TrackerResultLike {

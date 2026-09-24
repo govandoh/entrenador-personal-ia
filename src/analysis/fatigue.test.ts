@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { FRESH_FATIGUE, FatigueDetector } from './fatigue'
-import type { RepMetrics } from './movementQuality'
-import { FATIGUE_MESSAGES } from './messages'
+import { FRESH_FATIGUE, FatigueDetector } from './fatigue.ts'
+import type { RepMetrics } from './movementQuality.ts'
+import { FATIGUE_MESSAGES } from './messages.ts'
 
 function rep(concentricVelocity: number, romDegrees = 90): RepMetrics {
   return {

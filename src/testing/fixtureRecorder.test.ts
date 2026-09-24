@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { buildFixture, captureFrame, parseRecordScript, qualityForCondition } from './fixtureRecorder'
-import { FIXTURE_FILENAME_RE, fixtureFileName } from './fixtureTypes'
+import { buildFixture, captureFrame, parseRecordScript, qualityForCondition } from './fixtureRecorder.ts'
+import { FIXTURE_FILENAME_RE, fixtureFileName } from './fixtureTypes.ts'
 
 const lm = (x: number) => Array.from({ length: 33 }, () => ({ x, y: 0.5, z: 0, visibility: 0.9 }))
 

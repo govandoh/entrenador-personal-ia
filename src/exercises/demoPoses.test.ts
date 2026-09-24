@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest'
-import { DEMOS, getDemo, sampleDemo } from './demoPoses'
-import { GOOD_DEPTH_ANGLE } from './squat'
-import { GOOD_FORM_ANGLE } from './bicepCurl'
-import { GOOD_LOCKOUT_ANGLE } from './shoulderPress'
+import { DEMOS, getDemo, sampleDemo } from './demoPoses.ts'
+import { GOOD_DEPTH_ANGLE } from './squat.ts'
+import { GOOD_FORM_ANGLE } from './bicepCurl.ts'
+import { GOOD_LOCKOUT_ANGLE } from './shoulderPress.ts'
 
 describe('demoPoses', () => {
   it('genera los 33 landmarks con visibilidad completa', () => {

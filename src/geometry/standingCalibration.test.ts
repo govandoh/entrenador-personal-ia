@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { StandingCalibrator, isStandingStraight } from './standingCalibration'
-import { alignToGravity } from './gravityAlign'
-import { LandmarkSmoother } from './landmarkFilter'
-import { LM, getTorsoInclination, type Landmark3D } from './vectors3d'
-import { DEMOS } from '../exercises/demoPoses'
-import { playDemo, rotateCamera, tiltPose } from '../testing/syntheticMotion'
+import { StandingCalibrator, isStandingStraight } from './standingCalibration.ts'
+import { alignToGravity } from './gravityAlign.ts'
+import { LandmarkSmoother } from './landmarkFilter.ts'
+import { LM, getTorsoInclination, type Landmark3D } from './vectors3d.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { playDemo, rotateCamera, tiltPose } from '../testing/syntheticMotion.ts'
 
 /** Error de profundidad del modelo observado en la primera prueba real de fitnetv2 (DEC-053). */
 const MODEL_TILT = 20

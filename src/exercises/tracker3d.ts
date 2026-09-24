@@ -1,13 +1,13 @@
 import {
   LM, areVisible, asymmetryRatio, getBodyOrientation,
   type BodyOrientation, type Landmark3D,
-} from '../geometry/vectors3d';
-import { CycleDetector, type CycleConfig, type CyclePhase } from '../analysis/cycleDetector';
+} from '../geometry/vectors3d.ts';
+import { CycleDetector, type CycleConfig, type CyclePhase } from '../analysis/cycleDetector.ts';
 import {
   MovementAnalyzer, type CycleShape, type QualityThresholds, type RejectionReason, type RepMetrics,
-} from '../analysis/movementQuality';
-import { FatigueDetector, FRESH_FATIGUE, type FatigueState } from '../analysis/fatigue';
-import { FATIGUE_MESSAGES, REJECTION_MESSAGES } from '../analysis/messages';
+} from '../analysis/movementQuality.ts';
+import { FatigueDetector, FRESH_FATIGUE, type FatigueState } from '../analysis/fatigue.ts';
+import { FATIGUE_MESSAGES, REJECTION_MESSAGES } from '../analysis/messages.ts';
 
 /**
  * Contador de repeticiones 3D configurable por ejercicio (ver DEC-057, paso I-2 de DEC-054).

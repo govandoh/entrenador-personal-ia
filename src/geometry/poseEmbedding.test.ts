@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
   COCO17_FROM_MEDIAPIPE, POSE_EMBEDDING_SIZE, embedPose, mirrorPose, normalizePose, rotateYaw,
-} from './poseEmbedding'
-import { LM, type Landmark3D } from './vectors3d'
-import { DEMOS } from '../exercises/demoPoses'
+} from './poseEmbedding.ts'
+import { LM, type Landmark3D } from './vectors3d.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
 
 const pose = DEMOS.sentadilla.pose(0.7)
 

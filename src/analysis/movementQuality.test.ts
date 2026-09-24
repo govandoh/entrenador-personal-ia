@@ -2,11 +2,11 @@ import { describe, expect, it } from 'vitest'
 import {
   DEFAULT_THRESHOLDS, MovementAnalyzer, countReversals, type CycleShape, type QualityThresholds,
   type ValidationResult,
-} from './movementQuality'
-import { FatigueDetector } from './fatigue'
-import { DEMOS } from '../exercises/demoPoses'
-import { LandmarkSmoother } from '../geometry/landmarkFilter'
-import { jitter, playDemo, seededGauss, type PlayOptions } from '../testing/syntheticMotion'
+} from './movementQuality.ts'
+import { FatigueDetector } from './fatigue.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { LandmarkSmoother } from '../geometry/landmarkFilter.ts'
+import { jitter, playDemo, seededGauss, type PlayOptions } from '../testing/syntheticMotion.ts'
 
 /**
  * Configuración por ejercicio tomada de los trackers 3D de fitnetv2 (d456e95). En el paso

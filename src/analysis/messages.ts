@@ -1,5 +1,5 @@
-import type { FatigueLevel } from './fatigue';
-import type { RejectionReason } from './movementQuality';
+import type { FatigueLevel } from './fatigue.ts';
+import type { RejectionReason } from './movementQuality.ts';
 
 /**
  * Textos en español (`es-ES`) asociados a los resultados del análisis.

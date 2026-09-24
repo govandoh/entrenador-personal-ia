@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import { Tracker3D, type Tracker3DResult } from './tracker3d'
-import { CURL_3D, PRESS_3D, SQUAT_3D } from './definitions3d'
-import { DEMOS, type DemoDefinition } from './demoPoses'
-import { FramePipeline } from '../analysis/framePipeline'
-import { LM, type Landmark3D, type Vec3 } from '../geometry/vectors3d'
-import { jitter, playDemo, rotateCamera, seededGauss, tiltPose, type PlayOptions } from '../testing/syntheticMotion'
+import { Tracker3D, type Tracker3DResult } from './tracker3d.ts'
+import { CURL_3D, PRESS_3D, SQUAT_3D } from './definitions3d.ts'
+import { DEMOS, type DemoDefinition } from './demoPoses.ts'
+import { FramePipeline } from '../analysis/framePipeline.ts'
+import { LM, type Landmark3D, type Vec3 } from '../geometry/vectors3d.ts'
+import { jitter, playDemo, rotateCamera, seededGauss, tiltPose, type PlayOptions } from '../testing/syntheticMotion.ts'
 
 /**
  * Pruebas del contador 3D portadas de `scripts/pruebas-motor.mjs` de fitnetv2 (DEC-048),

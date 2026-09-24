@@ -1,4 +1,4 @@
-import type { Landmark3D, Vec3 } from './vectors3d';
+import type { Landmark3D, Vec3 } from './vectors3d.ts';
 
 /**
  * Nivelación del esqueleto con la gravedad real (ver DEC-050).

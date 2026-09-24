@@ -1,8 +1,8 @@
-import type { Landmark3D, Vec3 } from '../geometry/vectors3d';
-import { LandmarkSmoother } from '../geometry/landmarkFilter';
-import { alignToGravityChecked } from '../geometry/gravityAlign';
-import { StandingCalibrator } from '../geometry/standingCalibration';
-import { Tracker3D, type ExerciseDefinition3D, type Tracker3DResult } from '../exercises/tracker3d';
+import type { Landmark3D, Vec3 } from '../geometry/vectors3d.ts';
+import { LandmarkSmoother } from '../geometry/landmarkFilter.ts';
+import { alignToGravityChecked } from '../geometry/gravityAlign.ts';
+import { StandingCalibrator } from '../geometry/standingCalibration.ts';
+import { Tracker3D, type ExerciseDefinition3D, type Tracker3DResult } from '../exercises/tracker3d.ts';
 
 /**
  * Pipeline 3D por frame (ver DEC-057): suavizado → nivelación → calibración → contador.

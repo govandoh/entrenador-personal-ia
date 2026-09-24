@@ -1,11 +1,11 @@
 import {
   LM, angleBetween, areVisible, calculateAngle3D, getTorsoInclination, subtract,
   type Landmark3D,
-} from '../geometry/vectors3d';
-import type { ExerciseDefinition3D, FormContext, Side } from './tracker3d';
-import { GOOD_DEPTH_ANGLE } from './squat';
-import { GOOD_FORM_ANGLE } from './bicepCurl';
-import { GOOD_LOCKOUT_ANGLE, SAFE_LOW_ANGLE } from './shoulderPress';
+} from '../geometry/vectors3d.ts';
+import type { ExerciseDefinition3D, FormContext, Side } from './tracker3d.ts';
+import { GOOD_DEPTH_ANGLE } from './squat.ts';
+import { GOOD_FORM_ANGLE } from './bicepCurl.ts';
+import { GOOD_LOCKOUT_ANGLE, SAFE_LOW_ANGLE } from './shoulderPress.ts';
 
 /**
  * Definiciones 3D de sentadilla, curl y press (ver DEC-057).

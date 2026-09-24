@@ -1,4 +1,4 @@
-import type { RepMetrics } from './movementQuality';
+import type { RepMetrics } from './movementQuality.ts';
 
 /**
  * Detección de fatiga por degradación del patrón de movimiento (ver DEC-038).

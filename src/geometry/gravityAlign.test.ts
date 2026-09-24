@@ -2,10 +2,10 @@ import { describe, expect, it } from 'vitest'
 import {
   GravityEstimator, MAX_CORRECTION_DEG, alignToGravity, alignToGravityChecked, gravityTiltDeg,
   screenDownToWorld,
-} from './gravityAlign'
-import { LM, getTorsoInclination, type Landmark3D } from './vectors3d'
-import { DEMOS } from '../exercises/demoPoses'
-import { rotateCamera, tiltPose } from '../testing/syntheticMotion'
+} from './gravityAlign.ts'
+import { LM, getTorsoInclination, type Landmark3D } from './vectors3d.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { rotateCamera, tiltPose } from '../testing/syntheticMotion.ts'
 
 const DEG = Math.PI / 180
 const torso = (w: Landmark3D[]) =>

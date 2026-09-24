@@ -1,4 +1,4 @@
-import type { Landmark3D } from './vectors3d';
+import type { Landmark3D } from './vectors3d.ts';
 
 /**
  * Suavizado de landmarks con filtro One Euro (ver DEC-046).

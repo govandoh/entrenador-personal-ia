@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { KnnPoseClassifier, ScoreSmoother, type LabeledSample } from './poseClassifier'
-import { POSE_EMBEDDING_VERSION, embedPose, mirrorPose, rotateYaw } from '../geometry/poseEmbedding'
-import { LM, type Landmark3D } from '../geometry/vectors3d'
-import { DEMOS } from '../exercises/demoPoses'
-import { jitter, playDemo, seededGauss } from '../testing/syntheticMotion'
+import { KnnPoseClassifier, ScoreSmoother, type LabeledSample } from './poseClassifier.ts'
+import { POSE_EMBEDDING_VERSION, embedPose, mirrorPose, rotateYaw } from '../geometry/poseEmbedding.ts'
+import { LM, type Landmark3D } from '../geometry/vectors3d.ts'
+import { DEMOS } from '../exercises/demoPoses.ts'
+import { jitter, playDemo, seededGauss } from '../testing/syntheticMotion.ts'
 
 /**
  * Pruebas de concepto sobre datos sintéticos (demos + ruido). Demuestran que la cadena
