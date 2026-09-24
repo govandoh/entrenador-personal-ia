@@ -1,5 +1,5 @@
 import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
-import { calculateAngle } from '../geometry/angles';
+import { calculateAngle } from '../geometry/angles.ts';
 
 const LM = {
   LEFT_SHOULDER:  11,

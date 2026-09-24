@@ -2,7 +2,7 @@
 
 > Responsabilidad de este archivo: cómo se capturan los datos, cómo se transforman en features, cómo se entrenan, evalúan, publican y despliegan los modelos. Decisión de fondo: `DEC-027` (arquitectura híbrida) y `DEC-031` (ONNX Runtime Web + Hugging Face Hub). Métricas y metas: `METRICS.md`. Consentimiento y licencias: `DATA-GOVERNANCE.md`. Propiedad: workstream C (`ml/`, reportes, artefactos) y B (`ml-runtime`, `models/manifest.json`).
 
-**Estado:** todo lo descrito es objetivo. Hoy no existen `ml/`, `fixtures/` ni `models/`; el PR 1 crea los primeros fixtures (sintéticos y grabados con `?debug=record`) y el PR 9 el scaffold de `ml/` (`ARCHITECTURE.md` §2.4).
+**Estado:** existen `fixtures/landmarks/` (esquema v1, desde el PR 1), la canonicalización y el k-NN de posturas en TypeScript (`src/geometry/poseEmbedding.ts`, `src/analysis/poseClassifier.ts`, paso I-1 de `DEC-054`, aún sin conectar a la UI). No existen `ml/` ni `models/`: el scaffold de `ml/` llega en el PR 9 (`ARCHITECTURE.md` §2.4). El resto de lo descrito es objetivo. El núcleo de IA sigue `DEC-055`.
 
 ## 1. Captura con consentimiento
 
@@ -10,10 +10,26 @@
 - Se graba `LandmarkFrame[]` (2D + 3D + `t`) y etiquetas: ejercicio, límites de rep propuestos por el tracker de reglas y corregidos a mano, tags de error de forma, RPE de la serie.
 - **Nunca video en servidor.** Opcionalmente se guarda video **local** en el dispositivo para etiquetar y se borra al terminar; no se sube.
 - Mientras no exista auth, el modo dev `?debug=record` (PR 1) descarga el JSON al dispositivo y el desarrollador lo copia a `fixtures/landmarks/` (guía `/fixture`, `CONTRIBUTING.md`).
+- Cada grabación guarda el **vector de gravedad** del dispositivo y la **corrección de calibración de pie** aplicada (`DEC-050`, `DEC-053`), para que el dataset no herede la inclinación del teléfono.
+
+### Etiqueta por guion (`DEC-055`)
+
+1. Antes de grabar, la toma se declara como `{ejercicio, vista, condición}` (p. ej. "sentadilla, lateral, rodillas hacia dentro"); el sujeto hace 6–8 reps así. La etiqueta sale del guion.
+2. La vista la confirma `getBodyOrientation` (`src/geometry/vectors3d.ts`).
+3. Las reglas 3D pre-etiquetan cada rep; una persona **confirma o descarta la toma** (juicio humano primero, `DEC-034`).
+4. Meta mínima por ejercicio: 5 sujetos × 2 vistas × (1 correcta + 2–3 errores) × 8 reps ≈ 250–320 reps (el espejado las duplica).
+5. Primero graba el equipo; después se suman voluntarios (#16).
+
+**Cómo se graba hoy.** Abrir la app con `?debug=record&engine=3d&cond=<condición>&view=<side|front|45>&subject=<sNN>`:
+
+- `cond` es `correct` o un código de `METRICS.md` §5.2 (`knee_valgus`, `trunk_lean`, `elbow_drift`, `lumbar_arch`…);
+- `subject` es un identificador anónimo (nunca un nombre).
+
+Hacer las 6–8 repeticiones y pulsar "Guardar grabación". El archivo sale con la vista y la condición en el nombre (`squat-side-knee-valgus-01.json`), el vector de gravedad por frame (`down`) y los datos de la toma en `meta.capture` (`fixtures/landmarks/SCHEMA.md`). En iPhone, pulsar "Nivelar con el sensor" si aparece, para conceder el permiso del acelerómetro.
 
 ### Sprint de recolección (2 semanas, tras PR 8)
 
-≥ 20 voluntarios, 3 ejercicios, errores guiados con guion (para cada código de `METRICS.md` §5.2), 2–3 ángulos de cámara, celulares distintos. Meta: ≥ 30 reps por clase de error por sujeto-ángulo.
+≥ 20 voluntarios, 3 ejercicios, errores guiados con guion (para cada código de `METRICS.md` §5.2), 2–3 ángulos de cámara, celulares distintos. Meta: ≥ 30 reps por clase de error por sujeto-ángulo. Amplía la meta mínima de la etiqueta por guion; no la sustituye.
 
 ## 2. Esquemas JSON: v1 (golden, implementado) y v2 (dataset, objetivo)
 
@@ -70,13 +86,15 @@ Nombre de archivo: `fixtures/landmarks/<ejercicio>-<vista>-<calidad>-<nn>.json`,
 
 ## 3. Canonicalización (lo que más importa, más que la arquitectura del modelo)
 
-Aplicada de forma idéntica en `analysis-core` (TS) y `ml/features/` (Python), con **test de paridad** (tolerancia 1e-3) sobre los mismos fixtures.
+Aplicada de forma idéntica en `analysis-core` (TS; hoy `src/geometry/`) y `ml/features/` (Python), con **test de paridad** (tolerancia 1e-3) sobre los mismos fixtures.
 
-1. **Centrar en cadera:** restar el punto medio de 23/24.
-2. **Escalar por torso:** dividir por la distancia media hombro-cadera (11/12 ↔ 23/24).
-3. **Alinear yaw:** rotar alrededor del eje vertical para que el vector entre caderas quede paralelo al eje X (solo con `world`; con `image` se omite).
-4. **Espejar izquierda/derecha:** duplicar cada muestra intercambiando índices L/R y negando X; duplica el dataset y elimina sesgo de lado.
-5. Ventanas de **60 frames** para el clasificador; `RepWindow` con resampling a 64 muestras para el analizador de forma.
+1. **Nivelar por gravedad y calibración de pie:** rotar `world` para que Y sea la vertical real con el vector de gravedad del dispositivo (`src/geometry/gravityAlign.ts`, `DEC-050`) y aplicar la corrección residual medida con la postura de pie (`src/geometry/standingCalibration.ts`, `DEC-053`). Va primero porque el giro del paso 4 solo tiene sentido si Y es la vertical.
+2. **Centrar en cadera:** restar el punto medio de 23/24.
+3. **Escalar por torso:** dividir por la distancia entre el punto medio de hombros (11/12) y el de caderas (23/24).
+4. **Alinear yaw:** rotar alrededor del eje vertical para que el vector entre caderas quede paralelo al eje X (solo con `world`; con `image` se omite). Pasos 2–4: `normalizePose` en `src/geometry/poseEmbedding.ts`.
+5. **Vector de rasgos:** coordenadas del subconjunto COCO-17 + 8 ángulos articulares + inclinación del tronco (60 valores, `embedPose`, versionado con `POSE_EMBEDDING_VERSION`).
+6. **Espejar izquierda/derecha:** duplicar cada muestra intercambiando índices L/R y negando X (`mirrorPose`); duplica el dataset y elimina sesgo de lado.
+7. El k-NN clasifica frames sueltos y el frame clave de cada rep, sin ventanas. Las ventanas de **60 frames** y el resampling de `RepWindow` a 64 muestras solo aplican a modelos secuenciales (experimento con preentrenado, §6).
 
 ## 4. Aumento de datos (solo en entrenamiento)
 
@@ -90,11 +108,11 @@ Aplicada de forma idéntica en `analysis-core` (TS) y `ml/features/` (Python), c
 
 | Dataset | Licencia | Uso permitido en Fitnet |
 |---|---|---|
-| MM-Fit | MIT | Preentrenar el clasificador de ejercicio; producto. |
+| MM-Fit | MIT | Identificar el ejercicio: se convierte offline (Kaggle) a landmarks de MediaPipe y se añade como ejemplos al k-NN (`DEC-055`); cubre ejercicios de las olas 1 y 2 de `DEC-056`. Formato de keypoints y etiquetas por verificar antes de convertir. Producto. |
 | InfiniteRep | CC BY 4.0 | Preentrenar el clasificador; producto, con atribución en `DATA-GOVERNANCE.md` y en la app. |
 | EC3D | Sin licencia comercial explícita | **Solo prototipos y benchmarks**; ningún peso entrenado con él se publica en `models/manifest.json`. |
 | REHAB24-6 | No comercial | Solo prototipos y benchmarks. |
-| Fitness-AQA | No comercial | Solo prototipos y benchmarks. |
+| Fitness-AQA | No comercial | Solo prototipos y benchmarks; fuente de ejemplos de errores en gimnasio real (`DEC-055`, permitido por `DEC-035`). |
 | FLEX | No comercial, acceso por solicitud | Solo prototipos y benchmarks. |
 | **Checkpoints preentrenados sobre NTU RGB+D** (ST-GCN++, CTR-GCN, HD-GCN, SkateFormer, ProtoGCN…) | Código Apache-2.0 o MIT; los **pesos** derivan de datos de uso académico y de investigación | **Permitidos en el prototipo** (`DEC-035`: Fitnet no se comercializa). Este repositorio no los redistribuye: se descargan de su origen al entrenar. Todo modelo derivado se marca `provenance: "academic-pretrained"` y `commercialUse: false` en `models/manifest.json`. Prohibidos en un hipotético producto comercial. |
 
@@ -102,11 +120,16 @@ Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | 
 
 ## 6. Entrenamiento
 
-- Framework: PyTorch. Cómputo: Kaggle (≈ 30 h GPU/semana) para modelos secuenciales; CPU en GitHub Actions para modelos pequeños o re-entrenos.
-- Modelos por fase (`DEC-034`, ajustada por `DEC-035`): **Fase 1**, analizador de forma por repetición sobre *features* derivadas (gradient boosting o MLP pequeño por ejercicio, entrenable con 300–1000 reps, sin ONNX); **Fase 2**, clasificador de ejercicio (GRU 2 capas o TCN, 100k–300k parámetros) preentrenado con MM-Fit e InfiniteRep; **Fase 3**, ST-GCN++ (≈1,4 M) sobre COCO-17 **afinado desde un checkpoint preentrenado** (backbone congelado + cabezas por ejercicio), alcanzable con cientos de reps. Fatiga sin modelo (reglas de `METRICS.md` §3), opcional Random Forest después.
+- Framework: PyTorch. Cómputo: Kaggle (≈ 30 h GPU/semana); CPU en GitHub Actions para modelos pequeños o re-entrenos.
+- Modelos (`DEC-055`, que reemplaza la Fase 2 de `DEC-034` y convierte su Fase 3 en experimento):
+  - **k-NN de posturas** en TypeScript puro (`src/analysis/poseClassifier.ts`) sobre el vector de §3. Clasifica el **frame clave** de cada rep (fondo o pico, lo entrega el tracker) para los errores de forma, y **frames sueltos** con `ScoreSmoother` para identificar el ejercicio. Añadir un ejercicio o un error es añadir ejemplos, sin reentrenar.
+  - **MLP pequeño** como segunda iteración: se entrena en `ml/` y exporta sus pesos a JSON; la inferencia es TypeScript. Sustituye al k-NN de un ejercicio solo si lo supera en F1 LOSO.
+  - **Capa temporal sin ML:** tempo, ROM, velocidad, pérdida de velocidad y fatiga salen de `src/analysis/movementQuality.ts` y `src/analysis/fatigue.ts` (`METRICS.md` §2–3).
+  - **Sin TensorFlow.js ni ONNX** para estos modelos.
+- **Experimento con preentrenado (≤ 3 días, fuera de la app, solo tras tener el dataset mínimo de §1):** día 1, PYSKL en Kaggle + checkpoint ST-GCN++ COCO-17 + conversión de grabaciones propias; día 2, backbone congelado + cabeza logística o k-NN, comparado en LOSO contra el k-NN; día 3, reporte `ml/reports/spike-stgcnpp@0.1.json`, prueba de export a ONNX y latencia. Condiciones de `DEC-035` (`provenance: "academic-pretrained"`).
 - Representación de esqueleto: **COCO-17**, subconjunto exacto de los 33 landmarks de MediaPipe. No se mapea a NTU-25 (exigiría interpolar columna y cuello).
 - Cada run registra: commit de `ml/`, `featureSchemaVersion`, datasets y licencias usados, semilla, hiperparámetros, hash de los datos.
-- Export: `ml/export_onnx.py` con **opset fijo** (declarado en `ml/thresholds.yaml`), verificación de que la salida ONNX coincide con PyTorch sobre un batch de prueba.
+- Export del k-NN y del MLP: JSON (ejemplos o pesos + `embeddingVersion`). Export ONNX (solo para el experimento con preentrenado): `ml/export_onnx.py` con **opset fijo** (declarado en `ml/thresholds.yaml`), verificación de que la salida ONNX coincide con PyTorch sobre un batch de prueba.
 
 ## 7. Evaluación (LOSO obligatoria) y reporte
 
@@ -172,5 +195,7 @@ La skill `/promote-model` automatiza la verificación local; el CI la repite.
 Los cambios de modo son cambios en `models/manifest.json` (mismo gate). Cada ejercicio avanza por separado; el clasificador de ejercicio solo reemplaza el chip manual cuando esté en `primary` para los tres ejercicios.
 
 ## 11. Inferencia en el cliente (`@fitnet/ml-runtime`)
+
+**Artefactos JSON sin ONNX (`DEC-055`).** El k-NN y el MLP se publican como JSON (ejemplos o pesos, con `embeddingVersion`) y se ejecutan en TypeScript puro en el hilo de análisis; no cargan runtime de inferencia. `KnnPoseClassifier` rechaza un modelo cuyo `embeddingVersion` no coincida con `POSE_EMBEDDING_VERSION`. Lo que sigue aplica solo si el experimento con preentrenado (§6) llega a producción.
 
 ONNX Runtime Web build WASM en un Web Worker; `ModelRegistry.resolve(task, exerciseId)` descarga el artefacto, verifica `sha256`, lo guarda en Cache Storage y devuelve una `InferenceSession`. `MlAnalyzer.analyzeRep(RepWindow)` envía la ventana canonicalizada al Worker y devuelve `FormAssessment` con `source: 'ml'`. Detalle en `DEC-031`.

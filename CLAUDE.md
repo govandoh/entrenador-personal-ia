@@ -48,6 +48,7 @@ Antes de editar, ubica la historia en esta tabla; si no encaja en una sola fila,
 |---|---|---|---|---|
 | Ajustar un umbral angular o el cooldown de un tracker | `src/exercises/*.ts` | `packages/analysis-core` | B / `analysis-dev` | Sí (cambia golden) |
 | Añadir un ejercicio nuevo | `src/exercises/` + chip en `CameraView.tsx` | `analysis-core` (tracker) + `contracts` (`ExerciseId`) + `ui` (chip) | B + E; contrato → issue + DEC | Sí |
+| Añadir un ejercicio al asistente (ola de `DEC-056`) | `src/exercises/` (configuración) + ejemplos del k-NN (`src/analysis/poseClassifier.ts`) | `analysis-core` + `ml/` (datos) | B (+ C para grabar y etiquetar) | Solo si los umbrales cambian golden |
 | Cambiar la frase de voz o la prioridad entre mensajes | `CameraView.tsx` l.146-188 | `analysis-core/feedback` (`FeedbackPolicy`) | B | Si cambia DEC-016 |
 | Conservar `worldLandmarks` o cambiar el modelo de MediaPipe | `src/pose/poseDetector.ts` | `packages/pose-engine` | A / `pose-engine-dev` | Sí si cambia versión/modelo |
 | Grabar o añadir un fixture | — (PR 1) | `fixtures/landmarks/` + `*.test.ts` | A (fixture) y B (golden) | No |
@@ -61,7 +62,7 @@ Antes de editar, ubica la historia en esta tabla; si no encaja en una sola fila,
 
 - Identificadores en inglés; textos de UI y mensajes de voz en español (`es-ES`).
 - Constantes de umbral en mayúsculas con unidad en el nombre o el comentario (`GOOD_DEPTH_ANGLE = 90 // grados`); las temporales nuevas van en milisegundos, no en frames (`confirmMs`, no `MIN_RISING_FRAMES`).
-- Todo módulo de `analysis-core` (hoy `src/exercises`, `src/geometry`) debe ser puro: sin React, sin DOM, sin `performance.now()` interno (recibe `t` del frame).
+- Todo módulo de `analysis-core` (hoy `src/exercises`, `src/geometry`, `src/analysis`) debe ser puro: sin React, sin DOM, sin `performance.now()` interno (recibe `t` del frame).
 - Prettier con configuración por defecto; ESLint del repo. No desactivar reglas inline sin comentario que lo justifique.
 - Tests junto al código (`squat.test.ts` al lado de `squat.ts`); fixtures en `fixtures/landmarks/`.
 

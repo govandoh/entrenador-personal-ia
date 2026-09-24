@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { startCamera, stopCamera } from '../pose/camera';
 import { initPoseDetector, detectAndDraw, getLastWorldLandmarks } from '../pose/poseDetector';
-import { RECORD_MODE, captureFrame, downloadFixture, type RecordedFrame } from '../testing/fixtureRecorder';
+import { RECORD_MODE, RECORD_SCRIPT, captureFrame, downloadFixture, type RecordedFrame } from '../testing/fixtureRecorder';
 import { SquatTracker, GOOD_DEPTH_ANGLE } from '../exercises/squat';
 import { BicepCurlTracker, GOOD_FORM_ANGLE } from '../exercises/bicepCurl';
 import { ShoulderPressTracker, GOOD_LOCKOUT_ANGLE } from '../exercises/shoulderPress';
@@ -10,19 +10,74 @@ import type { BicepCurlResult } from '../exercises/bicepCurl';
 import type { ShoulderPressResult } from '../exercises/shoulderPress';
 import { ExerciseOverlay } from './ExerciseOverlay';
 import { useSpeech } from './useSpeech';
+import { ENGINE_3D } from './engineFlag';
+import { FeedbackPolicy, type FeedbackStrategy } from '../feedback/feedbackPolicy';
+import { FramePipeline, type FrameDiagnostics } from '../analysis/framePipeline';
+import {
+  BRIDGE_GOOD_EXTENSION_DEG, DEFINITIONS_3D, LUNGE_GOOD_DEPTH_DEG, PUSHUP_GOOD_DEPTH_DEG,
+} from '../exercises/definitions3d';
+import { PlankTracker, type PlankResult } from '../exercises/plankTracker';
+import type { Tracker3DResult } from '../exercises/tracker3d';
+import { DeviceGravityTracker, motionPermissionRequired, requestMotionPermission } from '../pose/deviceGravity';
 
 type Status         = 'loading' | 'ready' | 'error';
 type FacingMode     = 'environment' | 'user';
-type ActiveExercise = 'squat' | 'curl' | 'press';
+type ActiveExercise = 'squat' | 'curl' | 'press' | 'pushup' | 'lunge' | 'bridge' | 'plank';
 type AnyResult      = SquatResult | BicepCurlResult | ShoulderPressResult;
+/** Lo que pinta el overlay; común a los dos motores. */
+type OverlayResult  = Pick<AnyResult, 'reps' | 'feedbackLevel' | 'feedbackMessage'>;
 
 const EXERCISE_NAMES: Record<ActiveExercise, string> = {
-  squat: 'Sentadillas',
-  curl:  'Curl de Bíceps',
-  press: 'Press de Hombro',
+  squat:  'Sentadillas',
+  curl:   'Curl de Bíceps',
+  press:  'Press de Hombro',
+  pushup: 'Flexiones',
+  lunge:  'Zancadas',
+  bridge: 'Puente de glúteo',
+  plank:  'Plancha',
 };
 
+/**
+ * Chips visibles. El motor 2D de producción solo cubre los tres ejercicios del MVP; la
+ * ola 1 (DEC-056) solo existe en el motor 3D (`?engine=3d`, DEC-057).
+ */
+const CHIPS: ActiveExercise[] = ENGINE_3D
+  ? ['squat', 'curl', 'press', 'pushup', 'lunge', 'bridge', 'plank']
+  : ['squat', 'curl', 'press'];
+
 const EXERCISE_ICONS: Record<ActiveExercise, React.ReactNode> = {
+  pushup: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="4" cy="10" r="1.6" />
+      <line x1="5.5" y1="11" x2="20" y2="15" />
+      <line x1="7" y1="11.5" x2="7" y2="17" />
+      <line x1="20" y1="15" x2="21" y2="17" />
+    </svg>
+  ),
+  lunge: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="3" r="1.6" />
+      <line x1="12" y1="5" x2="12" y2="12" />
+      <path d="M12 12l-4 3v5" />
+      <path d="M12 12l5 2 1 5" />
+    </svg>
+  ),
+  bridge: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="3.5" cy="17" r="1.6" />
+      <path d="M5 17l7-5 5 1" />
+      <path d="M17 13l3 5" />
+      <line x1="2" y1="20" x2="22" y2="20" />
+    </svg>
+  ),
+  plank: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="4" cy="12" r="1.6" />
+      <line x1="5.5" y1="13" x2="21" y2="15" />
+      <path d="M7 13.5l1 3.5h3" />
+      <line x1="2" y1="18" x2="22" y2="18" />
+    </svg>
+  ),
   squat: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <circle cx="12" cy="4" r="2" />
@@ -62,11 +117,55 @@ function serializeError(err: unknown): string {
 /** Cada cuántos frames se refresca el contador del botón de grabación. */
 const RECORD_UI_EVERY = 15;
 
-function repPhrase(n: number): string {
-  if (n === 1)        return 'Una';
-  if (n % 10 === 0)   return `${n}. ¡Excelente ritmo!`;
-  if (n % 5  === 0)   return `${n}. ¡Sigue así!`;
-  return String(n);
+/** Estrategia de voz por ejercicio (DEC-016): la sentadilla habla en el fondo; curl y press, con el número. */
+const FEEDBACK_STRATEGY: Record<ActiveExercise, FeedbackStrategy> = {
+  squat:  'mid-range-peak',
+  curl:   'peak-at-end-of-effort',
+  press:  'peak-at-end-of-effort',
+  // Flexión y zancada tienen el fondo a mitad de la rep, como la sentadilla; el puente
+  // llega arriba al final del esfuerzo, como el press.
+  pushup: 'mid-range-peak',
+  lunge:  'mid-range-peak',
+  bridge: 'peak-at-end-of-effort',
+  plank:  'mid-range-peak',
+};
+
+/** Definición 3D por ejercicio. La plancha no cuenta ciclos (usa `PlankTracker`). */
+function definitionFor(ex: ActiveExercise) {
+  return ex === 'plank' ? DEFINITIONS_3D.squat : DEFINITIONS_3D[ex];
+}
+
+/** Cada cuántos segundos de plancha sostenida se anuncia el tiempo. */
+const PLANK_ANNOUNCE_EVERY_S = 10;
+/** Separación mínima entre avisos de forma en la plancha, en ms. */
+const PLANK_WARNING_MIN_MS = 3000;
+
+/**
+ * Frase de técnica al confirmar el pico o fondo, a partir del extremo alcanzado. Es la
+ * misma para los dos motores: mínimo de rodilla o de codo, o máximo de codo en el press.
+ */
+function peakPhrase(ex: ActiveExercise, extremeDeg: number): string {
+  switch (ex) {
+    case 'squat':  return extremeDeg < GOOD_DEPTH_ANGLE ? '¡Excelente profundidad!' : 'Baja un poco más';
+    case 'curl':   return extremeDeg < GOOD_FORM_ANGLE ? '¡Excelente contracción!' : 'Sube un poco más';
+    case 'press':  return extremeDeg >= GOOD_LOCKOUT_ANGLE ? '¡Extensión completa!' : 'Extiende un poco más';
+    case 'pushup': return extremeDeg <= PUSHUP_GOOD_DEPTH_DEG ? '¡Buena bajada!' : 'Baja más el pecho';
+    case 'lunge':  return extremeDeg <= LUNGE_GOOD_DEPTH_DEG ? '¡Buena profundidad!' : 'Baja un poco más';
+    case 'bridge': return extremeDeg >= BRIDGE_GOOD_EXTENSION_DEG ? '¡Cadera arriba!' : 'Sube más la cadera';
+    case 'plank':  return '';
+  }
+}
+
+/** Espera antes de ofrecer el permiso de sensores en iOS si no llegó ninguna lectura, en ms. */
+const MOTION_PERMISSION_WAIT_MS = 1500;
+
+/** Texto del indicador de nivelación del motor 3D. */
+function levelLabel(d: FrameDiagnostics): string {
+  if (!d.leveled) return 'Acomoda el teléfono más vertical';
+  const parts = ['3D'];
+  if (d.phoneTiltDeg !== null) parts.push(`nivelado ${Math.round(d.phoneTiltDeg)}°`);
+  if (d.calibrationDeg !== null) parts.push(`calibrado ${Math.round(d.calibrationDeg)}°`);
+  return parts.join(' · ');
 }
 
 export function CameraView() {
@@ -84,14 +183,20 @@ export function CameraView() {
   const activeExRef = useRef<ActiveExercise>('squat');
   // Reps del frame anterior para detectar nueva rep completada
   const prevRepsRef = useRef<number>(-1);
-  // Arquitectura de voz sin colisiones (ver DEC-016)
-  const curlFormFeedbackRef  = useRef<string>('');
-  const pressFormFeedbackRef = useRef<string>('');
-  const lastSpeakTimeRef     = useRef<number>(0);
+  // Política de voz sin colisiones (ver DEC-016), compartida por los dos motores
+  const feedbackPolicyRef = useRef(new FeedbackPolicy(FEEDBACK_STRATEGY.squat));
   // Flag para delay de liberación de hardware al cambiar de cámara
   const cameraStopPendingRef = useRef(false);
   // Buffer del modo grabación (?debug=record). Vacío y sin uso fuera del flag.
   const recordingRef = useRef<RecordedFrame[]>([]);
+  // Motor 3D (?engine=3d, DEC-057). Sin el flag no se usan.
+  const pipelineRef       = useRef<FramePipeline | null>(null);
+  const gravityRef        = useRef<DeviceGravityTracker | null>(null);
+  const lastOverlayKeyRef = useRef<string>('');
+  const lastCalibrationRef = useRef<number | null>(null);
+  const plankRef           = useRef(new PlankTracker());
+  const plankAnnouncedRef  = useRef(0);
+  const plankWarnedAtRef   = useRef(-Infinity);
 
   const [status, setStatus]                 = useState<Status>('loading');
   const [errorMsg, setErrorMsg]             = useState('');
@@ -102,14 +207,18 @@ export function CameraView() {
     } catch { return 'environment'; }
   });
   const [activeExercise, setActiveExercise] = useState<ActiveExercise>('squat');
-  const [exerciseResult, setExerciseResult] = useState<AnyResult | null>(null);
+  const [exerciseResult, setExerciseResult] = useState<OverlayResult | null>(null);
   // Solo se actualiza en modo grabación, y cada RECORD_UI_EVERY frames.
   const [recordedCount, setRecordedCount]   = useState(0);
+  // Solo en el motor 3D: indicador de nivelación y oferta del permiso de sensores (iOS).
+  const [levelInfo, setLevelInfo]           = useState('');
+  const [needsMotion, setNeedsMotion]       = useState(false);
 
   const speak = useSpeech();
 
   useEffect(() => {
     let cancelled = false;
+    let motionTimer: ReturnType<typeof setTimeout> | undefined;
     setStatus('loading');
 
     if (!navigator.mediaDevices) {
@@ -136,6 +245,22 @@ export function CameraView() {
         streamRef.current = stream;
         if (!cancelled) setStatus('ready');
 
+        if (ENGINE_3D) {
+          // Cámara nueva: la calibración y el filtro empiezan de cero.
+          if (!pipelineRef.current) pipelineRef.current = new FramePipeline(definitionFor(activeExRef.current));
+          else pipelineRef.current.reset();
+        }
+        // El acelerómetro se usa en el motor 3D y para guardar la gravedad al grabar (DEC-055).
+        if (ENGINE_3D || RECORD_MODE) {
+          if (!gravityRef.current) gravityRef.current = new DeviceGravityTracker();
+          gravityRef.current.start();
+          if (motionPermissionRequired()) {
+            motionTimer = setTimeout(() => {
+              if (!cancelled && !gravityRef.current?.hasReading) setNeedsMotion(true);
+            }, MOTION_PERMISSION_WAIT_MS);
+          }
+        }
+
         function loop() {
           if (cancelled || !videoRef.current || !canvasRef.current) return;
 
@@ -148,8 +273,29 @@ export function CameraView() {
             // Fuera del flag esto es una comparación booleana por frame.
             if (RECORD_MODE) {
               const buf = recordingRef.current;
-              buf.push(captureFrame(performance.now(), landmarkSets[0], getLastWorldLandmarks()));
+              buf.push(captureFrame(
+                performance.now(),
+                landmarkSets[0],
+                getLastWorldLandmarks(),
+                gravityRef.current?.worldDown(facingMode) ?? null,
+              ));
               if (buf.length % RECORD_UI_EVERY === 0) setRecordedCount(buf.length);
+            }
+
+            if (ENGINE_3D) {
+              const world = getLastWorldLandmarks();
+              const pipeline = pipelineRef.current;
+              if (world && pipeline) {
+                const input = { world, t: performance.now(), worldDown: gravityRef.current?.worldDown(facingMode) ?? null };
+                if (ex === 'plank') {
+                  const prepared = pipeline.prepare(input);
+                  handlePlank(plankRef.current.update(prepared.world, input.t), prepared.diagnostics, input.t);
+                } else {
+                  handle3D(pipeline.process(input), ex);
+                }
+              }
+              rafRef.current = requestAnimationFrame(loop);
+              return;
             }
 
             const result: AnyResult = (() => {
@@ -161,47 +307,17 @@ export function CameraView() {
             const prevReps = prevRepsRef.current;
 
             if (prevReps >= 0) {
-              if (result.reps > prevReps) {
-                if (ex === 'squat') {
-                  if (performance.now() - lastSpeakTimeRef.current > 1500) {
-                    speak(repPhrase(result.reps));
-                    lastSpeakTimeRef.current = performance.now();
-                  }
-                } else if (ex === 'curl') {
-                  const formMsg = curlFormFeedbackRef.current;
-                  speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
-                  curlFormFeedbackRef.current = '';
-                  lastSpeakTimeRef.current = performance.now();
-                } else {
-                  const formMsg = pressFormFeedbackRef.current;
-                  speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
-                  pressFormFeedbackRef.current = '';
-                  lastSpeakTimeRef.current = performance.now();
-                }
-              } else if (ex === 'squat') {
-                const r = result as SquatResult;
-                if (r.atBottom) {
-                  speak(r.minAngleReached < GOOD_DEPTH_ANGLE
-                    ? '¡Excelente profundidad!'
-                    : 'Baja un poco más',
-                  );
-                  lastSpeakTimeRef.current = performance.now();
-                }
-              } else if (ex === 'curl') {
-                const r = result as BicepCurlResult;
-                if (r.atTop) {
-                  curlFormFeedbackRef.current = r.minAngleReached < GOOD_FORM_ANGLE
-                    ? '¡Excelente contracción!'
-                    : 'Sube un poco más';
-                }
-              } else {
-                const r = result as ShoulderPressResult;
-                if (r.atPeak) {
-                  pressFormFeedbackRef.current = r.maxAngleReached >= GOOD_LOCKOUT_ANGLE
-                    ? '¡Extensión completa!'
-                    : 'Extiende un poco más';
-                }
-              }
+              const peakAngle =
+                ex === 'squat' ? ((result as SquatResult).atBottom ? (result as SquatResult).minAngleReached : null)
+                : ex === 'curl' ? ((result as BicepCurlResult).atTop ? (result as BicepCurlResult).minAngleReached : null)
+                : ((result as ShoulderPressResult).atPeak ? (result as ShoulderPressResult).maxAngleReached : null);
+              const utterances = feedbackPolicyRef.current.decide({
+                now:        performance.now(),
+                reps:       result.reps,
+                repCounted: result.reps > prevReps,
+                peakPhrase: peakAngle === null ? null : peakPhrase(ex, peakAngle),
+              });
+              for (const u of utterances) speak(u);
             }
 
             prevRepsRef.current = result.reps;
@@ -210,6 +326,50 @@ export function CameraView() {
 
           rafRef.current = requestAnimationFrame(loop);
         }
+        /**
+         * Voz y overlay del motor 3D. Misma política de voz que el 2D (DEC-016) más el
+         * aviso de repeticiones descartadas. El overlay solo se actualiza cuando cambia lo
+         * que muestra (evita el setState por frame).
+         */
+        function handle3D(out: ReturnType<FramePipeline['process']>, ex: ActiveExercise) {
+          const r: Tracker3DResult = out.result;
+          const utterances = feedbackPolicyRef.current.decide({
+            now:              performance.now(),
+            reps:             r.reps,
+            repCounted:       r.repCounted,
+            peakPhrase:       r.peak ? peakPhrase(ex, r.extremeDeg) : null,
+            rejectionMessage: r.rejectionMessage,
+          });
+          for (const u of utterances) speak(u);
+
+          lastCalibrationRef.current = out.diagnostics.calibrationDeg;
+          const label = levelLabel(out.diagnostics);
+          const key = `${r.reps}|${r.feedbackLevel}|${r.feedbackMessage}|${label}`;
+          if (key !== lastOverlayKeyRef.current) {
+            lastOverlayKeyRef.current = key;
+            setExerciseResult({ reps: r.reps, feedbackLevel: r.feedbackLevel, feedbackMessage: r.feedbackMessage });
+            setLevelInfo(label);
+          }
+        }
+
+        /** Plancha (isométrica): anuncia el tiempo cada 10 s y avisa al perder la línea. */
+        function handlePlank(r: PlankResult, diagnostics: FrameDiagnostics, now: number) {
+          if (r.heldSeconds >= plankAnnouncedRef.current + PLANK_ANNOUNCE_EVERY_S) {
+            plankAnnouncedRef.current = r.heldSeconds - (r.heldSeconds % PLANK_ANNOUNCE_EVERY_S);
+            speak(`${plankAnnouncedRef.current} segundos`);
+          } else if (r.formIssue && now - plankWarnedAtRef.current > PLANK_WARNING_MIN_MS) {
+            plankWarnedAtRef.current = now;
+            speak(r.feedbackMessage);
+          }
+          const label = levelLabel(diagnostics);
+          const key = `${r.heldSeconds}|${r.feedbackLevel}|${r.feedbackMessage}|${label}`;
+          if (key !== lastOverlayKeyRef.current) {
+            lastOverlayKeyRef.current = key;
+            setExerciseResult({ reps: r.heldSeconds, feedbackLevel: r.feedbackLevel, feedbackMessage: r.feedbackMessage });
+            setLevelInfo(label);
+          }
+        }
+
         rafRef.current = requestAnimationFrame(loop);
       } catch (err) {
         if (!cancelled) {
@@ -224,6 +384,8 @@ export function CameraView() {
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafRef.current);
+      if (motionTimer) clearTimeout(motionTimer);
+      gravityRef.current?.stop();
       if (streamRef.current) {
         stopCamera(streamRef.current);
         streamRef.current = null;
@@ -243,10 +405,15 @@ export function CameraView() {
     squatTrackerRef.current.reset();
     curlTrackerRef.current.reset();
     pressTrackerRef.current.reset();
-    prevRepsRef.current          = -1;
-    curlFormFeedbackRef.current  = '';
-    pressFormFeedbackRef.current = '';
+    prevRepsRef.current = -1;
+    feedbackPolicyRef.current.setStrategy(FEEDBACK_STRATEGY[next]);
     setExerciseResult(null);
+    if (ENGINE_3D) {
+      pipelineRef.current?.setExercise(definitionFor(next));
+      plankRef.current.reset();
+      plankAnnouncedRef.current = 0;
+      lastOverlayKeyRef.current = '';
+    }
     // Un fixture pertenece a un solo ejercicio: cambiar de chip descarta lo grabado.
     if (RECORD_MODE) {
       recordingRef.current = [];
@@ -276,7 +443,40 @@ export function CameraView() {
         <ExerciseOverlay
           result={exerciseResult}
           exerciseName={EXERCISE_NAMES[activeExercise]}
+          unit={activeExercise === 'plank' ? 'SEG' : 'REPS'}
         />
+      )}
+
+      {/* Motor 3D (?engine=3d, DEC-057) y grabación: nivelación, permiso de sensores y cierre de serie */}
+      {(ENGINE_3D || RECORD_MODE) && status === 'ready' && (
+        <div className="engine3d-bar">
+          {levelInfo && <span className="engine3d-level">{levelInfo}</span>}
+          {needsMotion && (
+            <button
+              className="engine3d-btn"
+              onClick={() => {
+                // iOS: el permiso debe pedirse directamente desde el toque, antes de cualquier await.
+                void requestMotionPermission().then(ok => {
+                  if (ok) gravityRef.current?.start();
+                  setNeedsMotion(!ok);
+                });
+              }}
+            >
+              Nivelar con el sensor
+            </button>
+          )}
+          {ENGINE_3D && (
+            <button
+              className="engine3d-btn"
+              onClick={() => {
+                pipelineRef.current?.startNewSet();
+                speak('Nueva serie');
+              }}
+            >
+              Nueva serie
+            </button>
+          )}
+        </div>
       )}
 
       {/* Modo grabación de fixtures — solo con ?debug=record (ver fixtures/README.md) */}
@@ -286,7 +486,11 @@ export function CameraView() {
           onClick={() => {
             const frames = recordingRef.current;
             if (frames.length === 0) return;
-            downloadFixture(activeExRef.current, frames);
+            downloadFixture(activeExRef.current, frames, {
+              script: RECORD_SCRIPT,
+              engine: ENGINE_3D ? '3d' : '2d',
+              ...(ENGINE_3D ? { calibrationDeg: lastCalibrationRef.current } : {}),
+            });
             recordingRef.current = [];
             setRecordedCount(0);
           }}
@@ -299,7 +503,7 @@ export function CameraView() {
         <div className="bottom-controls">
           {/* Selector de ejercicio — chips horizontales con scroll */}
           <div className="exercise-scroller" role="group" aria-label="Seleccionar ejercicio">
-            {(Object.keys(EXERCISE_NAMES) as ActiveExercise[]).map(ex => (
+            {CHIPS.map(ex => (
               <button
                 key={ex}
                 className={`exercise-chip${activeExercise === ex ? ' active' : ''}`}

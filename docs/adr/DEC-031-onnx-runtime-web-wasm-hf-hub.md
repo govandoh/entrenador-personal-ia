@@ -50,6 +50,10 @@ Kaggle (≈ 30 h de GPU por semana) para modelos secuenciales; CPU en GitHub Act
 - Dependencia de un servicio externo (HF Hub) para el primer arranque con ML; sin conexión la app funciona solo con reglas hasta que el modelo esté cacheado.
 - Coste de ingeniería para el Worker, la verificación de hash y el manejo de versiones de esquema de features.
 
+## Nota posterior (2026-09-24): modelos ligeros sin runtime de inferencia (`DEC-055`)
+
+El descarte de TensorFlow.js se mantiene. Los primeros modelos del núcleo de IA (k-NN de posturas y, después, un MLP pequeño) **no usan ONNX Runtime Web**: su inferencia es TypeScript puro y el artefacto es un JSON (ejemplos o pesos), versionado con `embeddingVersion`. ONNX Runtime Web queda para modelos que lo justifiquen, empezando por el experimento con el GCN preentrenado. El gate de promoción y `models/manifest.json` aplican igual a los artefactos JSON.
+
 ## Referencias
 
 - ONNX Runtime Web: https://onnxruntime.ai/docs/tutorials/web/

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculateAngle, type Point2D } from './angles'
+import { calculateAngle, type Point2D } from './angles.ts'
 
 /** Forma estructural de NormalizedLandmark de MediaPipe (x, y, z, visibility). */
 interface LandmarkLike extends Point2D {

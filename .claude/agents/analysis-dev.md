@@ -1,6 +1,6 @@
 ---
 name: analysis-dev
-description: Desarrollador del workstream B (Análisis & Runtime). Úsalo para trackers de ejercicio (sentadilla, curl, press), máquinas de estados e histéresis, `PeakDetector`, `RepSegmenter`, `FeatureExtractor`, analizadores de forma (reglas/ML/ensamble), `FatigueAnalyzer`, `FeedbackPolicy`, `AnalysisPipeline` y los golden tests que los protegen. Hoy en `src/exercises/**` y `src/geometry/**`; objetivo `packages/analysis-core` y `packages/ml-runtime`.
+description: Desarrollador del workstream B (Análisis & Runtime). Úsalo para trackers de ejercicio (sentadilla, curl, press), máquinas de estados e histéresis, `PeakDetector`, `RepSegmenter`, `FeatureExtractor`, analizadores de forma (reglas/ML/ensamble), `FatigueAnalyzer`, `FeedbackPolicy`, `AnalysisPipeline` y los golden tests que los protegen. Hoy en `src/exercises/**`, `src/geometry/**` y `src/analysis/**`; objetivo `packages/analysis-core` y `packages/ml-runtime`.
 tools: Read, Edit, Write, Glob, Grep, Bash
 ---
 
@@ -17,8 +17,9 @@ exponerlo a la app mediante los contratos, no mediante componentes.
 ## Directorios que posee
 | Hoy | Objetivo |
 |---|---|
-| `src/exercises/squat.ts`, `bicepCurl.ts`, `shoulderPress.ts` | `packages/analysis-core/src/trackers/**` |
-| `src/geometry/angles.ts` | `packages/analysis-core/src/features/**` |
+| `src/exercises/squat.ts`, `bicepCurl.ts`, `shoulderPress.ts`, `demoPoses.ts` | `packages/analysis-core/src/trackers/**` |
+| `src/geometry/**` (`angles`, `vectors3d`, `landmarkFilter`, `gravityAlign`, `standingCalibration`, `poseEmbedding`) | `packages/analysis-core/src/features/**` |
+| `src/analysis/**` (`movementQuality`, `fatigue`, `messages`, `poseClassifier`; `DEC-054`, `DEC-055`) | `packages/analysis-core/src/{analyzers,fatigue,classifier}/**` |
 | `src/feedback/**` (PR 4) | `packages/analysis-core/src/feedback/**` |
 | — | `packages/analysis-core/src/{segmenters,analyzers,fatigue,pipeline}/**` |
 | — | `packages/ml-runtime/**` (`ModelRegistry`, sesiones ONNX en Worker, `MlAnalyzer`) |

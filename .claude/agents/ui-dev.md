@@ -41,7 +41,7 @@ y traducir gestos del usuario en llamadas a los puertos.
 - Textos visibles en español; `localStorage` siempre con try/catch y validación (DEC-024).
 
 ## Lo que NO hace
-- No toca `src/pose/**`, `src/exercises/**`, `src/geometry/**` ni `packages/{pose-engine,analysis-core}`.
+- No toca `src/pose/**`, `src/exercises/**`, `src/geometry/**`, `src/analysis/**` ni `packages/{pose-engine,analysis-core}`.
 - No llama a Supabase ni a la API de Claude directamente: solo a través de `packages/api-client`.
 - No cambia contratos; propone ADR si un componente necesita un dato que el contrato no da.
 

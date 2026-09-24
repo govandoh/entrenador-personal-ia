@@ -64,6 +64,28 @@ la cadera. Los trackers actuales no los usan; se graban porque el análisis 3D (
 fatiga) los necesitará. Los fixtures sintéticos **no** los incluyen: se construyen en el
 espacio normalizado y un `world` inventado no aportaría nada.
 
+### `down` — opcional, por frame
+
+"Abajo" medido por el acelerómetro del teléfono, en ejes de `world` (vector unitario
+`[x, y, z]`), si había lectura en ese frame. Permite nivelar el esqueleto igual que la app
+(`DEC-050`) al usar la grabación en `ml/`. Solo aparece en grabaciones de celular.
+
+### `meta.capture` — opcional
+
+Solo en grabaciones hechas con el protocolo por guion (`DEC-055`):
+
+| Campo | Contenido |
+|---|---|
+| `engine` | `'2d'` o `'3d'`: motor activo al grabar (`?engine=3d`, `DEC-057`) |
+| `condition` | Condición declarada en la URL: `correct` o un código de `docs/METRICS.md` §5.2 (`knee_valgus`) |
+| `subjectId` | Identificador anónimo del sujeto (`s01`), para la evaluación Leave-One-Subject-Out. Nunca nombres |
+| `calibrationDeg` | Corrección de la calibración de pie al terminar la toma (solo motor 3D) |
+
+Con el guion completo en la URL (`?debug=record&cond=knee_valgus&view=side&subject=s01`),
+la app ya pone `view` y `quality` correctos (`squat-side-knee-valgus-01.json`) y no hay que
+corregirlos a mano. Las calidades de error válidas están en `FORM_ERROR_QUALITIES`
+(`src/testing/fixtureTypes.ts`).
+
 ### Orden de los 33 landmarks
 
 El de MediaPipe Pose (`0` nariz … `32` índice del pie derecho). Los índices usados por los

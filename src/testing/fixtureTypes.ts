@@ -17,7 +17,8 @@ export const FIXTURE_SCHEMA_VERSION = 1 as const;
 /** Número de landmarks que emite MediaPipe Pose por persona. */
 export const POSE_LANDMARK_COUNT = 33;
 
-export type FixtureExercise = 'squat' | 'curl' | 'press';
+/** Ejercicios grabables. Ola 1 (DEC-056): `pushup`, `lunge`, `bridge`, `plank`. */
+export type FixtureExercise = 'squat' | 'curl' | 'press' | 'pushup' | 'lunge' | 'bridge' | 'plank';
 export type FixtureView     = 'side' | 'front' | '45';
 export type FixtureSource   = 'synthetic' | 'phone';
 
@@ -35,6 +36,7 @@ export type FixtureSource   = 'synthetic' | 'phone';
  * - `lowelbow`     press que baja por debajo del ángulo seguro
  */
 export type FixtureQuality =
+  | FormErrorQuality
   | 'good'
   | 'shallow'
   | 'noisy'
@@ -45,6 +47,16 @@ export type FixtureQuality =
   | 'right'
   | 'partial'
   | 'lowelbow';
+
+/**
+ * Condiciones de error del protocolo de grabación por guion (DEC-055), en kebab-case: son
+ * los códigos de `docs/METRICS.md` §5.2 (`knee_valgus` → `knee-valgus`).
+ */
+export const FORM_ERROR_QUALITIES = [
+  'knee-valgus', 'trunk-lean', 'partial-rom', 'asymmetry', 'unsafe-low-elbow',
+  'excess-speed', 'elbow-drift', 'lumbar-arch', 'shallow-depth',
+] as const;
+export type FormErrorQuality = typeof FORM_ERROR_QUALITIES[number];
 
 export interface FixtureLandmark {
   /** Coordenada horizontal normalizada al ancho de la imagen (0–1; puede salirse un poco). */
@@ -64,6 +76,23 @@ export interface FixtureFrame {
   image: FixtureLandmark[];
   /** `result.worldLandmarks[0]` de MediaPipe: 33 landmarks en metros, origen en la cadera. */
   world?: FixtureLandmark[];
+  /**
+   * "Abajo" medido por el acelerómetro en ejes de `world` (vector unitario), si había
+   * lectura. Permite nivelar el dataset igual que la app (DEC-050, DEC-055).
+   */
+  down?: [number, number, number];
+}
+
+/** Metadatos de una grabación hecha con el protocolo por guion (`?debug=record&cond=…`). */
+export interface FixtureCapture {
+  /** Motor activo al grabar (DEC-057). */
+  engine: '2d' | '3d';
+  /** Condición declarada antes de la toma: `correct` o un código de METRICS §5.2. */
+  condition?: string;
+  /** Identificador anónimo del sujeto (p. ej. `s01`), para la evaluación LOSO. */
+  subjectId?: string;
+  /** Corrección de la calibración de pie al terminar la toma, en grados (solo motor 3D). */
+  calibrationDeg?: number | null;
 }
 
 export interface FixtureMeta {
@@ -79,6 +108,8 @@ export interface FixtureMeta {
   /** ISO-8601 del momento de grabación/generación. */
   recordedAt:    string;
   notes?:        string;
+  /** Solo en grabaciones por guion. */
+  capture?:      FixtureCapture;
 }
 
 export interface LandmarkFixture {
@@ -108,7 +139,7 @@ export interface FixtureIndex {
 }
 
 /** Patrón de nombre de archivo: `<ejercicio>-<vista>-<calidad>-<nn>.json`. */
-export const FIXTURE_FILENAME_RE = /^(squat|curl|press)-(side|front|45)-([a-z0-9-]+)-(\d{2})\.json$/;
+export const FIXTURE_FILENAME_RE = /^(squat|curl|press|pushup|lunge|bridge|plank)-(side|front|45)-([a-z0-9-]+)-(\d{2})\.json$/;
 
 export function fixtureFileName(meta: Pick<FixtureMeta, 'exercise' | 'view' | 'quality'>, nn: number): string {
   return `${meta.exercise}-${meta.view}-${meta.quality}-${String(nn).padStart(2, '0')}.json`;

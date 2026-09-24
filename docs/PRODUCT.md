@@ -8,6 +8,10 @@ Fitnet convierte el celular en un entrenador que ve y entiende el movimiento. Cu
 
 Origen: MVP del curso IA26 (UMG, mayo 2026) con tres ejercicios y análisis por reglas angulares. Fitnet amplía el alcance (`DEC-026`) manteniendo la PWA mobile-first, React + TypeScript + MediaPipe y la regla de privacidad.
 
+Línea paralela: **fitnetv2** (`ecaldcc/07-FitNet`, desplegada en fitnetv2.netlify.app), del mismo grupo, aportó análisis 3D, validación temporal, fatiga, catálogo de 60 ejercicios, rutinas, modo manual, perfil con logros y visor 3D. Este repositorio es la base y fitnetv2 se integra por pasos (`DEC-054`); mientras tanto conviven ambas versiones desplegadas.
+
+Nombre: existe una app de rutinas comercial llamada fitnetapp.com; el diferenciador de Fitnet es el asistente en tiempo real (`DEC-056`), y la colisión de nombre refuerza el renombre pendiente (#19).
+
 ## Alcance formal: 8 épicas
 
 Cada épica se descompone en historias etiquetadas en GitHub. Los criterios de aceptación son de alto nivel; cada historia añade los suyos.
@@ -31,6 +35,15 @@ Criterios: por cada rep se registran duración, ROM, velocidad concéntrica pico
 Catálogo de ejercicios, rutinas con días y ejercicios (`Routine`, `RoutineDay`, `RoutineExercise`), calendario de sesiones planificadas y realizadas.
 
 Criterios: el usuario crea o adopta una rutina, la ve en un calendario semanal y arranca la sesión del día desde ahí; la sesión guarda qué se hizo contra lo planificado (adherencia); funciona offline con cola de sincronización en `api-client`.
+
+**Rutina personalizada (`DEC-056`).** Cuestionario libre de 4 pasos (objetivo, nivel, lugar y equipo, programa) que se guarda en `Profile`; un generador determinista por reglas (sin LLM) filtra el catálogo por etiquetas de equipo y lugar, elige la división por días y nivel, llena cada día por patrón de movimiento **prefiriendo ejercicios con asistente** y fija series, reps y descanso según el objetivo. El catálogo viene de fitnetv2 (60 ejercicios) con etiquetas de equipo, `locations`, `movementPattern` y `tracking` (`camera` se muestra como "con asistente"). El asistente crece por olas:
+
+| Ola | Ejercicios con asistente |
+|---|---|
+| 0 (hoy) | sentadilla, curl de bíceps, press de hombro |
+| 1 | flexiones, zancadas, puente de glúteo, plancha |
+| 2 | peso muerto rumano, remo con mancuerna, elevaciones laterales, extensión sobre la cabeza, sentadilla goblet |
+| 3 | peso muerto, hip thrust, sentadilla frontal |
 
 ### E4. Métodos de entrenamiento
 
@@ -81,7 +94,9 @@ Criterios: el estado premium lo escribe únicamente el manejador de webhooks con
 | Análisis en tiempo real (conteo, técnica, voz) de los ejercicios disponibles | Sí | Sí | Sí |
 | Historial de sesiones y métricas básicas | Limitado (últimas N sesiones) | Completo | Completo |
 | Análisis avanzado (fatiga, consistencia, asimetría, tendencias) | No | Sí | Sí |
-| Rutinas propias y calendario | Sí (básico) | Sí | Sí |
+| Rutinas propias y las 3 plantillas de fitnetv2 | Sí (básico) | Sí | Sí |
+| Cuestionario y semana 1 de la rutina generada (`DEC-056`) | Sí | Sí | Sí |
+| Programa completo, calendario y progresión automática (`DEC-056`) | No | Sí | Sí |
 | Métodos de entrenamiento guiados | Limitado | Sí | Sí |
 | Retos y rankings | Participar | Participar + crear retos privados | Crear retos para clientes |
 | Coaching 1:1 y resúmenes del asistente IA | No | Con un entrenador contratado | Herramientas de coaching, digest semanal, panel de clientes |
@@ -108,8 +123,8 @@ El repositorio le aporta los insumos técnicos verificables:
 
 | Fase | Contenido | Épicas | Referencia técnica |
 |---|---|---|---|
-| **1. Núcleo de IA + plataforma** | Tooling y CI, fixtures y golden, contratos, pipeline sin React, monorepo; captura con consentimiento, sprint de datos, primeros modelos (clasificador, errores de sentadilla) en modo sombra; métricas de fatiga por reglas. | E2, Núcleo IA, Plataforma | PR 0–10 de `ARCHITECTURE.md` §2.4 |
-| **2. Perfiles, rutinas, calendario** | Supabase (auth, esquema, RLS), sincronización de sesiones con cola offline, perfiles y objetivos, catálogo de ejercicios, rutinas con métodos, calendario. | E1, E3, E4 | PR 11+, `DEC-029` |
+| **1. Núcleo de IA + plataforma** | Tooling y CI, fixtures y golden, contratos, pipeline sin React, monorepo; motor 3D de fitnetv2 (pasos I-1 a I-3 de `DEC-054`); datos propios con etiqueta por guion y k-NN de posturas (`DEC-055`) en modo sombra; métricas de fatiga por reglas. | E2, Núcleo IA, Plataforma | PR 0–10 de `ARCHITECTURE.md` §2.4 |
+| **2. Perfiles, rutinas, calendario** | Supabase (auth, esquema, RLS), sincronización de sesiones con cola offline, perfiles y objetivos, catálogo y rutinas de fitnetv2 (paso I-4), cuestionario y generador de rutinas (paso I-5, `DEC-056`), métodos, calendario. | E1, E3, E4 | PR 11+, `DEC-029`, `DEC-054` |
 | **3. Entrenadores, marketplace, coaching** | Rol entrenador, planes, marketplace, relación de coaching, chat en tiempo real, Edge Function `coach` con Claude, digest semanal. | E5, E6 (panel y retos) | `DEC-033` |
 | **4. Comunidad y pagos simulados** | Rankings públicos con anti-trampa, comunidad opt-in, puerto `PaymentProvider` con proveedor simulado, entitlements y ledger de liquidaciones. El hosting se queda en Vercel Hobby. | E6 (rankings), E7, E8 | `DEC-035`, `DEC-030` como estudio |
 

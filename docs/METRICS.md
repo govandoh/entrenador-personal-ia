@@ -8,7 +8,7 @@ Convenciones:
 - `t` en milisegundos desde el inicio de la sesión (`LandmarkFrame.t`), no en frames.
 - Ángulos en grados; distancias en metros (desde `world`) o unidades normalizadas (desde `image`, se indica).
 - Landmarks suavizados antes de derivar: filtro One-Euro o EMA (parámetros en `analysis-core`; el suavizado usado se registra en `RepSummary.smoothing`).
-- **Estado de implementación:** hoy solo existen ángulo articular, conteo de reps y feedback por umbrales (§1, §5 parcial). El resto es objetivo de la Fase 1 (`PRODUCT.md`) y se marca como tal.
+- **Estado de implementación:** en producción solo existen ángulo articular 2D, conteo de reps y feedback por umbrales (§1, §5 parcial). El paso I-1 de `DEC-054` añadió en `src/geometry/` y `src/analysis/` ángulos 3D, suavizado One Euro, validación temporal por rep y fatiga (§2–3), con tests pero **sin conectar a la UI** hasta el paso I-2. El resto es objetivo de la Fase 1 (`PRODUCT.md`) y se marca como tal.
 
 ## 1. Métricas por frame
 
@@ -43,6 +43,17 @@ Una rep se delimita por `RepWindow = [t_start, t_peak, t_end]` que produce el `R
 | `form_score` | ver §5 | 0–100 | `FormAnalyzer` | objetivo |
 | `form_errors[]` | ver §5 | códigos | `FormAnalyzer` | objetivo |
 
+**Implementación parcial (I-1, sin conectar):** `MovementAnalyzer` (`src/analysis/movementQuality.ts`, `DEC-037`, `DEC-045`) calcula `rep_duration`, `concentric_ms`/`eccentric_ms` según la forma del ciclo, `rom` sobre el ángulo primario, velocidad concéntrica media y `peak_velocity` en °/s sobre ventanas de 100 ms, y además `smoothness` (0–1, por inversiones con histéresis de 12°). Rechaza la rep por `too_fast`, `too_slow`, `insufficient_rom` o `erratic` con estos umbrales:
+
+| Ejercicio | ROM mín. | Duración mín. | Concéntrica mín. | Duración máx. | Suavidad mín. |
+|---|---|---|---|---|---|
+| por defecto | 35° | 600 ms | 250 ms | 12 000 ms | 0.35 |
+| sentadilla | 40° | 800 ms | 250 ms | 15 000 ms | 0.35 |
+| curl | 50° | 700 ms | 250 ms | 10 000 ms | 0.3 |
+| press | 45° | 700 ms | 250 ms | 10 000 ms | 0.3 |
+
+Los valores por ejercicio vienen de fitnetv2 y se fijan en los trackers en el paso I-2 (`DEC-054`).
+
 ## 3. Métricas por serie (`FatigueEstimate` y agregados)
 
 Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por bloque/sub-serie; ver `DOMAIN.md`).
@@ -58,6 +69,8 @@ Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por 
 | `reps` | conteo de eventos `complete` | reps | Implementado (reglas). |
 | `set_volume` | `reps · loadKg` (si hay carga) | kg | — |
 | `mean_form_score` | media de `form_score` | 0–100 | — |
+
+**Fatiga de fitnetv2 (implementada, pendiente de reconciliar).** `FatigueDetector` (`src/analysis/fatigue.ts`, `DEC-038`) usa otra fórmula: `score = min(100, velDrop% · 2 + romLoss% · 1.5 + asymEMA · 40)`, con línea base en las 3 primeras reps y media de las 3 últimas. Niveles: `moderate` si caída de velocidad ≥ 10 % o score ≥ 22; `high` si ≥ 20 % o ≥ 45; `critical` si ≥ 30 % o ≥ 70. Difiere de `fatigue_index` (pesos, normalización y ventanas). **Roles fijados en `DEC-057`:** `FatigueDetector` da el nivel en tiempo real durante la serie (feedback y sugerencia de descanso) y su `score` no se persiste; `fatigue_index` es la métrica persistida por serie, calculada al cerrarla. El término de asimetría recibe ahora la asimetría del punto de esfuerzo (`Tracker3D`), no la del frame de cierre.
 
 ## 4. Asimetría izquierda/derecha
 
@@ -77,13 +90,17 @@ Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por 
 |---|---|---|---|---|
 | `shallow_depth` | Profundidad insuficiente: ángulo de rodilla en el fondo > 100° | sentadilla | `minKneeAngle` | 0.4 |
 | `knee_valgus` | Rodillas colapsan hacia dentro: distancia entre rodillas / distancia entre tobillos < 0.85 en el fondo | sentadilla | `kneeAnkleRatio` | 0.6 |
-| `trunk_lean` | Inclinación de tronco > 45° respecto a la vertical en el fondo | sentadilla, press | `trunkAngle` | 0.5 |
+| `trunk_lean` | Inclinación de tronco > 55° respecto a la vertical durante la bajada y el fondo (`DEC-057`; antes 45°) | sentadilla | `trunkAngle` | 0.5 |
 | `partial_rom` | ROM < 70 % del ROM de referencia del ejercicio (curl: extensión inicial < 130° o contracción > 60°; press: lockout < 145°) | todos | `rom`, `refRom` | 0.4 |
 | `asymmetry` | `asymmetry_rep ≥ 15 %` sostenido (§4) | todos con ambos lados visibles | `asymmetry_rep` | 0.3 |
 | `unsafe_low_elbow` | Codo por debajo de la línea del hombro con carga: ángulo < 80° en fase `lowered` | press | `minElbowAngle` | 0.8 |
 | `excess_speed` | `peak_velocity` > percentil 95 del usuario o `concentric_ms < 300 ms` con carga | todos | `peak_velocity`, `concentric_ms` | 0.3 |
+| `elbow_drift` | El codo se adelanta: ángulo del brazo (hombro→codo) respecto a la vertical > 25°. Origen: reglas de fitnetv2 | curl | `upperArmAngle` | 0.4 (propuesto) |
+| `lumbar_arch` | Arqueo lumbar: inclinación del tronco respecto a la vertical > 25°, evaluada solo con cadera visible y en fase de empuje (fitnetv2 la mide sin esas condiciones; se corrige en I-2). Origen: reglas de fitnetv2 | press | `trunkAngle` | 0.6 (propuesto) |
 
-Los umbrales de evidencia son los iniciales de la implementación por reglas y se ajustan con datos propios; cualquier cambio que altere golden exige DEC.
+Los umbrales de evidencia son los iniciales de la implementación por reglas y se ajustan con datos propios; cualquier cambio que altere golden exige DEC. Los dos últimos códigos entran con el paso I-2 de `DEC-054` y son clases del k-NN de `DEC-055`.
+
+**Resuelto en `DEC-057`:** `trunk_lean` pasa de 45° a **55°**, el valor que fitnetv2 ajustó en campo (45° marcaba como error sentadillas legítimas de barra baja o fémur largo). En el press, la inclinación del tronco se evalúa como `lumbar_arch` (> 25°). Los pesos de `elbow_drift` (0.4) y `lumbar_arch` (0.6) quedan aceptados.
 
 ## 6. Métricas de progreso (por usuario, ventana temporal)
 

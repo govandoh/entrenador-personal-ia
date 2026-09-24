@@ -13,7 +13,7 @@ la regla de propiedad sea la misma para humanos (CODEOWNERS) y para IA.
 | `architect-guardian` | Revisar fronteras y contratos; proponer ADR (solo lectura) | — |
 | `adr-scribe` | Redactar ADR en MADR | `docs/adr/**`, `DECISIONS.md` |
 | `pose-engine-dev` | Cámara, MediaPipe, `PoseSource`, renderer, fixtures | `src/pose/**` → `packages/pose-engine`, `fixtures/` |
-| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden | `src/exercises/**`, `src/geometry/**` → `packages/analysis-core`, `packages/ml-runtime` |
+| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden | `src/exercises/**`, `src/geometry/**`, `src/analysis/**` → `packages/analysis-core`, `packages/ml-runtime` |
 | `ml-engineer` | Datasets, features, entrenamiento, evaluación, ONNX | `ml/**`, `models/**` |
 | `backend-dev` | Esquema, RLS, Edge Functions, `domain`, `api-client` | `supabase/**`, `packages/domain`, `packages/api-client` |
 | `ui-dev` | Pantallas mobile-first, `packages/ui`, PWA, a11y | `src/ui/**`, `src/App.tsx`, `index.html`, `public/**` → `apps/web`, `packages/ui` |
