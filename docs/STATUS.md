@@ -2,7 +2,7 @@
 
 > Documento vivo. Lo actualiza quien cierra un PR que cambie el hito, el estado de la migración o una decisión (o el agente `docs-keeper`). No contiene reglas ni arquitectura: ver `AGENTS.md` y `ARCHITECTURE.md`.
 
-**Última actualización:** 2026-09-24
+**Última actualización:** 2026-09-24 (tarde)
 
 ## Hito actual: Sprint 0 — Fundación
 
@@ -14,7 +14,12 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 | Capa agéntica | `.claude/agents/*` (10), `.claude/skills/{adr,fixture,pr-ready,promote-model}`, `.claude/hooks/*.mjs` + `settings.json`, `.claude/README.md`, `.github/CODEOWNERS`, plantillas de PR e issues | **Mergeado en `main`** |
 | Fundación documental | ADRs (migración DEC-001..025 + DEC-026..033), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/*`, `README.md`, `CONTRIBUTING.md`, `docs/academico/` | **Mergeado en `main`** |
 | PR 1 — fixtures y golden | Flag `?debug=record`, esquema v1 (`fixtures/landmarks/SCHEMA.md`), generador determinista, 10 fixtures sintéticos, helper de replay y 32 golden tests con snapshots | **Mergeado en `main`** |
-| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts`; 143 tests Vitest (antes 32). Sin conectar a la UI: producción no cambia | Commits 802e6c8 y 0e97658 en `claude/dazzling-maxwell-npeqcz`, **sin mergear** |
+| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts` | PR #40, **sin mergear** |
+| Motor 3D detrás de `?engine=3d` (I-2 + I-3, `DEC-057`) | `CycleDetector`, `Tracker3D` + definiciones, `FramePipeline` (One Euro → gravedad → calibración → contador), adaptador del acelerómetro con permiso de iOS; defectos de fitnetv2 corregidos. Sin el flag, producción no cambia | PR #40, **sin probar en celular** |
+| Ola 1 del asistente (#39) | Flexiones, zancadas, puente de glúteo (definiciones 3D) y plancha (`PlankTracker`, isométrico), con demos 3D y chips en el modo 3D | PR #40; umbrales sin calibrar con personas |
+| PR 4 — `FeedbackPolicy` (#13) | Política de voz de DEC-016 extraída de `CameraView` a `src/feedback/`, compartida por los dos motores | PR #40 |
+| Grabación por guion y k-NN (#16, #36) | `?debug=record&cond=…&view=…&subject=…` guarda condición, sujeto y gravedad por frame; `pnpm knn <carpeta>` construye el modelo y lo evalúa LOSO | PR #40; faltan las grabaciones |
+| Catálogo y generador de rutinas (#35) | `src/domain/catalog.ts` (60 ejercicios con etiquetas de equipo) y `routineGenerator.ts` (cuestionario → rutina, progresión de 8 semanas, semana 1 libre) | PR #40; sin pantallas |
 | Tablero | 29 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues
@@ -72,17 +77,17 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 ## Próximos pasos (Sprint 1)
 
-Siguen el orden de `DEC-054`; los PR 2–5 se mantienen donde siguen aplicando.
+Siguen el orden de `DEC-054`. Tests: 271 en verde (antes 32).
 
-1. Revisar y mergear `claude/dazzling-maxwell-npeqcz` (I-1, k-NN y DEC-036..056).
-2. PR 2: `src/contracts/` (`LandmarkFrame`, `TrackerOutput`, `ExerciseTracker`) y adaptadores sobre los trackers; eliminar el `if/else` de `CameraView.tsx:138-142` — issue #11. Es la interfaz que implementarán los trackers 3D.
-3. **I-2 (B):** trackers 3D sustituyen a los 2D con los defectos de fitnetv2 corregidos (cooldown y pico en ms, asimetría en el punto de esfuerzo, press con cadera visible y fase, calibración congelada). Issue #33. Cambia golden: exige DEC, que además debe fijar el umbral de `trunk_lean` (45° vs. 55° de fitnetv2), reconciliar la fatiga con `fatigue_index` y añadir `elbow_drift` y `lumbar_arch` (`docs/METRICS.md`). Se solapa con el PR 7.
-4. **I-3 (A) + PR 3:** `poseDetector` devuelve `{screen, world}`, separar detección y dibujo (`CameraPoseSource` + `ReplayPoseSource`), `DeviceGravityTracker` y permiso de sensores en iOS — issue #12 (absorbe I-3).
-5. **Grabación por guion con el equipo** (`docs/ML-PIPELINE.md` §1): primero los 5 integrantes, después voluntarios — issue #16. Las mismas tomas dan los fixtures reales de la issue #15.
-6. PR 4 (`FeedbackPolicy`, issue #13) y PR 5 (`AnalysisPipeline` + store + `WorkoutScreen`, Playwright smoke, issue #14).
-7. **I-4 (E + D):** catálogo, rutinas, editor, modo manual, perfil y logros, tutoriales y `Pose3DView` en lazy, router — issue #34. En paralelo, ola 1 del asistente (flexiones, zancadas, puente de glúteo, plancha) — issue #39.
-8. **I-5 (D + E):** cuestionario, generador de rutinas y paywall simulado (`DEC-056`); `localStorage` defensivo hasta el esquema de Supabase (issue #17) — issue #35.
-9. Experimento con ST-GCN++ preentrenado (≤ 3 días, `DEC-055`), solo cuando exista el dataset mínimo del punto 5 — issue #37. Conectar el k-NN y entrenarlo con las grabaciones reales: issue #36; datasets públicos: issue #38.
+1. **Probar el motor 3D en celulares** (Android e iOS) con `?engine=3d`: conteo de los 7 ejercicios, nivelación con el sensor (botón "Nivelar con el sensor" en iPhone), avisos de forma. Es el requisito para que el 3D pase a ser el predeterminado (`DEC-057`).
+2. Revisar y mergear el PR #40.
+3. **Grabación por guion con el equipo** (`docs/ML-PIPELINE.md` §1): primero los 5 integrantes, luego voluntarios — issue #16. Con 2 o más sujetos, `pnpm knn <carpeta>` da el primer reporte LOSO — issue #36.
+4. **Predeterminar el motor 3D**: DEC propia, fixtures con `world` para los golden y retiro de los contadores 2D — issue #33.
+5. PR 2 (`src/contracts/`, issue #11): requiere una rama `contracts/*`. Tipos candidatos: `ExerciseDefinition3D`, `Tracker3DResult` y `FrameInput`, ya estables en el código.
+6. PR 3: separar detección y dibujo (`CameraPoseSource` + `ReplayPoseSource`) — issue #12. La parte de sensores ya está.
+7. **I-4 (E + D):** pantallas de fitnetv2 (catálogo, rutinas, editor, modo manual, perfil, tutoriales, `Pose3DView` lazy, router) — issue #34.
+8. **I-5 (D + E):** pantallas del cuestionario y del paywall simulado sobre `routineGenerator` — issue #35.
+9. Experimento con ST-GCN++ preentrenado (≤ 3 días), cuando exista el dataset mínimo — issue #37; datasets públicos — issue #38.
 
 Detalle de cada PR y su red de seguridad: `ARCHITECTURE.md` §2.4.
 
