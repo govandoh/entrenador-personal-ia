@@ -70,7 +70,7 @@ Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por 
 | `set_volume` | `reps · loadKg` (si hay carga) | kg | — |
 | `mean_form_score` | media de `form_score` | 0–100 | — |
 
-**Fatiga de fitnetv2 (implementada, pendiente de reconciliar).** `FatigueDetector` (`src/analysis/fatigue.ts`, `DEC-038`) usa otra fórmula: `score = min(100, velDrop% · 2 + romLoss% · 1.5 + asymEMA · 40)`, con línea base en las 3 primeras reps y media de las 3 últimas. Niveles: `moderate` si caída de velocidad ≥ 10 % o score ≥ 22; `high` si ≥ 20 % o ≥ 45; `critical` si ≥ 30 % o ≥ 70. Difiere de `fatigue_index` (pesos, normalización y ventanas); la reconciliación queda **pendiente de la DEC del paso I-2** (`DEC-054`), igual que la corrección del término de asimetría (hoy ≈ 0).
+**Fatiga de fitnetv2 (implementada, pendiente de reconciliar).** `FatigueDetector` (`src/analysis/fatigue.ts`, `DEC-038`) usa otra fórmula: `score = min(100, velDrop% · 2 + romLoss% · 1.5 + asymEMA · 40)`, con línea base en las 3 primeras reps y media de las 3 últimas. Niveles: `moderate` si caída de velocidad ≥ 10 % o score ≥ 22; `high` si ≥ 20 % o ≥ 45; `critical` si ≥ 30 % o ≥ 70. Difiere de `fatigue_index` (pesos, normalización y ventanas). **Roles fijados en `DEC-057`:** `FatigueDetector` da el nivel en tiempo real durante la serie (feedback y sugerencia de descanso) y su `score` no se persiste; `fatigue_index` es la métrica persistida por serie, calculada al cerrarla. El término de asimetría recibe ahora la asimetría del punto de esfuerzo (`Tracker3D`), no la del frame de cierre.
 
 ## 4. Asimetría izquierda/derecha
 
@@ -90,7 +90,7 @@ Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por 
 |---|---|---|---|---|
 | `shallow_depth` | Profundidad insuficiente: ángulo de rodilla en el fondo > 100° | sentadilla | `minKneeAngle` | 0.4 |
 | `knee_valgus` | Rodillas colapsan hacia dentro: distancia entre rodillas / distancia entre tobillos < 0.85 en el fondo | sentadilla | `kneeAnkleRatio` | 0.6 |
-| `trunk_lean` | Inclinación de tronco > 45° respecto a la vertical en el fondo | sentadilla, press | `trunkAngle` | 0.5 |
+| `trunk_lean` | Inclinación de tronco > 55° respecto a la vertical durante la bajada y el fondo (`DEC-057`; antes 45°) | sentadilla | `trunkAngle` | 0.5 |
 | `partial_rom` | ROM < 70 % del ROM de referencia del ejercicio (curl: extensión inicial < 130° o contracción > 60°; press: lockout < 145°) | todos | `rom`, `refRom` | 0.4 |
 | `asymmetry` | `asymmetry_rep ≥ 15 %` sostenido (§4) | todos con ambos lados visibles | `asymmetry_rep` | 0.3 |
 | `unsafe_low_elbow` | Codo por debajo de la línea del hombro con carga: ángulo < 80° en fase `lowered` | press | `minElbowAngle` | 0.8 |
@@ -100,7 +100,7 @@ Ventana: todas las reps de un `Set` (para `rest_pause` y `dropset`, además por 
 
 Los umbrales de evidencia son los iniciales de la implementación por reglas y se ajustan con datos propios; cualquier cambio que altere golden exige DEC. Los dos últimos códigos entran con el paso I-2 de `DEC-054` y son clases del k-NN de `DEC-055`.
 
-**Discrepancia pendiente:** fitnetv2 dispara la inclinación de tronco de la sentadilla a **55°**, no a los 45° de `trunk_lean`. No se cambia aquí: el umbral definitivo lo fija la DEC del paso I-2.
+**Resuelto en `DEC-057`:** `trunk_lean` pasa de 45° a **55°**, el valor que fitnetv2 ajustó en campo (45° marcaba como error sentadillas legítimas de barra baja o fémur largo). En el press, la inclinación del tronco se evalúa como `lumbar_arch` (> 25°). Los pesos de `elbow_drift` (0.4) y `lumbar_arch` (0.6) quedan aceptados.
 
 ## 6. Métricas de progreso (por usuario, ventana temporal)
 

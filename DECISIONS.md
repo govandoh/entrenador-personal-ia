@@ -46,5 +46,6 @@ Acceso rápido a las más citadas desde el código:
 | DEC-054 | Integración de fitnetv2 por pasos y por workstream (tabla de equivalencias de numeración) | [docs/adr/DEC-054-integracion-fitnetv2.md](docs/adr/DEC-054-integracion-fitnetv2.md) |
 | DEC-055 | Núcleo de IA: k-NN/MLP en TypeScript sobre landmarks, datos propios con etiqueta por guion, preentrenado como experimento de 3 días | [docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md](docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md) |
 | DEC-056 | Rutina personalizada: cuestionario libre, generador por reglas, catálogo por olas, paywall en el programa completo | [docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md](docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md) |
+| DEC-057 | Motor de conteo 3D configurable por ejercicio, activable con `?engine=3d` | [docs/adr/DEC-057-motor-3d-configurable-flag.md](docs/adr/DEC-057-motor-3d-configurable-flag.md) |
 
 No agregar decisiones nuevas a este archivo: crear `docs/adr/DEC-NNN-*.md` y actualizar el índice de `docs/adr/README.md`.

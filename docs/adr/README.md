@@ -85,8 +85,9 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-054](DEC-054-integracion-fitnetv2.md) | Integración de fitnetv2 por pasos y por workstream (tabla de equivalencias de numeración) | 2026-09-24 | Aceptada |
 | [DEC-055](DEC-055-clasificador-ligero-datos-por-guion.md) | Núcleo de IA: k-NN/MLP en TypeScript sobre landmarks, datos propios con etiqueta por guion, preentrenado como experimento de 3 días | 2026-09-24 | Aceptada |
 | [DEC-056](DEC-056-rutina-personalizada-catalogo-paywall.md) | Rutina personalizada: cuestionario libre, generador por reglas, catálogo por olas, paywall en el programa completo | 2026-09-24 | Aceptada |
+| [DEC-057](DEC-057-motor-3d-configurable-flag.md) | Motor de conteo 3D configurable por ejercicio, activable con `?engine=3d`; `trunk_lean` 55°, roles de la fatiga | 2026-09-24 | Aceptada |
 
-Próximo número libre: **DEC-057**.
+Próximo número libre: **DEC-058**.
 
 **Decisiones importadas de fitnetv2.** DEC-036..053 son las DEC-026..043 de `ecaldcc/07-FitNet` renumeradas con +10 (tabla completa en `DEC-054`). Conservan su contenido literal y añaden notas de integración.
 
