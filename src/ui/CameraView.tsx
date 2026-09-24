@@ -11,6 +11,7 @@ import type { ShoulderPressResult } from '../exercises/shoulderPress';
 import { ExerciseOverlay } from './ExerciseOverlay';
 import { useSpeech } from './useSpeech';
 import { ENGINE_3D } from './engineFlag';
+import { FeedbackPolicy, type FeedbackStrategy } from '../feedback/feedbackPolicy';
 import { FramePipeline, type FrameDiagnostics } from '../analysis/framePipeline';
 import { DEFINITIONS_3D } from '../exercises/definitions3d';
 import type { Tracker3DResult } from '../exercises/tracker3d';
@@ -69,15 +70,23 @@ function serializeError(err: unknown): string {
 /** Cada cuántos frames se refresca el contador del botón de grabación. */
 const RECORD_UI_EVERY = 15;
 
-/** Frase de técnica al confirmar el pico o fondo en el motor 3D (mismas frases que el 2D, DEC-016). */
+/** Estrategia de voz por ejercicio (DEC-016): la sentadilla habla en el fondo; curl y press, con el número. */
+const FEEDBACK_STRATEGY: Record<ActiveExercise, FeedbackStrategy> = {
+  squat: 'mid-range-peak',
+  curl:  'peak-at-end-of-effort',
+  press: 'peak-at-end-of-effort',
+};
+
+/**
+ * Frase de técnica al confirmar el pico o fondo, a partir del extremo alcanzado. Es la
+ * misma para los dos motores: mínimo de rodilla o de codo, o máximo de codo en el press.
+ */
 function peakPhrase(ex: ActiveExercise, extremeDeg: number): string {
   if (ex === 'squat') return extremeDeg < GOOD_DEPTH_ANGLE ? '¡Excelente profundidad!' : 'Baja un poco más';
   if (ex === 'curl')  return extremeDeg < GOOD_FORM_ANGLE ? '¡Excelente contracción!' : 'Sube un poco más';
   return extremeDeg >= GOOD_LOCKOUT_ANGLE ? '¡Extensión completa!' : 'Extiende un poco más';
 }
 
-/** Intervalo mínimo entre avisos de repetición descartada, en ms. */
-const REJECTION_SPEECH_MS = 2000;
 /** Espera antes de ofrecer el permiso de sensores en iOS si no llegó ninguna lectura, en ms. */
 const MOTION_PERMISSION_WAIT_MS = 1500;
 
@@ -88,13 +97,6 @@ function levelLabel(d: FrameDiagnostics): string {
   if (d.phoneTiltDeg !== null) parts.push(`nivelado ${Math.round(d.phoneTiltDeg)}°`);
   if (d.calibrationDeg !== null) parts.push(`calibrado ${Math.round(d.calibrationDeg)}°`);
   return parts.join(' · ');
-}
-
-function repPhrase(n: number): string {
-  if (n === 1)        return 'Una';
-  if (n % 10 === 0)   return `${n}. ¡Excelente ritmo!`;
-  if (n % 5  === 0)   return `${n}. ¡Sigue así!`;
-  return String(n);
 }
 
 export function CameraView() {
@@ -112,10 +114,8 @@ export function CameraView() {
   const activeExRef = useRef<ActiveExercise>('squat');
   // Reps del frame anterior para detectar nueva rep completada
   const prevRepsRef = useRef<number>(-1);
-  // Arquitectura de voz sin colisiones (ver DEC-016)
-  const curlFormFeedbackRef  = useRef<string>('');
-  const pressFormFeedbackRef = useRef<string>('');
-  const lastSpeakTimeRef     = useRef<number>(0);
+  // Política de voz sin colisiones (ver DEC-016), compartida por los dos motores
+  const feedbackPolicyRef = useRef(new FeedbackPolicy(FEEDBACK_STRATEGY.squat));
   // Flag para delay de liberación de hardware al cambiar de cámara
   const cameraStopPendingRef = useRef(false);
   // Buffer del modo grabación (?debug=record). Vacío y sin uso fuera del flag.
@@ -123,8 +123,6 @@ export function CameraView() {
   // Motor 3D (?engine=3d, DEC-057). Sin el flag no se usan.
   const pipelineRef       = useRef<FramePipeline | null>(null);
   const gravityRef        = useRef<DeviceGravityTracker | null>(null);
-  const pendingFormRef    = useRef<string>('');
-  const lastRejectRef     = useRef<number>(0);
   const lastOverlayKeyRef = useRef<string>('');
   const lastCalibrationRef = useRef<number | null>(null);
 
@@ -233,47 +231,17 @@ export function CameraView() {
             const prevReps = prevRepsRef.current;
 
             if (prevReps >= 0) {
-              if (result.reps > prevReps) {
-                if (ex === 'squat') {
-                  if (performance.now() - lastSpeakTimeRef.current > 1500) {
-                    speak(repPhrase(result.reps));
-                    lastSpeakTimeRef.current = performance.now();
-                  }
-                } else if (ex === 'curl') {
-                  const formMsg = curlFormFeedbackRef.current;
-                  speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
-                  curlFormFeedbackRef.current = '';
-                  lastSpeakTimeRef.current = performance.now();
-                } else {
-                  const formMsg = pressFormFeedbackRef.current;
-                  speak(formMsg ? `${repPhrase(result.reps)}. ${formMsg}` : repPhrase(result.reps));
-                  pressFormFeedbackRef.current = '';
-                  lastSpeakTimeRef.current = performance.now();
-                }
-              } else if (ex === 'squat') {
-                const r = result as SquatResult;
-                if (r.atBottom) {
-                  speak(r.minAngleReached < GOOD_DEPTH_ANGLE
-                    ? '¡Excelente profundidad!'
-                    : 'Baja un poco más',
-                  );
-                  lastSpeakTimeRef.current = performance.now();
-                }
-              } else if (ex === 'curl') {
-                const r = result as BicepCurlResult;
-                if (r.atTop) {
-                  curlFormFeedbackRef.current = r.minAngleReached < GOOD_FORM_ANGLE
-                    ? '¡Excelente contracción!'
-                    : 'Sube un poco más';
-                }
-              } else {
-                const r = result as ShoulderPressResult;
-                if (r.atPeak) {
-                  pressFormFeedbackRef.current = r.maxAngleReached >= GOOD_LOCKOUT_ANGLE
-                    ? '¡Extensión completa!'
-                    : 'Extiende un poco más';
-                }
-              }
+              const peakAngle =
+                ex === 'squat' ? ((result as SquatResult).atBottom ? (result as SquatResult).minAngleReached : null)
+                : ex === 'curl' ? ((result as BicepCurlResult).atTop ? (result as BicepCurlResult).minAngleReached : null)
+                : ((result as ShoulderPressResult).atPeak ? (result as ShoulderPressResult).maxAngleReached : null);
+              const utterances = feedbackPolicyRef.current.decide({
+                now:        performance.now(),
+                reps:       result.reps,
+                repCounted: result.reps > prevReps,
+                peakPhrase: peakAngle === null ? null : peakPhrase(ex, peakAngle),
+              });
+              for (const u of utterances) speak(u);
             }
 
             prevRepsRef.current = result.reps;
@@ -283,37 +251,20 @@ export function CameraView() {
           rafRef.current = requestAnimationFrame(loop);
         }
         /**
-         * Voz y overlay del motor 3D. Misma política que el 2D (DEC-016): la sentadilla
-         * habla en el fondo y el conteo se limita a uno cada 1,5 s; curl y press guardan
-         * la frase del pico y la dicen junto con el número. El overlay solo se actualiza
-         * cuando cambia lo que muestra (evita el setState por frame).
+         * Voz y overlay del motor 3D. Misma política de voz que el 2D (DEC-016) más el
+         * aviso de repeticiones descartadas. El overlay solo se actualiza cuando cambia lo
+         * que muestra (evita el setState por frame).
          */
         function handle3D(out: ReturnType<FramePipeline['process']>, ex: ActiveExercise) {
           const r: Tracker3DResult = out.result;
-          const now = performance.now();
-          if (r.repCounted) {
-            if (ex === 'squat') {
-              if (now - lastSpeakTimeRef.current > 1500) {
-                speak(repPhrase(r.reps));
-                lastSpeakTimeRef.current = now;
-              }
-            } else {
-              const formMsg = pendingFormRef.current;
-              speak(formMsg ? `${repPhrase(r.reps)}. ${formMsg}` : repPhrase(r.reps));
-              pendingFormRef.current = '';
-              lastSpeakTimeRef.current = now;
-            }
-          } else if (r.peak) {
-            if (ex === 'squat') {
-              speak(peakPhrase(ex, r.extremeDeg));
-              lastSpeakTimeRef.current = now;
-            } else {
-              pendingFormRef.current = peakPhrase(ex, r.extremeDeg);
-            }
-          } else if (r.rejectionMessage && now - lastRejectRef.current > REJECTION_SPEECH_MS) {
-            speak(r.rejectionMessage);
-            lastRejectRef.current = now;
-          }
+          const utterances = feedbackPolicyRef.current.decide({
+            now:              performance.now(),
+            reps:             r.reps,
+            repCounted:       r.repCounted,
+            peakPhrase:       r.peak ? peakPhrase(ex, r.extremeDeg) : null,
+            rejectionMessage: r.rejectionMessage,
+          });
+          for (const u of utterances) speak(u);
 
           lastCalibrationRef.current = out.diagnostics.calibrationDeg;
           const label = levelLabel(out.diagnostics);
@@ -360,13 +311,11 @@ export function CameraView() {
     squatTrackerRef.current.reset();
     curlTrackerRef.current.reset();
     pressTrackerRef.current.reset();
-    prevRepsRef.current          = -1;
-    curlFormFeedbackRef.current  = '';
-    pressFormFeedbackRef.current = '';
+    prevRepsRef.current = -1;
+    feedbackPolicyRef.current.setStrategy(FEEDBACK_STRATEGY[next]);
     setExerciseResult(null);
     if (ENGINE_3D) {
       pipelineRef.current?.setExercise(DEFINITIONS_3D[next]);
-      pendingFormRef.current    = '';
       lastOverlayKeyRef.current = '';
     }
     // Un fixture pertenece a un solo ejercicio: cambiar de chip descarta lo grabado.
