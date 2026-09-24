@@ -1,13 +1,14 @@
 /* ─── Design tokens ─────────────────────────────────────────────────────── */
+/* Alias de los tokens de src/ui/tokens.css (DEC-058): el onboarding usa la misma identidad. */
 :root {
-  --ob-bg:          #ffffff;
-  --ob-surface:     #f5f5f7;
-  --ob-text:        #1c1c1e;
-  --ob-text-2:      #6e6e73;
-  --ob-green:       #30d158;
-  --ob-blue:        #34aadc;
-  --ob-orange:      #fc4c02;
-  --ob-red:         #ff375f;
+  --ob-bg:          var(--color-ink);
+  --ob-surface:     var(--color-surface);
+  --ob-text:        var(--color-text);
+  --ob-text-2:      var(--color-text-muted);
+  --ob-green:       var(--color-volt);
+  --ob-blue:        var(--color-indigo-text);
+  --ob-orange:      var(--color-volt);
+  --ob-red:         var(--color-coral);
   --ob-safe-top:    env(safe-area-inset-top, 0px);
   --ob-safe-bottom: env(safe-area-inset-bottom, 0px);
 }
@@ -17,7 +18,7 @@
   position: fixed;
   inset: 0;
   background: var(--ob-bg);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   overflow: hidden;
   z-index: 1000;
@@ -33,16 +34,16 @@
   padding: 0 28px calc(40px + var(--ob-safe-bottom));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  animation: ob-slide-in 380ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+  animation: ob-slide-in var(--dur-sheet) var(--ease-out) both;
 }
 
 @keyframes ob-slide-in {
-  from { opacity: 0; transform: translateX(28px); }
+  from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
 /* Staggered children */
-.ob-screen > * { animation: ob-fade-up 440ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both; }
+.ob-screen > * { animation: ob-fade-up var(--dur-sheet) var(--ease-out) both; }
 .ob-screen > *:nth-child(1) { animation-delay: 60ms; }
 .ob-screen > *:nth-child(2) { animation-delay: 120ms; }
 .ob-screen > *:nth-child(3) { animation-delay: 180ms; }
@@ -51,7 +52,7 @@
 .ob-screen > *:nth-child(6) { animation-delay: 360ms; }
 
 @keyframes ob-fade-up {
-  from { opacity: 0; transform: translateY(18px); }
+  from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
@@ -59,43 +60,49 @@
 .ob-btn {
   width: 100%;
   max-width: 360px;
-  padding: 18px 24px;
+  height: var(--button-height);
+  padding: 0 24px;
   border: none;
-  border-radius: 100px;
-  background: linear-gradient(135deg, #ff6b35 0%, #fc4c02 100%);
-  color: #fff;
-  font-size: 17px;
-  font-weight: 700;
-  font-family: inherit;
-  letter-spacing: -0.2px;
+  border-radius: var(--radius-button);
+  background: var(--color-volt);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-button);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
   cursor: pointer;
-  box-shadow: 0 8px 24px rgba(252, 76, 2, 0.38);
-  transition: transform 100ms ease, box-shadow 100ms ease;
+  box-shadow: var(--bevel);
+  transition: transform var(--dur-press) var(--ease-out);
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 .ob-btn:active {
   transform: scale(0.97);
-  box-shadow: 0 4px 12px rgba(252, 76, 2, 0.22);
 }
 
 /* ─── Typography helpers ──────────────────────────────────────────────────── */
 .ob-eyebrow {
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 15px;
   font-weight: 700;
-  letter-spacing: 1.8px;
+  font-style: italic;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--ob-green);
   margin: 0 0 8px;
   align-self: flex-start;
 }
 .ob-h1 {
-  font-size: 32px;
+  font-family: var(--font-display);
+  font-size: 38px;
   font-weight: 800;
-  letter-spacing: -1.4px;
+  font-style: italic;
+  text-transform: uppercase;
   color: var(--ob-text);
-  line-height: 1.1;
-  margin: 0 0 10px;
+  line-height: 1;
+  margin: 0 0 12px;
   align-self: flex-start;
 }
 .ob-lead {
@@ -116,33 +123,35 @@
 
 .ob-logo-wrap {
   margin-bottom: 32px;
-  animation: ob-logo-pop 650ms cubic-bezier(0.34, 1.56, 0.64, 1) both !important;
+  animation: ob-logo-pop 500ms var(--ease-out) both !important;
 }
 @keyframes ob-logo-pop {
-  from { opacity: 0; transform: scale(0.55); }
+  from { opacity: 0; transform: scale(0.85); }
   to   { opacity: 1; transform: scale(1); }
 }
 
 .ob-app-name {
-  font-size: 38px;
+  font-family: var(--font-display);
+  font-size: 56px;
   font-weight: 800;
-  letter-spacing: -1.8px;
+  font-style: italic;
   color: var(--ob-text);
+  line-height: 1;
   margin: 0 0 8px;
-  animation: ob-fade-up 400ms 320ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+  animation: ob-fade-up var(--dur-sheet) 320ms var(--ease-out) both !important;
 }
 .ob-app-tagline {
   font-size: 17px;
   color: var(--ob-text-2);
   margin: 0 0 52px;
   letter-spacing: -0.2px;
-  animation: ob-fade-up 400ms 420ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+  animation: ob-fade-up var(--dur-sheet) 420ms var(--ease-out) both !important;
 }
 .ob-dots-loader {
   display: flex;
   gap: 8px;
   justify-content: center;
-  animation: ob-fade-up 400ms 540ms cubic-bezier(0.25, 0.46, 0.45, 0.94) both !important;
+  animation: ob-fade-up var(--dur-sheet) 540ms var(--ease-out) both !important;
 }
 .ob-dots-loader span {
   width: 8px;
@@ -151,7 +160,7 @@
   animation: ob-dot-pulse 1.4s infinite ease-in-out;
 }
 .ob-dots-loader span:nth-child(1) { background: var(--ob-green);  animation-delay: 0s; }
-.ob-dots-loader span:nth-child(2) { background: var(--ob-blue);   animation-delay: 0.18s; }
+.ob-dots-loader span:nth-child(2) { background: var(--color-indigo); animation-delay: 0.18s; }
 .ob-dots-loader span:nth-child(3) { background: var(--ob-orange); animation-delay: 0.36s; }
 @keyframes ob-dot-pulse {
   0%, 60%, 100% { transform: scale(0.65); opacity: 0.4; }
@@ -188,9 +197,9 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.ob-step-icon.g { background: rgba(48, 209, 88, 0.12); }
-.ob-step-icon.b { background: rgba(52, 170, 220, 0.12); }
-.ob-step-icon.o { background: rgba(252, 76, 2, 0.10); }
+.ob-step-icon.g { background: var(--tint-volt); }
+.ob-step-icon.b { background: var(--tint-indigo); }
+.ob-step-icon.o { background: var(--tint-amber); }
 .ob-step-body h3 {
   font-size: 16px;
   font-weight: 700;
@@ -234,8 +243,8 @@
   justify-content: center;
   flex-shrink: 0;
 }
-.ob-perm-ico.cam  { background: rgba(48, 209, 88, 0.12); }
-.ob-perm-ico.bell { background: rgba(52, 170, 220, 0.12); }
+.ob-perm-ico.cam  { background: var(--tint-volt); }
+.ob-perm-ico.bell { background: var(--tint-indigo); }
 .ob-perm-info { flex: 1; }
 .ob-perm-info h3 {
   font-size: 16px;
@@ -254,8 +263,8 @@
   border-radius: 100px;
   letter-spacing: 0.2px;
 }
-.ob-badge.req { background: rgba(255, 55, 95, 0.12); color: var(--ob-red); }
-.ob-badge.opt { background: rgba(110,110,115,0.12);  color: var(--ob-text-2); }
+.ob-badge.req { background: var(--tint-coral); color: var(--ob-red); }
+.ob-badge.opt { background: var(--color-surface-2); color: var(--ob-text-2); }
 .ob-perm-info p {
   font-size: 14px;
   color: var(--ob-text-2);
@@ -308,16 +317,15 @@
   font-weight: 600;
   color: var(--ob-text-2);
   cursor: pointer;
-  transition: background 200ms ease, color 200ms ease, box-shadow 200ms ease;
+  transition: background-color var(--dur-fade) ease, color var(--dur-fade) ease;
   font-family: inherit;
   letter-spacing: -0.2px;
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 .ob-cam-btn.active {
-  background: #ffffff;
-  color: var(--ob-text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.10);
+  background: var(--color-text);
+  color: var(--color-ink);
 }
 .ob-start-hint {
   font-size: 14px;
@@ -325,4 +333,27 @@
   margin-bottom: 28px;
   line-height: 1.5;
   max-width: 280px;
+}
+
+/* Movimiento reducido: solo fundidos, sin desplazamientos ni escalas (DESIGN.md §6). */
+@media (prefers-reduced-motion: reduce) {
+  .ob-screen,
+  .ob-screen > *,
+  .ob-logo-wrap,
+  .ob-app-name,
+  .ob-app-tagline,
+  .ob-dots-loader {
+    animation-name: ob-fade !important;
+  }
+  .ob-dots-loader span {
+    animation: none;
+  }
+  .ob-btn:active {
+    transform: none;
+  }
+}
+
+@keyframes ob-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
 }
