@@ -50,5 +50,6 @@ Acceso rápido a las más citadas desde el código:
 | DEC-058 | Identidad visual "la red de 33 puntos", sistema de movimiento y skills de animación | [docs/adr/DEC-058-identidad-visual-movimiento.md](docs/adr/DEC-058-identidad-visual-movimiento.md) |
 | DEC-059 | La ola 1 del asistente usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D | [docs/adr/DEC-059-ola1-motor3d-sin-flag.md](docs/adr/DEC-059-ola1-motor3d-sin-flag.md) |
 | DEC-060 | Responsive y áreas seguras como regla de diseño y funcionalidad | [docs/adr/DEC-060-responsive-areas-seguras.md](docs/adr/DEC-060-responsive-areas-seguras.md) |
+| DEC-061 | Ficha de técnica con modelo 3D, mini mapa arrastrable y preferencias de vista | [docs/adr/DEC-061-tecnica-3d-y-mini-mapa.md](docs/adr/DEC-061-tecnica-3d-y-mini-mapa.md) |
 
 No agregar decisiones nuevas a este archivo: crear `docs/adr/DEC-NNN-*.md` y actualizar el índice de `docs/adr/README.md`.

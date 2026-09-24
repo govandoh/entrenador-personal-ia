@@ -2,7 +2,7 @@
 
 > Documento vivo. Lo actualiza quien cierra un PR que cambie el hito, el estado de la migración o una decisión (o el agente `docs-keeper`). No contiene reglas ni arquitectura: ver `AGENTS.md` y `ARCHITECTURE.md`.
 
-**Última actualización:** 2026-09-24 (noche, UI de la Fase 1)
+**Última actualización:** 2026-09-24 (noche, técnica en 3D y mini mapa)
 
 ## Hito actual: Sprint 0 — Fundación
 
@@ -23,6 +23,7 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 | Identidad visual y movimiento (`DEC-058`) | `docs/DESIGN.md`, `src/ui/tokens.css`, skill `fitnet-diseno` y 8 skills de Emil Kowalski en `.claude/skills/`; bienvenida, navegación y pantallas con la identidad nueva | PR de la Fase 1 (UI), **sin probar en celular** |
 | Pantallas de la Fase 1 (I-4 parcial, I-5, #34, #35) | Hoy (anillo de 33 nodos, semana, racha, fatiga), cuestionario de 4 pasos, programa de 8 semanas con semana 1 libre y Premium simulado (`MockPaymentProvider`), catálogo con filtros, perfil; historial local de series | PR de la Fase 1 (UI) |
 | Entrenamiento con asistente (`DEC-058`, `DEC-059`) | Preparación con nivelador de burbuja y arranque automático, isla de aviso, contador, métricas, resumen de serie con velocidad y fatiga; la ola 1 usa el motor 3D sin flag | PR de la Fase 1 (UI); sentadilla, curl y press siguen en 2D |
+| Técnica en 3D y mini mapa (`DEC-061`) | Ficha de técnica de los 60 ejercicios (pasos, errores, respiración, colocación del celular) con demo 3D de 33 puntos que se gira en todas direcciones; mini mapa 3D arrastrable en el entrenamiento (en vivo o ejemplo); consejos plegables durante la serie; preferencias de vista guardadas | PR de la Fase 1 (UI), **sin probar en celular**; falta medir fps con el mini mapa en gama baja |
 | Tablero | 29 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues
@@ -61,6 +62,7 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 | DEC | Decisión |
 |---|---|
+| DEC-061 | Ficha de técnica con demo 3D (pestañas Pasos, Errores, Respiración, Celular), mini mapa 3D arrastrable durante el entrenamiento y preferencias de vista en el almacenamiento local. |
 | DEC-060 | Responsive y áreas seguras como regla: matriz de 7 tamaños Android/iOS con notch y Dynamic Island, tokens `--safe-*`, `scripts/audit-responsive.cjs`. |
 | DEC-059 | La ola 1 (flexiones, zancadas, puente, plancha) usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D hasta el issue #33. |
 | DEC-058 | Identidad "la red de 33 puntos" (tema oscuro, Voltaje e Índigo, anillo de 33 nodos), movimiento en CSS con las reglas de Emil Kowalski y patrones de Cult UI sin dependencias. Reemplaza la sección de diseño de DEC-008. |

@@ -111,6 +111,10 @@ Aplicación de las reglas de Emil Kowalski (`.claude/skills/animate`, `review-an
 | Abrir un ejercicio del catálogo | Varias por visita | Estado | Transición CSS | Chevron `rotate(90deg)` | `--ease-out`, 180 ms | Sin transición |
 | Tarjetas al entrar a una pantalla | Ocasional | Evitar salto brusco | `@starting-style` | Opacidad y `translateY(8px)`, escalonado de 40 ms, máximo 6 | `--ease-out`, 240 ms | Solo fundido |
 | Cambiar de pestaña o de ejercicio | Muchas veces | — | — | Nada; como mucho un fundido de 150 ms | — | — |
+| Pestañas de la ficha de técnica | Varias por ficha | Espacial | Transición CSS | Indicador `translateX` bajo la pestaña (Direction Aware Tabs); el panel entra con opacidad y `translateY(6px)` | `--ease-in-out`, 240 ms (indicador); `--ease-out`, 240 ms (panel) | Sin transición |
+| Demo 3D de la técnica | Continuo con la ficha abierta | Explicación | three.js en un `requestAnimationFrame` propio, solo con la ficha abierta | Esqueleto de 33 puntos en bucle y giro lento de la cámara hasta que el usuario lo toca | Suavizado 0,25 por cuadro | Sin giro automático ni suavizado |
+| Mini mapa 3D: soltar tras arrastrar | Ocasional | Espacial | `transform` directo al arrastrar; transición CSS al soltar | El panel se ancla al borde más cercano | `--ease-drawer`, 380 ms | Salto sin transición |
+| Consejos de la serie | Ocasional | Estado | `@starting-style` | Opacidad y `translateY(-6px)` al aparecer | `--ease-out`, 180 ms | Solo aparición |
 
 ### Reglas
 
@@ -149,7 +153,7 @@ Cult UI depende de Tailwind, shadcn y la librería `motion`, que Fitnet no usa (
 | Animated Number | Contador de repeticiones con salida y entrada vertical |
 | Family Drawer / Side Panel | Hoja inferior de Premium, selector de ejercicio y descanso |
 | Fractal dot grid | Fondo de puntos estático (sin animación) |
-| Direction Aware Tabs | Semanas del programa (indicador que se desplaza con `transform`) |
+| Direction Aware Tabs | Semanas del programa y secciones de la ficha de técnica (indicador que se desplaza con `transform`) |
 
 Se descartan los efectos con shaders o canvas animado (liquid metal, lens blur, dithering): compiten por la GPU con la detección de pose.
 
