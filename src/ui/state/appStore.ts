@@ -19,12 +19,47 @@ export interface AppState {
   programStartedAt: string | null;
   entitlement: Entitlement;
   voiceEnabled: boolean;
+  /** Preferencias de vista (DEC-061): cada persona decide qué ayudas ve. */
+  view: ViewPrefs;
+}
+
+export interface ViewPrefs {
+  /** Modelo 3D de demostración en la ficha de técnica. */
+  showDemo: boolean;
+  /** Mini mapa 3D flotante durante el entrenamiento. */
+  showMiniMap: boolean;
+  /** Tarjeta de consejos durante la serie. */
+  showTips: boolean;
+  /** Posición del mini mapa: lado de la pantalla y altura relativa (0 arriba, 1 abajo). */
+  miniMap: { side: 'left' | 'right'; y: number };
+}
+
+export const DEFAULT_VIEW: ViewPrefs = {
+  showDemo: true,
+  showMiniMap: true,
+  showTips: false,
+  miniMap: { side: 'left', y: 0.35 },
+};
+
+function readView(v: unknown): ViewPrefs {
+  if (typeof v !== 'object' || v === null) return DEFAULT_VIEW;
+  const o = v as Record<string, unknown>;
+  const m = o.miniMap as Record<string, unknown> | undefined;
+  const bool = (x: unknown, d: boolean) => (typeof x === 'boolean' ? x : d);
+  return {
+    showDemo: bool(o.showDemo, DEFAULT_VIEW.showDemo),
+    showMiniMap: bool(o.showMiniMap, DEFAULT_VIEW.showMiniMap),
+    showTips: bool(o.showTips, DEFAULT_VIEW.showTips),
+    miniMap: m && (m.side === 'left' || m.side === 'right') && typeof m.y === 'number' && m.y >= 0 && m.y <= 1
+      ? { side: m.side, y: m.y } : DEFAULT_VIEW.miniMap,
+  };
 }
 
 const KEYS = {
   history: 'fitnet_history_v1',
   profile: 'fitnet_profile_v1',
   entitlement: 'fitnet_entitlement_v1',
+  view: 'fitnet_view_v1',
 } as const;
 
 /** Series que se conservan en el dispositivo. */
@@ -69,6 +104,7 @@ function load(): AppState {
     programStartedAt: profile && typeof profile.programStartedAt === 'string' ? profile.programStartedAt : null,
     voiceEnabled: profile && typeof profile.voiceEnabled === 'boolean' ? profile.voiceEnabled : true,
     entitlement: isEntitlement(entitlement) ? entitlement : FREE_ENTITLEMENT,
+    view: readView(read(KEYS.view)),
   };
 }
 
@@ -86,6 +122,7 @@ function set(next: Partial<AppState>): void {
     });
   }
   if ('entitlement' in next) write(KEYS.entitlement, state.entitlement);
+  if ('view' in next) write(KEYS.view, state.view);
   for (const l of listeners) l();
 }
 
@@ -110,6 +147,9 @@ export const appActions = {
   },
   setVoice(enabled: boolean): void {
     set({ voiceEnabled: enabled });
+  },
+  setView(patch: Partial<ViewPrefs>): void {
+    set({ view: { ...state.view, ...patch } });
   },
 };
 

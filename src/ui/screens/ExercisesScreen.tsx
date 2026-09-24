@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { EXERCISE_CATALOG, type CatalogExercise, type MuscleGroup } from '../../domain/catalog';
 import { IconAssist, IconChevron, IconPlay, IconSearch } from '../components/icons';
+import { TechniqueSheet } from '../technique/TechniqueSheet';
 
 type Filter = 'all' | 'assist' | 'bodyweight';
 
@@ -44,6 +45,7 @@ export function ExercisesScreen() {
   const [muscle, setMuscle] = useState<MuscleGroup | null>(null);
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState<string | null>(null);
+  const [technique, setTechnique] = useState<string | null>(null);
 
   const list = useMemo(
     () => EXERCISE_CATALOG.filter(e => matches(e, filter, muscle, query.trim()))
@@ -100,6 +102,7 @@ export function ExercisesScreen() {
               {expanded && (
                 <div className="exercise-detail">
                   <p className="cues">{e.cues}</p>
+                  <button className="btn btn--secondary btn--block" onClick={() => setTechnique(e.id)}>Ver técnica en 3D</button>
                   {e.assistant && (
                     <Link className="btn btn--primary btn--block" to={`/entrenar?ex=${e.assistant}`}>
                       <IconPlay />Entrenar con asistente
@@ -111,6 +114,7 @@ export function ExercisesScreen() {
           );
         })}
       </section>
+      {technique && <TechniqueSheet exerciseId={technique} onClose={() => setTechnique(null)} showTrainAction />}
     </div>
   );
 }

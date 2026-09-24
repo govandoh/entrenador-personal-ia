@@ -84,6 +84,12 @@ export const IconBolt = () => (
 export const IconSearch = () => (
   <Stroke width={2.2}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></Stroke>
 );
+export const IconCube = () => (
+  <Stroke><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z" /><path d="M12 12l8-4.5M12 12v9M12 12L4 7.5" /></Stroke>
+);
+export const IconBulb = () => (
+  <Stroke><path d="M9 18h6M10 21h4" /><path d="M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z" /></Stroke>
+);
 export const IconChevron = () => (
   <Stroke width={2.2}><path d="M9 6l6 6-6 6" /></Stroke>
 );

@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAppState } from '../state/appStore';
 import { useProgram } from '../state/useProgram';
 import { PremiumSheet } from '../components/PremiumSheet';
+import { TechniqueSheet } from '../technique/TechniqueSheet';
 import { IconAssist, IconLock } from '../components/icons';
 import { weekPlan, type PlannedExercise, type ProgramType } from '../../domain/routineGenerator';
-import { getExercise } from '../../domain/catalog';
 
 const GOAL_LABEL = { muscle_gain: 'Ganar músculo', weight_loss: 'Perder peso', strength_gain: 'Ganar fuerza' } as const;
 const LEVEL_LABEL = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' } as const;
@@ -20,11 +20,11 @@ function dose(e: PlannedExercise): string {
 
 export function ProgramScreen() {
   const now = new Date();
-  const navigate = useNavigate();
   const { questionnaire, entitlement } = useAppState();
   const program = useProgram(now);
   const [selected, setSelected] = useState<number | null>(null);
   const [premiumOpen, setPremiumOpen] = useState(false);
+  const [technique, setTechnique] = useState<string | null>(null);
 
   if (!questionnaire || !program) {
     return (
@@ -87,7 +87,6 @@ export function ProgramScreen() {
           </div>
           <div className="list">
             {day.exercises.map(e => {
-              const assistant = getExercise(e.exerciseId)?.assistant;
               const method = METHOD_LABEL[e.method];
               const row = (
                 <>
@@ -101,10 +100,10 @@ export function ProgramScreen() {
                   <span className="list-row__value">{dose(e)}</span>
                 </>
               );
-              return assistant ? (
-                <button key={e.exerciseId} className="list-row exercise-row" onClick={() => navigate(`/entrenar?ex=${assistant}`)}>{row}</button>
-              ) : (
-                <div key={e.exerciseId} className="list-row">{row}</div>
+              // Tocar un ejercicio abre su ficha de técnica; desde ahí se entrena con asistente.
+              return (
+                <button key={e.exerciseId} className="list-row exercise-row" onClick={() => setTechnique(e.exerciseId)}
+                  aria-label={`${e.name}: ver técnica`}>{row}</button>
               );
             })}
           </div>
@@ -113,6 +112,7 @@ export function ProgramScreen() {
 
       <Link className="btn btn--secondary btn--block" to="/cuestionario">Cambiar mis respuestas</Link>
       {premiumOpen && <PremiumSheet onClose={() => setPremiumOpen(false)} />}
+      {technique && <TechniqueSheet exerciseId={technique} onClose={() => setTechnique(null)} showTrainAction />}
     </div>
   );
 }
