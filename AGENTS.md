@@ -16,7 +16,10 @@ PWA mobile-first de entrenamiento con análisis de movimiento en tiempo real. La
 | `src/pose/poseDetector.ts` | Singleton `PoseLandmarker` (lite, `delegate: 'GPU'`), `detectAndDraw()` detecta **y** dibuja. | Descarta `result.worldLandmarks` (3D); mezcla detección y render. |
 | `src/geometry/angles.ts` | `calculateAngle(A,B,C)` con `atan2`, tipo `Point2D` (2D, el que usa producción). | — |
 | `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` | Motor 3D puro traído de fitnetv2 (I-1 de `DEC-054`): ángulos 3D, filtro One Euro, nivelación por gravedad, calibración de pie, vector de rasgos del k-NN. Con tests. | Sin conectar a la UI hasta I-2/I-3. |
-| `src/analysis/` | `movementQuality` (validación temporal por rep), `fatigue`, `messages`, `poseClassifier` (k-NN, `DEC-055`). Workstream B. Con tests. | Sin conectar a la UI hasta I-2. |
+| `src/analysis/` | `movementQuality`, `fatigue`, `messages`, `cycleDetector`, `framePipeline` (DEC-057), `poseClassifier` + `knnDataset` (k-NN y LOSO, `DEC-055`). Workstream B. Con tests. | El motor 3D solo corre con `?engine=3d` hasta validarlo en celular. |
+| `src/exercises/{tracker3d,definitions3d,plankTracker,demoPoses}.ts` | Motor de conteo 3D configurable (DEC-057): sentadilla, curl, press y ola 1 (flexiones, zancadas, puente, plancha). | Umbrales de la ola 1 sin calibrar con personas. |
+| `src/feedback/feedbackPolicy.ts` | Política de voz de DEC-016 (PR 4), compartida por los dos motores. | — |
+| `src/domain/{catalog,routineGenerator}.ts` | Catálogo de 60 ejercicios con etiquetas de equipo (DEC-040/056) y generador de rutinas por reglas (DEC-056). Workstream D. | Sin pantallas todavía (pasos I-4/I-5). |
 | `src/exercises/{squat,bicepCurl,shoulderPress}.ts` | Trackers con histéresis y gate de confirmación. | Sin interfaz común (`atBottom`/`atTop`/`atPeak`); constantes en frames a 60 fps (`REP_COOLDOWN_FRAMES=15`, `MIN_RISING_FRAMES=3`); `ArmTracker` y `ArmPressTracker` son el mismo detector con polaridad invertida. |
 | `src/ui/CameraView.tsx` (299 líneas) | Cámara, loop RAF, selector de ejercicio, reglas de voz. | `if/else` por ejercicio (l. 138-142) y política de voz de DEC-016 inline (l. 146-188); `setState` por frame. |
 | `src/ui/ExerciseOverlay.tsx`, `useSpeech.ts`, `Onboarding/` | Overlay DOM, voz `es-ES`, onboarding de 4 pantallas. | — |
@@ -41,7 +44,7 @@ supabase/            migraciones, Edge Functions (coach)
 e2e/                 Playwright
 ```
 
-Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `src/exercises` + `src/geometry` + `src/analysis` (B), `src/ui` (E).
+Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `src/exercises` + `src/geometry` + `src/analysis` + `src/feedback` (B), `src/domain` (D), `src/ui` (E).
 
 ## Reglas duras vigentes
 

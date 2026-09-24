@@ -30,6 +30,7 @@
 
 # ---------- D. Backend de producto ----------
 /supabase/                          @dev-d
+/src/domain/                        @dev-d
 /packages/domain/                   @dev-d
 /packages/api-client/               @dev-d
 /evals/coach/                       @dev-d
