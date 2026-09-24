@@ -1,6 +1,6 @@
 # DEC-034 · Vía de implementación del análisis por IA: features por repetición primero, esqueleto canónico COCO-17, modelos propios sin pesos contaminados
 
-- **Estado:** Propuesta
+- **Estado:** Propuesta; Fases 2 y 3 reemplazadas por DEC-055
 - **Fecha:** 2026-09-22
 - **Decisores:** pendiente — aprueban los leads de los workstreams B (Análisis & Runtime) y C (ML Training)
 - **Etiquetas:** analysis-core, ml, ml-runtime, legal, arquitectura
@@ -105,6 +105,16 @@ Efecto sobre las tres fases, que se conservan en el mismo orden:
 - **Fase 3** pasa de "entrenar una red de grafos desde cero con miles de repeticiones" a **afinar un backbone preentrenado con cientos**, congelando el backbone y entrenando cabezas ligeras por ejercicio. Eso la vuelve alcanzable dentro del plazo del seminario. La representación canónica sigue siendo COCO-17, que es la que usan los checkpoints publicados por PYSKL y mmaction2, así que la decisión de no mapear a NTU-25 se mantiene y además se refuerza.
 
 Queda un entregable nuevo derivado de esto: **el costo de comercializar**, es decir, lo que costaría sustituir los pesos académicos por un modelo entrenado desde cero. Se cuantifica en repeticiones adicionales de dataset propio, horas de cómputo y tiempo de ingeniería, y es una línea del análisis de rentabilidad.
+
+## Nota posterior (2026-09-24): enfoque y datos cerrados en `DEC-055`
+
+`DEC-055` concreta la vía:
+
+- **Fase 1:** el analizador por repetición se apoya en la geometría 3D integrada desde fitnetv2 (`DEC-054`) y en un clasificador k-NN de posturas en TypeScript puro sobre el frame clave de cada repetición, con una red densa pequeña como segunda iteración.
+- **Fase 2** (GRU/TCN para identificar el ejercicio): **reemplazada** por el mismo k-NN con suavizado temporal.
+- **Fase 3** (afinar un GCN preentrenado): pasa a ser un **experimento acotado a 3 días**, fuera de la app, que se ejecuta cuando exista el dataset propio mínimo.
+
+Las fuentes de datos (grabaciones propias con etiqueta por guion, MM-Fit, Fitness-AQA, síntesis) y las metas quedan en `DEC-055`. La representación COCO-17 se mantiene.
 
 ## Referencias
 

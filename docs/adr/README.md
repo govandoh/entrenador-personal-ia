@@ -62,14 +62,37 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-031](DEC-031-onnx-runtime-web-wasm-hf-hub.md) | ONNX Runtime Web (WASM) + Hugging Face Hub para modelos | 2026-09-19 | Aceptada |
 | [DEC-032](DEC-032-organizacion-agentica-workstreams-codeowners.md) | Organización agéntica, workstreams y CODEOWNERS | 2026-09-19 | Aceptada |
 | [DEC-033](DEC-033-claude-coach-assistant-edge-function.md) | Claude `claude-opus-5` para `CoachAssistant` vía Edge Function | 2026-09-19 | Aceptada |
-| [DEC-034](DEC-034-via-implementacion-analisis-ia.md) | Vía de implementación del análisis por IA: features por repetición y COCO-17 (ajustada por DEC-035) | 2026-09-22 | **Propuesta** |
+| [DEC-034](DEC-034-via-implementacion-analisis-ia.md) | Vía de implementación del análisis por IA: features por repetición y COCO-17 (ajustada por DEC-035; Fases 2 y 3 reemplazadas por DEC-055) | 2026-09-22 | **Propuesta** |
 | [DEC-035](DEC-035-proyecto-academico-sin-facturacion-real.md) | Proyecto académico de seminario: sin facturación real, pagos simulados, pesos preentrenados permitidos | 2026-09-22 | Aceptada |
+| [DEC-036](DEC-036-analisis-3d-world-landmarks.md) | Migración del análisis a 3D con `worldLandmarks` (fitnetv2 DEC-026) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-037](DEC-037-validacion-temporal-repeticiones.md) | Validación temporal de repeticiones (fitnetv2 DEC-027) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-038](DEC-038-fatiga-degradacion-movimiento.md) | Detección de fatiga por degradación del patrón de movimiento (fitnetv2 DEC-028) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-039](DEC-039-visor-3d-threejs.md) | Visor 3D del esqueleto con Three.js (fitnetv2 DEC-029) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-040](DEC-040-catalogo-ejercicios-modelo-rutinas.md) | Catálogo de ejercicios y modelo de rutinas (fitnetv2 DEC-030) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-041](DEC-041-perfil-progreso-logros-derivados.md) | Perfil, progreso y logros derivados del historial (fitnetv2 DEC-031) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-042](DEC-042-navegacion-hashrouter-contexto.md) | Navegación: HashRouter y contexto de React (fitnetv2 DEC-032) | 2026-09-19 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-043](DEC-043-tutorial-tecnica-por-ejercicio.md) | Tutorial de técnica por ejercicio (fitnetv2 DEC-033) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-044](DEC-044-sentadilla-fondo-independiente-fps.md) | Sentadilla: confirmación del fondo independiente de la velocidad de cuadros (fitnetv2 DEC-034) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-045](DEC-045-analizador-histeresis-forma-ciclo.md) | Analizador de movimiento: histéresis, forma del ciclo y fase de esfuerzo mínima (fitnetv2 DEC-035) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-046](DEC-046-filtro-one-euro-landmarks.md) | Filtro One Euro sobre los landmarks (fitnetv2 DEC-036) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-047](DEC-047-modo-manual-sin-camara.md) | Modo manual para los ejercicios sin cámara (fitnetv2 DEC-037) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-048](DEC-048-banco-pruebas-motor-sin-camara.md) | Banco de pruebas del motor sin cámara (fitnetv2 DEC-038) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-049](DEC-049-registro-interfaz-tuteo.md) | Registro de la interfaz: tuteo (fitnetv2 DEC-039) | 2026-09-22 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-050](DEC-050-nivelacion-acelerometro.md) | Nivelación con el acelerómetro y partes del cuerpo estimadas (fitnetv2 DEC-040) | 2026-09-23 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-051](DEC-051-iconos-sin-emojis.md) | Íconos en lugar de emojis (fitnetv2 DEC-041) | 2026-09-23 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-052](DEC-052-editor-rutinas-guardado-explicito.md) | Editor de rutinas con guardado explícito (fitnetv2 DEC-042) | 2026-09-23 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-053](DEC-053-calibracion-vertical-postura-pie.md) | Calibración de la vertical con la postura de pie (fitnetv2 DEC-043) | 2026-09-23 | Aceptada en fitnetv2; rige al integrarse (DEC-054) |
+| [DEC-054](DEC-054-integracion-fitnetv2.md) | Integración de fitnetv2 por pasos y por workstream (tabla de equivalencias de numeración) | 2026-09-24 | Aceptada |
+| [DEC-055](DEC-055-clasificador-ligero-datos-por-guion.md) | Núcleo de IA: k-NN/MLP en TypeScript sobre landmarks, datos propios con etiqueta por guion, preentrenado como experimento de 3 días | 2026-09-24 | Aceptada |
+| [DEC-056](DEC-056-rutina-personalizada-catalogo-paywall.md) | Rutina personalizada: cuestionario libre, generador por reglas, catálogo por olas, paywall en el programa completo | 2026-09-24 | Aceptada |
 
-Próximo número libre: **DEC-036**.
+Próximo número libre: **DEC-057**.
+
+**Decisiones importadas de fitnetv2.** DEC-036..053 son las DEC-026..043 de `ecaldcc/07-FitNet` renumeradas con +10 (tabla completa en `DEC-054`). Conservan su contenido literal y añaden notas de integración.
 
 ## Decisiones que ya se sabe que harán falta
 
 - Hosting comercial de la PWA al lanzar planes de pago (Cloudflare Pages vs. Vercel Pro), ver `DEC-029`.
-- Migración de constantes en frames a tiempo real (`PeakDetector` con `confirmMs`), con actualización de golden, ver `DEC-027` y PR 7 en `ARCHITECTURE.md`.
+- Migración de constantes en frames a tiempo real con actualización de golden: la cubre el paso I-2 de `DEC-054` (trackers 3D de fitnetv2 con cooldown y confirmación en ms), junto con `DEC-044`.
 - Reglas anti-trampa y frescura de rankings, ver `docs/METRICS.md`.
 - Renombrado del repositorio a `fitnet` y visibilidad pública/privada, ver `docs/STATUS.md`.

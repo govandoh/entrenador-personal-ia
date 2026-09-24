@@ -25,5 +25,26 @@ Acceso rápido a las más citadas desde el código:
 | DEC-028 | Monorepo pnpm y fronteras de paquetes | [docs/adr/DEC-028-monorepo-pnpm-fronteras-paquetes.md](docs/adr/DEC-028-monorepo-pnpm-fronteras-paquetes.md) |
 | DEC-034 | Vía de implementación del análisis por IA (propuesta) | [docs/adr/DEC-034-via-implementacion-analisis-ia.md](docs/adr/DEC-034-via-implementacion-analisis-ia.md) |
 | DEC-035 | Proyecto académico: sin facturación real, pagos simulados | [docs/adr/DEC-035-proyecto-academico-sin-facturacion-real.md](docs/adr/DEC-035-proyecto-academico-sin-facturacion-real.md) |
+| DEC-036 | Migración del análisis a 3D con `worldLandmarks` (fitnetv2 DEC-026) | [docs/adr/DEC-036-analisis-3d-world-landmarks.md](docs/adr/DEC-036-analisis-3d-world-landmarks.md) |
+| DEC-037 | Validación temporal de repeticiones (fitnetv2 DEC-027) | [docs/adr/DEC-037-validacion-temporal-repeticiones.md](docs/adr/DEC-037-validacion-temporal-repeticiones.md) |
+| DEC-038 | Detección de fatiga por degradación del patrón de movimiento (fitnetv2 DEC-028) | [docs/adr/DEC-038-fatiga-degradacion-movimiento.md](docs/adr/DEC-038-fatiga-degradacion-movimiento.md) |
+| DEC-039 | Visor 3D del esqueleto con Three.js (fitnetv2 DEC-029) | [docs/adr/DEC-039-visor-3d-threejs.md](docs/adr/DEC-039-visor-3d-threejs.md) |
+| DEC-040 | Catálogo de ejercicios y modelo de rutinas (fitnetv2 DEC-030) | [docs/adr/DEC-040-catalogo-ejercicios-modelo-rutinas.md](docs/adr/DEC-040-catalogo-ejercicios-modelo-rutinas.md) |
+| DEC-041 | Perfil, progreso y logros derivados del historial (fitnetv2 DEC-031) | [docs/adr/DEC-041-perfil-progreso-logros-derivados.md](docs/adr/DEC-041-perfil-progreso-logros-derivados.md) |
+| DEC-042 | Navegación: HashRouter y contexto de React (fitnetv2 DEC-032) | [docs/adr/DEC-042-navegacion-hashrouter-contexto.md](docs/adr/DEC-042-navegacion-hashrouter-contexto.md) |
+| DEC-043 | Tutorial de técnica por ejercicio (fitnetv2 DEC-033) | [docs/adr/DEC-043-tutorial-tecnica-por-ejercicio.md](docs/adr/DEC-043-tutorial-tecnica-por-ejercicio.md) |
+| DEC-044 | Sentadilla: confirmación del fondo independiente de la velocidad de cuadros (fitnetv2 DEC-034) | [docs/adr/DEC-044-sentadilla-fondo-independiente-fps.md](docs/adr/DEC-044-sentadilla-fondo-independiente-fps.md) |
+| DEC-045 | Analizador de movimiento: histéresis, forma del ciclo y fase de esfuerzo mínima (fitnetv2 DEC-035) | [docs/adr/DEC-045-analizador-histeresis-forma-ciclo.md](docs/adr/DEC-045-analizador-histeresis-forma-ciclo.md) |
+| DEC-046 | Filtro One Euro sobre los landmarks (fitnetv2 DEC-036) | [docs/adr/DEC-046-filtro-one-euro-landmarks.md](docs/adr/DEC-046-filtro-one-euro-landmarks.md) |
+| DEC-047 | Modo manual para los ejercicios sin cámara (fitnetv2 DEC-037) | [docs/adr/DEC-047-modo-manual-sin-camara.md](docs/adr/DEC-047-modo-manual-sin-camara.md) |
+| DEC-048 | Banco de pruebas del motor sin cámara (fitnetv2 DEC-038) | [docs/adr/DEC-048-banco-pruebas-motor-sin-camara.md](docs/adr/DEC-048-banco-pruebas-motor-sin-camara.md) |
+| DEC-049 | Registro de la interfaz: tuteo (fitnetv2 DEC-039) | [docs/adr/DEC-049-registro-interfaz-tuteo.md](docs/adr/DEC-049-registro-interfaz-tuteo.md) |
+| DEC-050 | Nivelación con el acelerómetro y partes del cuerpo estimadas (fitnetv2 DEC-040) | [docs/adr/DEC-050-nivelacion-acelerometro.md](docs/adr/DEC-050-nivelacion-acelerometro.md) |
+| DEC-051 | Íconos en lugar de emojis (fitnetv2 DEC-041) | [docs/adr/DEC-051-iconos-sin-emojis.md](docs/adr/DEC-051-iconos-sin-emojis.md) |
+| DEC-052 | Editor de rutinas con guardado explícito (fitnetv2 DEC-042) | [docs/adr/DEC-052-editor-rutinas-guardado-explicito.md](docs/adr/DEC-052-editor-rutinas-guardado-explicito.md) |
+| DEC-053 | Calibración de la vertical con la postura de pie (fitnetv2 DEC-043) | [docs/adr/DEC-053-calibracion-vertical-postura-pie.md](docs/adr/DEC-053-calibracion-vertical-postura-pie.md) |
+| DEC-054 | Integración de fitnetv2 por pasos y por workstream (tabla de equivalencias de numeración) | [docs/adr/DEC-054-integracion-fitnetv2.md](docs/adr/DEC-054-integracion-fitnetv2.md) |
+| DEC-055 | Núcleo de IA: k-NN/MLP en TypeScript sobre landmarks, datos propios con etiqueta por guion, preentrenado como experimento de 3 días | [docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md](docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md) |
+| DEC-056 | Rutina personalizada: cuestionario libre, generador por reglas, catálogo por olas, paywall en el programa completo | [docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md](docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md) |
 
 No agregar decisiones nuevas a este archivo: crear `docs/adr/DEC-NNN-*.md` y actualizar el índice de `docs/adr/README.md`.
