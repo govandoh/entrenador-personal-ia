@@ -18,7 +18,8 @@
     "fixtures:check": "node scripts/gen-synthetic-fixtures.ts --check",
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prepare": "husky",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "knn": "node scripts/knn-model.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",
