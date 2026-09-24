@@ -48,7 +48,7 @@ Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `sr
 
 ## Reglas duras vigentes
 
-1. **Mobile-first.** La prueba real es en celular (Android Chrome, iOS Safari). No se desarrolla para webcam de escritorio ni hay app nativa.
+1. **Mobile-first.** La prueba real es en celular (Android Chrome, iOS Safari). No se desarrolla para webcam de escritorio ni hay app nativa. La app debe ser responsiva y funcional en cualquier tamaño de celular, en vertical y en horizontal, respetando notch, Dynamic Island y barra de gestos (`DEC-060`, `docs/DESIGN.md` §7): áreas seguras solo con los tokens `--safe-*`, pantallas con scroll real y `scripts/audit-responsive.cjs` sin problemas antes de pedir revisión.
 2. **El video nunca sale del dispositivo.** A la nube solo viajan landmarks y métricas estructuradas, con consentimiento explícito por grabación (`docs/DATA-GOVERNANCE.md`).
 3. **No exponer claves.** API keys (Claude, pagos, service-role) viven solo en Edge Functions o secretos de CI. Nunca en el bundle ni en el repo.
 4. **Español en UI y documentación entregable; identificadores de código en inglés.** Sin emojis en docs ni código.

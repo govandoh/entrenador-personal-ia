@@ -122,9 +122,17 @@ Aplicación de las reglas de Emil Kowalski (`.claude/skills/animate`, `review-an
 - Efectos de `:hover` solo dentro de `@media (hover: hover) and (pointer: fine)`.
 - **Presupuesto de la cámara.** Durante el entrenamiento el hilo principal es del bucle de detección. Sobre la cámara solo se animan elementos DOM con `transform`/`opacity`; nada provoca un render de React por cuadro, y el esqueleto se sigue dibujando en el canvas, sin animaciones CSS.
 
-## 7. Móvil y accesibilidad
+## 7. Móvil, responsive y accesibilidad
 
-- `100dvh`, `viewport-fit=cover` y márgenes con `env(safe-area-inset-*)`.
+Regla de diseño y de funcionalidad (`DEC-060`): la app es responsiva y funcional en cualquier celular, vertical u horizontal, con notch, Dynamic Island o barra de gestos.
+
+- **Matriz mínima:** Android 320×568, 360×740 y 412×915; iPhone SE 375×667; iPhone 15 Pro 393×852 y 15 Pro Max 430×932 con Dynamic Island; iPhone 15 Pro en horizontal 852×393.
+- **Áreas seguras solo con tokens:** `--safe-top/right/bottom/left` y `--gutter-left/right`. Nunca `env(safe-area-inset-*)` fuera de `tokens.css`.
+- **Pantallas con scroll:** `height: 100dvh` (o `flex: 1` dentro del contenedor), nunca `min-height`, con `overflow-y: auto`; los hijos llevan `flex-shrink: 0`.
+- **Texto:** el botón principal va en una línea con `font-size: clamp(16px, 5.2vw, 21px)`; las filas etiqueta–valor llevan separación y la etiqueta se corta con puntos suspensivos; los títulos usan interlineado de 1,1 como mínimo.
+- **Tamaños que escalan:** anillo `min(150px, 38vw)`, nivelador `clamp(112px, 24dvh, 176px)`, contador `clamp(84px, 16dvh, 132px)`; paneles de la cámara con ancho máximo de 560 px en horizontal.
+- **Verificación:** `node scripts/audit-responsive.cjs` debe terminar en "SIN PROBLEMAS", además de la prueba en un celular real.
+- `100dvh` y `viewport-fit=cover`.
 - `-webkit-tap-highlight-color: transparent` y `touch-action: manipulation` en controles; `user-select: none` en botones.
 - Campos de texto a 16 px como mínimo (evita el zoom de iOS).
 - `aria-live="polite"` en el contador y la isla de aviso; foco visible en todos los controles; contraste AA.

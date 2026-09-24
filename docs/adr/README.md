@@ -88,8 +88,9 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-057](DEC-057-motor-3d-configurable-flag.md) | Motor de conteo 3D configurable por ejercicio, activable con `?engine=3d`; `trunk_lean` 55°, roles de la fatiga | 2026-09-24 | Aceptada |
 | [DEC-058](DEC-058-identidad-visual-movimiento.md) | Identidad visual "la red de 33 puntos", sistema de movimiento en CSS y skills de animación de Emil Kowalski adaptadas (reemplaza la sección de diseño de DEC-008) | 2026-09-24 | Aceptada |
 | [DEC-059](DEC-059-ola1-motor3d-sin-flag.md) | La ola 1 del asistente usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D hasta el issue #33 | 2026-09-24 | Aceptada |
+| [DEC-060](DEC-060-responsive-areas-seguras.md) | Responsive y áreas seguras como regla de diseño y funcionalidad: matriz de dispositivos, tokens `--safe-*` y auditoría automática | 2026-09-24 | Aceptada |
 
-Próximo número libre: **DEC-060**.
+Próximo número libre: **DEC-061**.
 
 **Decisiones importadas de fitnetv2.** DEC-036..053 son las DEC-026..043 de `ecaldcc/07-FitNet` renumeradas con +10 (tabla completa en `DEC-054`). Conservan su contenido literal y añaden notas de integración.
 

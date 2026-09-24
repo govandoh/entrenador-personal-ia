@@ -40,6 +40,7 @@ La especificación completa (tokens, componentes, catálogo de momentos) está e
 - [ ] Ningún valor de color, curva o duración fuera de `src/ui/tokens.css` (`grep -nE "#[0-9A-Fa-f]{6}|cubic-bezier|[0-9]+ms" src/ui --include=*.tsx`).
 - [ ] Cada animación nueva está en el catálogo de `docs/DESIGN.md` con frecuencia, propósito, curva, duración y variante reducida.
 - [ ] `prefers-reduced-motion` probado (en el sistema o con DevTools).
+- [ ] Responsive y áreas seguras (`DEC-060`): `node scripts/audit-responsive.cjs` termina en "SIN PROBLEMAS" en toda la matriz (320×568 a 430×932, Dynamic Island y horizontal). Nunca `env(safe-area-inset-*)` fuera de `tokens.css`, nunca `min-height: 100dvh` en un contenedor con scroll.
 - [ ] Probado en celular real; en el PR se dice en cuál y qué no se pudo probar.
 - [ ] `pnpm check` en verde y el shell dentro del presupuesto de 350 kB gz.
 - [ ] Revisión con `review-animations` sobre el diff si hubo movimiento.

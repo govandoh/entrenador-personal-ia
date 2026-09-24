@@ -61,6 +61,7 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 | DEC | Decisión |
 |---|---|
+| DEC-060 | Responsive y áreas seguras como regla: matriz de 7 tamaños Android/iOS con notch y Dynamic Island, tokens `--safe-*`, `scripts/audit-responsive.cjs`. |
 | DEC-059 | La ola 1 (flexiones, zancadas, puente, plancha) usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D hasta el issue #33. |
 | DEC-058 | Identidad "la red de 33 puntos" (tema oscuro, Voltaje e Índigo, anillo de 33 nodos), movimiento en CSS con las reglas de Emil Kowalski y patrones de Cult UI sin dependencias. Reemplaza la sección de diseño de DEC-008. |
 | DEC-054 | Este repositorio es la base; fitnetv2 entra en cinco pasos por workstream (I-1 motor puro, hecho; I-2 trackers 3D; I-3 detector y sensores; I-4 UI; I-5 cuestionario y paywall). |
