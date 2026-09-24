@@ -20,6 +20,13 @@
 4. Meta mínima por ejercicio: 5 sujetos × 2 vistas × (1 correcta + 2–3 errores) × 8 reps ≈ 250–320 reps (el espejado las duplica).
 5. Primero graba el equipo; después se suman voluntarios (#16).
 
+**Cómo se graba hoy.** Abrir la app con `?debug=record&engine=3d&cond=<condición>&view=<side|front|45>&subject=<sNN>`:
+
+- `cond` es `correct` o un código de `METRICS.md` §5.2 (`knee_valgus`, `trunk_lean`, `elbow_drift`, `lumbar_arch`…);
+- `subject` es un identificador anónimo (nunca un nombre).
+
+Hacer las 6–8 repeticiones y pulsar "Guardar grabación". El archivo sale con la vista y la condición en el nombre (`squat-side-knee-valgus-01.json`), el vector de gravedad por frame (`down`) y los datos de la toma en `meta.capture` (`fixtures/landmarks/SCHEMA.md`). En iPhone, pulsar "Nivelar con el sensor" si aparece, para conceder el permiso del acelerómetro.
+
 ### Sprint de recolección (2 semanas, tras PR 8)
 
 ≥ 20 voluntarios, 3 ejercicios, errores guiados con guion (para cada código de `METRICS.md` §5.2), 2–3 ángulos de cámara, celulares distintos. Meta: ≥ 30 reps por clase de error por sujeto-ángulo. Amplía la meta mínima de la etiqueta por guion; no la sustituye.

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { startCamera, stopCamera } from '../pose/camera';
 import { initPoseDetector, detectAndDraw, getLastWorldLandmarks } from '../pose/poseDetector';
-import { RECORD_MODE, captureFrame, downloadFixture, type RecordedFrame } from '../testing/fixtureRecorder';
+import { RECORD_MODE, RECORD_SCRIPT, captureFrame, downloadFixture, type RecordedFrame } from '../testing/fixtureRecorder';
 import { SquatTracker, GOOD_DEPTH_ANGLE } from '../exercises/squat';
 import { BicepCurlTracker, GOOD_FORM_ANGLE } from '../exercises/bicepCurl';
 import { ShoulderPressTracker, GOOD_LOCKOUT_ANGLE } from '../exercises/shoulderPress';
@@ -10,11 +10,18 @@ import type { BicepCurlResult } from '../exercises/bicepCurl';
 import type { ShoulderPressResult } from '../exercises/shoulderPress';
 import { ExerciseOverlay } from './ExerciseOverlay';
 import { useSpeech } from './useSpeech';
+import { ENGINE_3D } from './engineFlag';
+import { FramePipeline, type FrameDiagnostics } from '../analysis/framePipeline';
+import { DEFINITIONS_3D } from '../exercises/definitions3d';
+import type { Tracker3DResult } from '../exercises/tracker3d';
+import { DeviceGravityTracker, motionPermissionRequired, requestMotionPermission } from '../pose/deviceGravity';
 
 type Status         = 'loading' | 'ready' | 'error';
 type FacingMode     = 'environment' | 'user';
 type ActiveExercise = 'squat' | 'curl' | 'press';
 type AnyResult      = SquatResult | BicepCurlResult | ShoulderPressResult;
+/** Lo que pinta el overlay; común a los dos motores. */
+type OverlayResult  = Pick<AnyResult, 'reps' | 'feedbackLevel' | 'feedbackMessage'>;
 
 const EXERCISE_NAMES: Record<ActiveExercise, string> = {
   squat: 'Sentadillas',
@@ -62,6 +69,27 @@ function serializeError(err: unknown): string {
 /** Cada cuántos frames se refresca el contador del botón de grabación. */
 const RECORD_UI_EVERY = 15;
 
+/** Frase de técnica al confirmar el pico o fondo en el motor 3D (mismas frases que el 2D, DEC-016). */
+function peakPhrase(ex: ActiveExercise, extremeDeg: number): string {
+  if (ex === 'squat') return extremeDeg < GOOD_DEPTH_ANGLE ? '¡Excelente profundidad!' : 'Baja un poco más';
+  if (ex === 'curl')  return extremeDeg < GOOD_FORM_ANGLE ? '¡Excelente contracción!' : 'Sube un poco más';
+  return extremeDeg >= GOOD_LOCKOUT_ANGLE ? '¡Extensión completa!' : 'Extiende un poco más';
+}
+
+/** Intervalo mínimo entre avisos de repetición descartada, en ms. */
+const REJECTION_SPEECH_MS = 2000;
+/** Espera antes de ofrecer el permiso de sensores en iOS si no llegó ninguna lectura, en ms. */
+const MOTION_PERMISSION_WAIT_MS = 1500;
+
+/** Texto del indicador de nivelación del motor 3D. */
+function levelLabel(d: FrameDiagnostics): string {
+  if (!d.leveled) return 'Acomoda el teléfono más vertical';
+  const parts = ['3D'];
+  if (d.phoneTiltDeg !== null) parts.push(`nivelado ${Math.round(d.phoneTiltDeg)}°`);
+  if (d.calibrationDeg !== null) parts.push(`calibrado ${Math.round(d.calibrationDeg)}°`);
+  return parts.join(' · ');
+}
+
 function repPhrase(n: number): string {
   if (n === 1)        return 'Una';
   if (n % 10 === 0)   return `${n}. ¡Excelente ritmo!`;
@@ -92,6 +120,13 @@ export function CameraView() {
   const cameraStopPendingRef = useRef(false);
   // Buffer del modo grabación (?debug=record). Vacío y sin uso fuera del flag.
   const recordingRef = useRef<RecordedFrame[]>([]);
+  // Motor 3D (?engine=3d, DEC-057). Sin el flag no se usan.
+  const pipelineRef       = useRef<FramePipeline | null>(null);
+  const gravityRef        = useRef<DeviceGravityTracker | null>(null);
+  const pendingFormRef    = useRef<string>('');
+  const lastRejectRef     = useRef<number>(0);
+  const lastOverlayKeyRef = useRef<string>('');
+  const lastCalibrationRef = useRef<number | null>(null);
 
   const [status, setStatus]                 = useState<Status>('loading');
   const [errorMsg, setErrorMsg]             = useState('');
@@ -102,14 +137,18 @@ export function CameraView() {
     } catch { return 'environment'; }
   });
   const [activeExercise, setActiveExercise] = useState<ActiveExercise>('squat');
-  const [exerciseResult, setExerciseResult] = useState<AnyResult | null>(null);
+  const [exerciseResult, setExerciseResult] = useState<OverlayResult | null>(null);
   // Solo se actualiza en modo grabación, y cada RECORD_UI_EVERY frames.
   const [recordedCount, setRecordedCount]   = useState(0);
+  // Solo en el motor 3D: indicador de nivelación y oferta del permiso de sensores (iOS).
+  const [levelInfo, setLevelInfo]           = useState('');
+  const [needsMotion, setNeedsMotion]       = useState(false);
 
   const speak = useSpeech();
 
   useEffect(() => {
     let cancelled = false;
+    let motionTimer: ReturnType<typeof setTimeout> | undefined;
     setStatus('loading');
 
     if (!navigator.mediaDevices) {
@@ -136,6 +175,22 @@ export function CameraView() {
         streamRef.current = stream;
         if (!cancelled) setStatus('ready');
 
+        if (ENGINE_3D) {
+          // Cámara nueva: la calibración y el filtro empiezan de cero.
+          if (!pipelineRef.current) pipelineRef.current = new FramePipeline(DEFINITIONS_3D[activeExRef.current]);
+          else pipelineRef.current.reset();
+        }
+        // El acelerómetro se usa en el motor 3D y para guardar la gravedad al grabar (DEC-055).
+        if (ENGINE_3D || RECORD_MODE) {
+          if (!gravityRef.current) gravityRef.current = new DeviceGravityTracker();
+          gravityRef.current.start();
+          if (motionPermissionRequired()) {
+            motionTimer = setTimeout(() => {
+              if (!cancelled && !gravityRef.current?.hasReading) setNeedsMotion(true);
+            }, MOTION_PERMISSION_WAIT_MS);
+          }
+        }
+
         function loop() {
           if (cancelled || !videoRef.current || !canvasRef.current) return;
 
@@ -148,8 +203,25 @@ export function CameraView() {
             // Fuera del flag esto es una comparación booleana por frame.
             if (RECORD_MODE) {
               const buf = recordingRef.current;
-              buf.push(captureFrame(performance.now(), landmarkSets[0], getLastWorldLandmarks()));
+              buf.push(captureFrame(
+                performance.now(),
+                landmarkSets[0],
+                getLastWorldLandmarks(),
+                gravityRef.current?.worldDown(facingMode) ?? null,
+              ));
               if (buf.length % RECORD_UI_EVERY === 0) setRecordedCount(buf.length);
+            }
+
+            if (ENGINE_3D) {
+              const world = getLastWorldLandmarks();
+              const pipeline = pipelineRef.current;
+              if (world && pipeline) handle3D(pipeline.process({
+                world,
+                t: performance.now(),
+                worldDown: gravityRef.current?.worldDown(facingMode) ?? null,
+              }), ex);
+              rafRef.current = requestAnimationFrame(loop);
+              return;
             }
 
             const result: AnyResult = (() => {
@@ -210,6 +282,49 @@ export function CameraView() {
 
           rafRef.current = requestAnimationFrame(loop);
         }
+        /**
+         * Voz y overlay del motor 3D. Misma política que el 2D (DEC-016): la sentadilla
+         * habla en el fondo y el conteo se limita a uno cada 1,5 s; curl y press guardan
+         * la frase del pico y la dicen junto con el número. El overlay solo se actualiza
+         * cuando cambia lo que muestra (evita el setState por frame).
+         */
+        function handle3D(out: ReturnType<FramePipeline['process']>, ex: ActiveExercise) {
+          const r: Tracker3DResult = out.result;
+          const now = performance.now();
+          if (r.repCounted) {
+            if (ex === 'squat') {
+              if (now - lastSpeakTimeRef.current > 1500) {
+                speak(repPhrase(r.reps));
+                lastSpeakTimeRef.current = now;
+              }
+            } else {
+              const formMsg = pendingFormRef.current;
+              speak(formMsg ? `${repPhrase(r.reps)}. ${formMsg}` : repPhrase(r.reps));
+              pendingFormRef.current = '';
+              lastSpeakTimeRef.current = now;
+            }
+          } else if (r.peak) {
+            if (ex === 'squat') {
+              speak(peakPhrase(ex, r.extremeDeg));
+              lastSpeakTimeRef.current = now;
+            } else {
+              pendingFormRef.current = peakPhrase(ex, r.extremeDeg);
+            }
+          } else if (r.rejectionMessage && now - lastRejectRef.current > REJECTION_SPEECH_MS) {
+            speak(r.rejectionMessage);
+            lastRejectRef.current = now;
+          }
+
+          lastCalibrationRef.current = out.diagnostics.calibrationDeg;
+          const label = levelLabel(out.diagnostics);
+          const key = `${r.reps}|${r.feedbackLevel}|${r.feedbackMessage}|${label}`;
+          if (key !== lastOverlayKeyRef.current) {
+            lastOverlayKeyRef.current = key;
+            setExerciseResult({ reps: r.reps, feedbackLevel: r.feedbackLevel, feedbackMessage: r.feedbackMessage });
+            setLevelInfo(label);
+          }
+        }
+
         rafRef.current = requestAnimationFrame(loop);
       } catch (err) {
         if (!cancelled) {
@@ -224,6 +339,8 @@ export function CameraView() {
     return () => {
       cancelled = true;
       cancelAnimationFrame(rafRef.current);
+      if (motionTimer) clearTimeout(motionTimer);
+      gravityRef.current?.stop();
       if (streamRef.current) {
         stopCamera(streamRef.current);
         streamRef.current = null;
@@ -247,6 +364,11 @@ export function CameraView() {
     curlFormFeedbackRef.current  = '';
     pressFormFeedbackRef.current = '';
     setExerciseResult(null);
+    if (ENGINE_3D) {
+      pipelineRef.current?.setExercise(DEFINITIONS_3D[next]);
+      pendingFormRef.current    = '';
+      lastOverlayKeyRef.current = '';
+    }
     // Un fixture pertenece a un solo ejercicio: cambiar de chip descarta lo grabado.
     if (RECORD_MODE) {
       recordingRef.current = [];
@@ -279,6 +401,38 @@ export function CameraView() {
         />
       )}
 
+      {/* Motor 3D (?engine=3d, DEC-057) y grabación: nivelación, permiso de sensores y cierre de serie */}
+      {(ENGINE_3D || RECORD_MODE) && status === 'ready' && (
+        <div className="engine3d-bar">
+          {levelInfo && <span className="engine3d-level">{levelInfo}</span>}
+          {needsMotion && (
+            <button
+              className="engine3d-btn"
+              onClick={() => {
+                // iOS: el permiso debe pedirse directamente desde el toque, antes de cualquier await.
+                void requestMotionPermission().then(ok => {
+                  if (ok) gravityRef.current?.start();
+                  setNeedsMotion(!ok);
+                });
+              }}
+            >
+              Nivelar con el sensor
+            </button>
+          )}
+          {ENGINE_3D && (
+            <button
+              className="engine3d-btn"
+              onClick={() => {
+                pipelineRef.current?.startNewSet();
+                speak('Nueva serie');
+              }}
+            >
+              Nueva serie
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Modo grabación de fixtures — solo con ?debug=record (ver fixtures/README.md) */}
       {RECORD_MODE && status === 'ready' && (
         <button
@@ -286,7 +440,11 @@ export function CameraView() {
           onClick={() => {
             const frames = recordingRef.current;
             if (frames.length === 0) return;
-            downloadFixture(activeExRef.current, frames);
+            downloadFixture(activeExRef.current, frames, {
+              script: RECORD_SCRIPT,
+              engine: ENGINE_3D ? '3d' : '2d',
+              ...(ENGINE_3D ? { calibrationDeg: lastCalibrationRef.current } : {}),
+            });
             recordingRef.current = [];
             setRecordedCount(0);
           }}
