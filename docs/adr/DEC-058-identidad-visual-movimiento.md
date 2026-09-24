@@ -1,6 +1,6 @@
 # DEC-058 · Identidad visual "la red de 33 puntos", sistema de movimiento y skills de animación
 
-- **Estado:** Propuesta
+- **Estado:** Aceptada (propuesta aprobada por el equipo el 2026-09-24)
 - **Fecha:** 2026-09-24
 - **Decisores:** Workstream E (App & UI), con revisión de B y D (`docs/adr/README.md`)
 - **Etiquetas:** ui, diseño, movimiento, proceso
@@ -24,7 +24,7 @@ Adoptamos la identidad "la red de 33 puntos" y el sistema de movimiento descrito
 
 - **Identidad:** el motivo son los nodos y líneas del esqueleto; el progreso se dibuja con un anillo de 33 nodos (uno por landmark de MediaPipe) en lugar de anillos concéntricos.
 - **Paleta:** Tinta `#0B0E14`, Pizarra `#141925`, Voltaje `#D7FF3A` (acción y bien hecho), Índigo `#7B6CFF` (asistente, red y técnica), Ámbar `#FFB547` (corregir), Coral `#FF6B57` (error). Tema oscuro por defecto.
-- **Tipografía:** Barlow Condensed (cifras, títulos y botones en itálica mayúscula) y Barlow (texto), licencia OFL, servidas desde `public/fonts/` para funcionar sin conexión y sin pedidos a terceros.
+- **Tipografía:** Barlow Condensed (cifras, títulos y botones en itálica mayúscula) y Barlow (texto), licencia OFL, servidas desde la propia app (`src/ui/fonts/`, con hash de Vite para que el service worker no sirva una versión vieja) para funcionar sin conexión y sin pedidos a terceros.
 - **Movimiento:** curvas `cubic-bezier(0.23, 1, 0.32, 1)`, `cubic-bezier(0.77, 0, 0.175, 1)` y `cubic-bezier(0.32, 0.72, 0, 1)`; duraciones de 140, 180, 240 y 380 ms; solo `transform` y `opacity`; variante para `prefers-reduced-motion` en cada animación; catálogo cerrado de momentos en `docs/DESIGN.md`, sección 6.
 - **Presupuesto de la cámara:** durante el entrenamiento nada anima provocando renders de React por cuadro y no se usan efectos de GPU (shaders, blur sobre video).
 - **Cult UI** se usa como referencia de patrones (isla dinámica, tarjeta de textura, número animado, cajón familiar, retícula de puntos, pestañas con dirección), rehechos en CSS; no se instala su stack.

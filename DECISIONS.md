@@ -47,6 +47,7 @@ Acceso rápido a las más citadas desde el código:
 | DEC-055 | Núcleo de IA: k-NN/MLP en TypeScript sobre landmarks, datos propios con etiqueta por guion, preentrenado como experimento de 3 días | [docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md](docs/adr/DEC-055-clasificador-ligero-datos-por-guion.md) |
 | DEC-056 | Rutina personalizada: cuestionario libre, generador por reglas, catálogo por olas, paywall en el programa completo | [docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md](docs/adr/DEC-056-rutina-personalizada-catalogo-paywall.md) |
 | DEC-057 | Motor de conteo 3D configurable por ejercicio, activable con `?engine=3d` | [docs/adr/DEC-057-motor-3d-configurable-flag.md](docs/adr/DEC-057-motor-3d-configurable-flag.md) |
-| DEC-058 | Identidad visual "la red de 33 puntos", sistema de movimiento y skills de animación (propuesta) | [docs/adr/DEC-058-identidad-visual-movimiento.md](docs/adr/DEC-058-identidad-visual-movimiento.md) |
+| DEC-058 | Identidad visual "la red de 33 puntos", sistema de movimiento y skills de animación | [docs/adr/DEC-058-identidad-visual-movimiento.md](docs/adr/DEC-058-identidad-visual-movimiento.md) |
+| DEC-059 | La ola 1 del asistente usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D | [docs/adr/DEC-059-ola1-motor3d-sin-flag.md](docs/adr/DEC-059-ola1-motor3d-sin-flag.md) |
 
 No agregar decisiones nuevas a este archivo: crear `docs/adr/DEC-NNN-*.md` y actualizar el índice de `docs/adr/README.md`.

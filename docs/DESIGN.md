@@ -42,9 +42,9 @@ Reglas:
 
 ## 3. Tipografía
 
-- **Barlow Condensed** (500, 600, 700; itálica 700 y 800): cifras, títulos, botones principales.
+- **Barlow Condensed** (600, 700; itálica 700 y 800): cifras, títulos, botones principales.
 - **Barlow** (400, 500, 600, 700): texto.
-- Ambas con licencia OFL, **servidas desde la propia app** (`public/fonts/`, `font-display: swap`) para que funcione sin conexión y no haga pedidos a terceros. Respaldo: `system-ui, sans-serif`.
+- Ambas con licencia OFL, **servidas desde la propia app** (`src/ui/fonts/`, empaquetadas por Vite con hash; `font-display: swap`) para que funcione sin conexión y no haga pedidos a terceros. Respaldo: `system-ui, sans-serif`.
 - Cifras con `font-variant-numeric: tabular-nums` para que el contador no baile.
 
 | Rol | Tamaño / peso |
@@ -108,6 +108,7 @@ Aplicación de las reglas de Emil Kowalski (`.claude/skills/animate`, `review-an
 | Nivelador | Continuo en preparación | Estado | `requestAnimationFrame` con interpolación suave sobre `transform` | Posición de la burbuja; color al centrarse y vibración de 10 ms (`navigator.vibrate`, donde exista) | Resorte suave, sin rebote | Posición sin interpolar |
 | Hoja inferior | Ocasional | Espacial | Transición CSS + arrastre con puntero | `translateY(100%)` a `0`; cierre por el mismo camino | `--ease-drawer`, 380 ms | Fundido |
 | Serie completada | Rara | Celebración | Animación CSS | Los 33 nodos se encienden en cadena, 30 ms entre uno y otro | `--ease-out`, 180 ms por nodo | Anillo lleno sin cadena |
+| Abrir un ejercicio del catálogo | Varias por visita | Estado | Transición CSS | Chevron `rotate(90deg)` | `--ease-out`, 180 ms | Sin transición |
 | Tarjetas al entrar a una pantalla | Ocasional | Evitar salto brusco | `@starting-style` | Opacidad y `translateY(8px)`, escalonado de 40 ms, máximo 6 | `--ease-out`, 240 ms | Solo fundido |
 | Cambiar de pestaña o de ejercicio | Muchas veces | — | — | Nada; como mucho un fundido de 150 ms | — | — |
 
