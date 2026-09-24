@@ -21,8 +21,8 @@ export function NodeRing({ value, size = 150, celebrate = false, label, children
   });
 
   return (
-    <div className={`node-ring${celebrate ? ' node-ring--celebrate' : ''}`} style={{ width: size, height: size }}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label={label}>
+    <div className={`node-ring${celebrate ? ' node-ring--celebrate' : ''}`} style={{ width: `min(${size}px, 38vw)` }}>
+      <svg viewBox={`0 0 ${size} ${size}`} role="img" aria-label={label}>
         {dots.map((d, i) => (
           <circle
             key={i}

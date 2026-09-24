@@ -25,8 +25,8 @@
 .workout__status {
   position: absolute;
   top: 50%;
-  left: var(--gutter);
-  right: var(--gutter);
+  left: var(--gutter-left);
+  right: var(--gutter-right);
   translate: 0 -50%;
   z-index: 5;
   padding: var(--space-4) var(--space-5);
@@ -47,7 +47,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 0;
+  padding: calc(var(--safe-top) + 12px) max(12px, var(--safe-right)) 0 max(12px, var(--safe-left));
 }
 
 .icon-btn--glass {
@@ -89,6 +89,10 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  /* En pantallas bajas (iPhone SE, horizontal) la tarjeta no cabe junto al nivelador. */
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  --level-size: clamp(112px, 24dvh, 176px);
 }
 
 .prep__frame {
@@ -103,7 +107,8 @@
 }
 
 .prep__level {
-  flex: 1;
+  flex: 1 0 auto;
+  padding: var(--space-3) 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -113,8 +118,8 @@
 
 .level {
   position: relative;
-  width: 176px;
-  height: 176px;
+  width: var(--level-size);
+  height: var(--level-size);
   border-radius: 50%;
   border: 2px solid rgba(238, 241, 247, 0.18);
   background: var(--glass);
@@ -156,7 +161,7 @@
 }
 
 .level__deg {
-  font-size: 44px;
+  font-size: clamp(30px, 6dvh, 44px);
 }
 
 .level__text {
@@ -172,7 +177,10 @@
 }
 
 .prep__card {
-  margin: 0 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  flex-shrink: 0;
+  width: min(100% - max(24px, var(--safe-left) + var(--safe-right) + 24px), 560px);
+  align-self: center;
+  margin: 0 0 calc(var(--safe-bottom) + 16px);
   padding: var(--space-4) var(--space-5) var(--space-5);
   border-radius: var(--radius-sheet);
   background: var(--glass-strong);
@@ -184,6 +192,7 @@
 .prep__chips {
   margin: 0 calc(-1 * var(--space-5));
   padding: 0 var(--space-5);
+  scroll-padding-inline: var(--space-5);
 }
 
 .prep__list {
@@ -250,6 +259,8 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
 }
 
 /* Isla de aviso (patrón Dynamic Island de Cult UI): crece desde el centro y el texto
@@ -314,12 +325,12 @@
   display: flex;
   align-items: flex-end;
   gap: 10px;
-  padding: 12px 20px 0;
+  padding: 12px max(20px, var(--safe-right)) 0 max(20px, var(--safe-left));
 }
 
 /* Repetición contada: el número nuevo entra desde abajo (DESIGN.md §6, 180 ms, sin rebote). */
 .hud__reps {
-  font-size: var(--text-counter);
+  font-size: clamp(84px, 16dvh, var(--text-counter));
   line-height: 0.82;
   transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
 }
@@ -345,12 +356,19 @@
   line-height: 1;
 }
 
-.hud__spacer {
-  flex: 1;
+.hud > * {
+  flex-shrink: 0;
+}
+
+.hud > .hud__spacer {
+  flex: 1 1 0;
 }
 
 .hud__panel {
-  margin: 0 8px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  flex-shrink: 0;
+  width: min(100% - max(16px, var(--safe-left) + var(--safe-right) + 16px), 560px);
+  align-self: center;
+  margin: 0 0 calc(var(--safe-bottom) + 16px);
   padding: 18px 16px 16px;
   border-radius: var(--radius-sheet);
   background: var(--glass-strong);
@@ -417,7 +435,7 @@
   z-index: 10;
   background: var(--color-ink);
   overflow-y: auto;
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+  padding-bottom: calc(var(--safe-bottom) + 24px);
 }
 
 .summary__hero {
@@ -461,8 +479,8 @@
 .record-fixture-btn {
   position: absolute;
   z-index: 20;
-  top: calc(env(safe-area-inset-top, 0px) + 68px);
-  right: 12px;
+  top: calc(var(--safe-top) + 68px);
+  right: max(12px, var(--safe-right));
   height: 36px;
   padding: 0 14px;
   border-radius: var(--radius-chip);
@@ -485,5 +503,12 @@
     .hud__reps {
       transform: none;
     }
+  }
+}
+
+/* En horizontal o en pantallas muy bajas el marco del cuerpo tapa el nivelador. */
+@media (orientation: landscape), (max-height: 600px) {
+  .prep__frame {
+    display: none;
   }
 }

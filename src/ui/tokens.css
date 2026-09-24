@@ -55,6 +55,16 @@
   --text-screen-title: 44px;
   --text-counter: 132px;
 
+  /*
+   * Áreas seguras (notch, Dynamic Island, barra de gestos, esquinas redondeadas). Toda la
+   * app las lee de aquí: con viewport-fit=cover el contenido llega hasta los bordes y cada
+   * contenedor fijo o de pantalla completa debe apartarse de estas zonas (DEC-060).
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
   /* Espacio y forma */
   --space-1: 4px;
   --space-2: 8px;
@@ -63,6 +73,9 @@
   --space-5: 20px;
   --space-6: 24px;
   --gutter: 18px;
+  /* Margen lateral que respeta el notch en horizontal. */
+  --gutter-left: max(var(--gutter), var(--safe-left));
+  --gutter-right: max(var(--gutter), var(--safe-right));
   --radius-pill: 9px;
   --radius-chip: 12px;
   --radius-button: 18px;

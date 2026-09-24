@@ -90,13 +90,18 @@ a {
 
 .screen {
   min-height: 100%;
-  padding: calc(env(safe-area-inset-top, 0px) + 28px) var(--gutter) 28px;
+  padding: calc(var(--safe-top) + 28px) var(--gutter-right) 28px var(--gutter-left);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
 /* Retícula de puntos: motivo de "la red" en pantallas de gestión, nunca sobre la cámara. */
+/* Si el contenido no cabe, la pantalla se desplaza; nada se aplasta (DEC-060). */
+.screen > * {
+  flex-shrink: 0;
+}
+
 .screen--dots {
   background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px);
   background-size: 18px 18px;
@@ -116,7 +121,8 @@ a {
   font-weight: 800;
   font-style: italic;
   text-transform: uppercase;
-  line-height: 0.95;
+  /* 1.1 y no menos: las mayúsculas acentuadas (¿CUÁNTO) no deben salirse de la línea. */
+  line-height: 1.1;
 }
 
 .eyebrow {
@@ -141,7 +147,7 @@ a {
   font-family: var(--font-display);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .card-title {
@@ -207,11 +213,13 @@ a {
   background: var(--color-volt);
   color: var(--color-ink);
   font-family: var(--font-display);
-  font-size: var(--text-button);
+  /* Una sola línea en cualquier ancho: el tamaño baja con la pantalla (DEC-060). */
+  font-size: clamp(16px, 5.2vw, var(--text-button));
   font-weight: 800;
   font-style: italic;
   text-transform: uppercase;
   letter-spacing: 0.3px;
+  white-space: nowrap;
   box-shadow: var(--bevel);
 }
 
@@ -271,9 +279,9 @@ a {
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   scroll-snap-type: x proximity;
-  scroll-padding-inline: var(--gutter);
-  margin: 0 calc(-1 * var(--gutter));
-  padding: 0 var(--gutter);
+  scroll-padding-inline: var(--gutter-left) var(--gutter-right);
+  margin: 0 calc(-1 * var(--gutter-right)) 0 calc(-1 * var(--gutter-left));
+  padding: 0 var(--gutter-right) 0 var(--gutter-left);
 }
 
 .chip-row::-webkit-scrollbar {
@@ -381,10 +389,13 @@ a {
 .node-ring {
   position: relative;
   flex-shrink: 0;
+  aspect-ratio: 1;
 }
 
 .node-ring svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .node-ring__center {
@@ -416,8 +427,8 @@ a {
 
 .bottom-nav {
   flex-shrink: 0;
-  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
-  padding: 6px 8px env(safe-area-inset-bottom, 0px);
+  height: calc(var(--nav-height) + var(--safe-bottom));
+  padding: 6px max(8px, var(--safe-right)) var(--safe-bottom) max(8px, var(--safe-left));
   background: var(--color-ink);
   border-top: 1px solid var(--color-surface-2);
   display: grid;
@@ -501,9 +512,11 @@ a {
   right: 0;
   bottom: 0;
   z-index: 41;
-  max-height: 88dvh;
+  max-height: calc(100dvh - var(--safe-top) - 24px);
+  max-width: 600px;
+  margin: 0 auto;
   overflow-y: auto;
-  padding: 12px var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 24px);
+  padding: 12px var(--gutter-right) calc(var(--safe-bottom) + 24px) var(--gutter-left);
   border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
   background: var(--color-surface);
   display: flex;
@@ -514,7 +527,7 @@ a {
 }
 
 .sheet__grab {
-  margin: -12px calc(-1 * var(--gutter)) 0;
+  margin: -12px calc(-1 * var(--gutter-right)) 0 calc(-1 * var(--gutter-left));
   padding: 12px 0 10px;
   display: flex;
   justify-content: center;

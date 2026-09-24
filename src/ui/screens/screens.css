@@ -14,7 +14,7 @@
 }
 
 .today-rings__pct {
-  font-size: 44px;
+  font-size: clamp(32px, 11vw, 44px);
 }
 
 .today-rings__pct small {
@@ -42,7 +42,19 @@
 .metric-row__head {
   display: flex;
   justify-content: space-between;
+  gap: var(--space-2);
   font-size: var(--text-small);
+}
+
+.metric-row__head > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metric-row__head > strong {
+  flex-shrink: 0;
 }
 
 .week-strip {
@@ -212,12 +224,19 @@
 /* ---------- Cuestionario ---------- */
 
 .flow {
-  min-height: 100dvh;
-  padding: calc(env(safe-area-inset-top, 0px) + 20px) var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 24px);
+  /* height, no min-height: con min-height el contenedor crece con el contenido y, con el
+     body en overflow hidden, lo de abajo queda fuera de alcance (paso 3 del cuestionario). */
+  height: 100dvh;
+  padding: calc(var(--safe-top) + 20px) var(--gutter-right) calc(var(--safe-bottom) + 24px) var(--gutter-left);
   display: flex;
   flex-direction: column;
   gap: var(--space-5);
   overflow-y: auto;
+}
+
+/* Los hijos no se encogen: si no caben, la pantalla se desplaza (DEC-060). */
+.flow > * {
+  flex-shrink: 0;
 }
 
 .flow__top {
@@ -249,7 +268,7 @@
   font-weight: 800;
   font-style: italic;
   text-transform: uppercase;
-  line-height: 1;
+  line-height: 1.1;
 }
 
 .flow__lead {

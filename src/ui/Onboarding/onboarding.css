@@ -9,8 +9,8 @@
   --ob-blue:        var(--color-indigo-text);
   --ob-orange:      var(--color-volt);
   --ob-red:         var(--color-coral);
-  --ob-safe-top:    env(safe-area-inset-top, 0px);
-  --ob-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ob-safe-top:    var(--safe-top);
+  --ob-safe-bottom: var(--safe-bottom);
 }
 
 /* ─── Root ───────────────────────────────────────────────────────────────── */
@@ -31,11 +31,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 28px calc(40px + var(--ob-safe-bottom));
+  padding: calc(var(--ob-safe-top) + 24px) max(24px, var(--safe-right)) calc(32px + var(--ob-safe-bottom)) max(24px, var(--safe-left));
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   animation: ob-slide-in var(--dur-sheet) var(--ease-out) both;
 }
+
+/* En pantallas bajas los hijos no se encogen: la pantalla se desplaza (DEC-060). */
+.ob-screen > * { flex-shrink: 0; }
 
 @keyframes ob-slide-in {
   from { opacity: 0; transform: translateX(24px); }
@@ -101,7 +104,7 @@
   font-style: italic;
   text-transform: uppercase;
   color: var(--ob-text);
-  line-height: 1;
+  line-height: 1.1;
   margin: 0 0 12px;
   align-self: flex-start;
 }

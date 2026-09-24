@@ -34,8 +34,8 @@ type Result2D = SquatResult | BicepCurlResult | ShoulderPressResult;
 
 /** Espera antes de ofrecer el permiso de sensores en iOS si no llegó ninguna lectura, en ms. */
 const MOTION_PERMISSION_WAIT_MS = 1500;
-/** Radio útil del nivelador para la burbuja, en px (círculo de 176 px, burbuja de 34 px). */
-const BUBBLE_TRAVEL_PX = 62;
+/** Recorrido de la burbuja como fracción del diámetro del nivelador (que cambia con la pantalla). */
+const BUBBLE_TRAVEL_RATIO = 0.35;
 /** Suavizado de la burbuja por cuadro: sigue al sensor sin temblar (DESIGN.md §6). */
 const BUBBLE_SMOOTHING = 0.18;
 /** Cada cuántos frames se refresca el contador del botón de grabación. */
@@ -309,7 +309,8 @@ export function WorkoutScreen() {
 
     /** Burbuja del nivelador: `transform` directo sobre el elemento, sin renders de React. */
     function updateBubble(worldDown: Parameters<typeof bubbleOffset>[0]) {
-      const target = bubbleOffset(worldDown, BUBBLE_TRAVEL_PX);
+      const level = bubbleRef.current?.parentElement;
+      const target = bubbleOffset(worldDown, (level?.clientWidth ?? 176) * BUBBLE_TRAVEL_RATIO);
       const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
       const k = reduce ? 1 : BUBBLE_SMOOTHING;
       bubblePos.current.x += (target.x - bubblePos.current.x) * k;
@@ -437,7 +438,7 @@ export function WorkoutScreen() {
       <video ref={videoRef} className="workout__video" style={mirrorStyle} playsInline muted />
       <canvas ref={canvasRef} className="workout__canvas" style={mirrorStyle} />
 
-      <header className="workout__top">
+      {phase !== 'summary' && <header className="workout__top">
         <button className="icon-btn icon-btn--glass" aria-label="Salir del entrenamiento" onClick={() => navigate(-1)}><IconBack /></button>
         <div className="workout__title">
           <strong>{ASSISTED_NAMES[ex]}</strong>
@@ -449,7 +450,7 @@ export function WorkoutScreen() {
           {voiceEnabled ? <IconVoice /> : <IconVoiceOff />}
         </button>
         <button className="icon-btn icon-btn--glass" aria-label="Cambiar cámara" onClick={switchCamera}><IconSwitchCamera /></button>
-      </header>
+      </header>}
 
       {shownStatus === 'loading' && <p className="workout__status" role="status">Preparando la cámara y el detector…</p>}
       {shownStatus === 'error' && <p className="workout__status workout__status--error" role="alert">No se pudo iniciar la cámara: {shownError}</p>}
