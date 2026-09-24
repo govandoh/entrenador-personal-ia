@@ -74,10 +74,14 @@ describe('StandingCalibrator (DEC-053)', () => {
   it('necesita 500 ms de pie antes de aplicar', () => {
     const cal = new StandingCalibrator()
     const w = tiltPose(standing, MODEL_TILT, 0)
+    expect(cal.progress).toBe(0)
     for (let t = 0; t <= 400; t += 33) cal.update(w, t)
     expect(cal.calibrated).toBe(false)
+    expect(cal.progress).toBeGreaterThan(0.6)
+    expect(cal.progress).toBeLessThan(1)
     for (let t = 433; t <= 700; t += 33) cal.update(w, t)
     expect(cal.calibrated).toBe(true)
+    expect(cal.progress).toBe(1)
   })
 
   it('celular inclinado 15° más el error del modelo: nivelar y calibrar deja el tronco vertical', () => {

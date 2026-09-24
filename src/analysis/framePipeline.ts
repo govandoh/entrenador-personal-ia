@@ -35,6 +35,8 @@ export interface FrameDiagnostics {
   leveled: boolean;
   /** Corrección aplicada por la calibración de pie, en grados (null sin calibrar). */
   calibrationDeg: number | null;
+  /** Avance de la calibración de pie, de 0 a 1 (lo muestra la pantalla de preparación). */
+  calibrationProgress: number;
 }
 
 export interface FrameOutput {
@@ -87,7 +89,14 @@ export class FramePipeline {
     this.calibrator.update(world, input.t);
     world = this.calibrator.apply(world);
 
-    return { world, diagnostics: { phoneTiltDeg, leveled, calibrationDeg: this.calibrator.correctionDeg } };
+    return {
+      world,
+      diagnostics: {
+        phoneTiltDeg, leveled,
+        calibrationDeg: this.calibrator.correctionDeg,
+        calibrationProgress: this.calibrator.progress,
+      },
+    };
   }
 
   /** Cambia de ejercicio: conteo nuevo, misma calibración (la persona y la cámara siguen). */
