@@ -32,6 +32,8 @@ necesita algo de otro paquete, pide un cambio de contrato (issue + ADR), no lo h
 | `/fixture` | Guía para grabar con `?debug=record`, nombrar, validar esquema v1, registrar y crear golden |
 | `/promote-model` | Verifica reporte vs `ml/thresholds.yaml`, sha256, actualiza `models/manifest.json`, exige DEC |
 | `/pr-ready` | Corre lint/typecheck/test/build, revisa el diff, exige DEC si toca rutas protegidas, arma el cuerpo del PR |
+| `/fitnet-diseno` | Identidad visual y movimiento de Fitnet (`docs/DESIGN.md`, `DEC-058`); capa de adaptación de las skills de Emil |
+| `/animate`, `/review-animations`, `/improve-animations`, `/find-animation-opportunities`, `/emil-design-eng`, `/mobile-native`, `/pick-ui-library`, `/animation-vocabulary` | Skills de Emil Kowalski (MIT) instaladas con una nota que remite a `/fitnet-diseno`; atribución y cómo actualizarlas en `skills/THIRD-PARTY.md` |
 
 ## Hooks (`settings.json` + `hooks/*.mjs`)
 Scripts Node ESM sin dependencias (Windows/macOS/Linux). Leen el JSON del evento por stdin.

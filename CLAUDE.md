@@ -23,6 +23,8 @@ Todo el contexto del proyecto, las reglas duras, la propiedad por workstream y l
 | `/fixture` | Guía para grabar con `?debug=record`, nombrar, validar el esquema v1, registrar el fixture y crear su golden. | Al añadir un ejercicio, vista de cámara o caso de error. |
 | `/promote-model` | Verifica el reporte contra `ml/thresholds.yaml` y el `sha256`, actualiza `models/manifest.json` y exige DEC. | Solo en ramas `adr/*` o `contracts/*`, con reporte aprobado. |
 | `/pr-ready` | Corre lint/typecheck/test/build, revisa el diff, exige DEC si toca rutas protegidas y arma el cuerpo del PR. | Antes de abrir cualquier PR. |
+| `/fitnet-diseno` | Aplica la identidad visual y el sistema de movimiento de `docs/DESIGN.md` (`DEC-058`) y dice qué skill de animación usar. | Antes de tocar cualquier pantalla, componente o animación. |
+| `/animate`, `/review-animations`, `/improve-animations`, `/find-animation-opportunities`, `/emil-design-eng`, `/mobile-native`, `/pick-ui-library`, `/animation-vocabulary` | Skills de Emil Kowalski (MIT, `.claude/skills/THIRD-PARTY.md`) para construir, revisar y auditar movimiento y pulido móvil. | Siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen (sin librerías nuevas, tokens, presupuesto de la cámara). |
 
 ## Hooks (`.claude/settings.json` + `.claude/hooks/*.mjs`)
 
