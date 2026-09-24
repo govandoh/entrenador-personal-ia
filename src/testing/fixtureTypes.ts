@@ -17,7 +17,8 @@ export const FIXTURE_SCHEMA_VERSION = 1 as const;
 /** Número de landmarks que emite MediaPipe Pose por persona. */
 export const POSE_LANDMARK_COUNT = 33;
 
-export type FixtureExercise = 'squat' | 'curl' | 'press';
+/** Ejercicios grabables. Ola 1 (DEC-056): `pushup`, `lunge`, `bridge`, `plank`. */
+export type FixtureExercise = 'squat' | 'curl' | 'press' | 'pushup' | 'lunge' | 'bridge' | 'plank';
 export type FixtureView     = 'side' | 'front' | '45';
 export type FixtureSource   = 'synthetic' | 'phone';
 
@@ -138,7 +139,7 @@ export interface FixtureIndex {
 }
 
 /** Patrón de nombre de archivo: `<ejercicio>-<vista>-<calidad>-<nn>.json`. */
-export const FIXTURE_FILENAME_RE = /^(squat|curl|press)-(side|front|45)-([a-z0-9-]+)-(\d{2})\.json$/;
+export const FIXTURE_FILENAME_RE = /^(squat|curl|press|pushup|lunge|bridge|plank)-(side|front|45)-([a-z0-9-]+)-(\d{2})\.json$/;
 
 export function fixtureFileName(meta: Pick<FixtureMeta, 'exercise' | 'view' | 'quality'>, nn: number): string {
   return `${meta.exercise}-${meta.view}-${meta.quality}-${String(nn).padStart(2, '0')}.json`;

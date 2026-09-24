@@ -60,6 +60,16 @@ export class FramePipeline {
   }
 
   process(input: FrameInput): FrameOutput {
+    const { world, diagnostics } = this.prepare(input);
+    const result = this.tracker.update(world, input.t);
+    return { world, result, diagnostics };
+  }
+
+  /**
+   * Pasos 1–3 sin el contador: landmarks suavizados, nivelados y calibrados. Lo usan los
+   * ejercicios que no cuentan ciclos (la plancha, isométrica) y el visor 3D.
+   */
+  prepare(input: FrameInput): { world: Landmark3D[]; diagnostics: FrameDiagnostics } {
     let world = this.smoother.smooth(input.world, input.t);
 
     let phoneTiltDeg: number | null = null;
@@ -77,12 +87,7 @@ export class FramePipeline {
     this.calibrator.update(world, input.t);
     world = this.calibrator.apply(world);
 
-    const result = this.tracker.update(world, input.t);
-    return {
-      world,
-      result,
-      diagnostics: { phoneTiltDeg, leveled, calibrationDeg: this.calibrator.correctionDeg },
-    };
+    return { world, diagnostics: { phoneTiltDeg, leveled, calibrationDeg: this.calibrator.correctionDeg } };
   }
 
   /** Cambia de ejercicio: conteo nuevo, misma calibración (la persona y la cámara siguen). */

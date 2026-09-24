@@ -9,6 +9,8 @@ interface OverlayResult {
 interface Props {
   result:       OverlayResult;
   exerciseName: string;
+  /** Unidad del contador: repeticiones o, en la plancha, segundos sostenidos. */
+  unit?:        string;
 }
 
 const FEEDBACK_COLOR: Record<FeedbackLevel, string> = {
@@ -18,7 +20,7 @@ const FEEDBACK_COLOR: Record<FeedbackLevel, string> = {
   idle:    'rgba(255,255,255,0.5)',
 };
 
-export function ExerciseOverlay({ result, exerciseName }: Props) {
+export function ExerciseOverlay({ result, exerciseName, unit = 'REPS' }: Props) {
   const color = FEEDBACK_COLOR[result.feedbackLevel];
 
   return (
@@ -34,7 +36,7 @@ export function ExerciseOverlay({ result, exerciseName }: Props) {
         <div className="ex-rep-section">
           {/* key={reps} → React remonta el span → reinicia @keyframes ex-rep-pop */}
           <span className="ex-reps" key={result.reps}>{result.reps}</span>
-          <span className="ex-reps-label">REPS</span>
+          <span className="ex-reps-label">{unit}</span>
         </div>
       </div>
     </div>
