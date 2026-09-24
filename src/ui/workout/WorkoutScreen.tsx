@@ -276,6 +276,8 @@ export function WorkoutScreen() {
         };
         const key = `${next.levelOk}|${next.bodyOk}|${next.calibration}|${tiltDeg === null ? '' : Math.round(tiltDeg)}`;
         if (key !== prepKeyRef.current) {
+          // Vibración corta al quedar nivelado (DESIGN.md §6, nivelador), donde exista.
+          if (next.levelOk && prepKeyRef.current.startsWith('false')) navigator.vibrate?.(10);
           prepKeyRef.current = key;
           setPrep(next);
           setTilt(tiltDeg === null ? null : Math.round(tiltDeg));
