@@ -1,6 +1,6 @@
 # Arquitectura de Fitnet
 
-> Documento vivo. Última actualización: 2026-09-19 (fundación de Fitnet). Las decisiones que sustentan cada parte están en `docs/adr/`; las métricas en `docs/METRICS.md`; el pipeline de datos y modelos en `docs/ML-PIPELINE.md`.
+> Documento vivo. Última actualización: 2026-09-24 (integración de fitnetv2, paso I-1). Las decisiones que sustentan cada parte están en `docs/adr/`; las métricas en `docs/METRICS.md`; el pipeline de datos y modelos en `docs/ML-PIPELINE.md`.
 
 ## 1. Estado actual (2026-09)
 
@@ -45,6 +45,26 @@ Orquestación: `src/ui/CameraView.tsx` (299 líneas) monta cámara y detector en
 | Sin fixtures ni golden | Solo existe `src/geometry/angles.test.ts` | Cualquier refactor de los trackers es a ciegas (el PR 0 ya dejó Vitest y CI listos). | PR 1. |
 
 Lo que sí se conserva tal cual: algoritmos de histéresis (DEC-010), detección de pico/fondo (DEC-014/016), gate de conteo (DEC-017), conteo unificado con cooldown (DEC-022/023), overlay DOM (DEC-011/012), voz (DEC-013), PWA manual (DEC-006/025), delay de cámara (DEC-021), `localStorage` defensivo (DEC-024).
+
+### Integración de fitnetv2 (`DEC-054`)
+
+El paso I-1 trajo el motor puro de fitnetv2 (workstream B), con tests Vitest pero **sin conectar a la UI**: el pipeline de arriba sigue siendo el de producción.
+
+| Ruta | Qué hace | DEC |
+|---|---|---|
+| `src/geometry/vectors3d.ts` | Vectores 3D, `calculateAngle3D`, `getBodyOrientation`, inclinación del tronco, asimetría. | DEC-036 |
+| `src/geometry/landmarkFilter.ts` | Filtro One Euro por landmark (`OneEuroFilter`, `LandmarkSmoother`). | DEC-046 |
+| `src/geometry/gravityAlign.ts` | Parte pura de la nivelación: `GravityEstimator`, `alignToGravityChecked`. El adaptador DOM del acelerómetro llega en I-3. | DEC-050 |
+| `src/geometry/standingCalibration.ts` | Corrección vertical residual con la postura de pie (`StandingCalibrator`). | DEC-053 |
+| `src/geometry/poseEmbedding.ts` | Normalización canónica y vector de 60 rasgos para el k-NN. | DEC-055 |
+| `src/analysis/movementQuality.ts` | Validación temporal de reps y métricas por rep (`MovementAnalyzer`). | DEC-037, DEC-045 |
+| `src/analysis/fatigue.ts` | Fatiga por degradación (`FatigueDetector`). | DEC-038 |
+| `src/analysis/messages.ts` | Textos de rechazo y de fatiga para el usuario, en tuteo. | DEC-049 |
+| `src/analysis/poseClassifier.ts` | `KnnPoseClassifier` y `ScoreSmoother`. | DEC-055 |
+| `src/exercises/demoPoses.ts` | Poses 3D de demostración (tutorial, pruebas del motor, plantillas iniciales del k-NN). | DEC-043, DEC-048 |
+| `src/testing/syntheticMotion.ts` | Movimiento 3D sintético para los tests del motor. | DEC-048 |
+
+`src/analysis/` es nuevo y pertenece al workstream B, junto a `src/geometry/` y `src/exercises/`. Los trackers 3D que usarán este motor llegan en I-2 (cambian golden).
 
 ## 2. Arquitectura objetivo
 
@@ -135,6 +155,9 @@ interface CoachAssistant { summarizeSession(input): Promise<SessionSummary>; sug
 
 ```
 PoseSource ──frame──► SkeletonRenderer.draw
+                 └──► suavizado One Euro (DEC-046) ──► nivelación por gravedad (DEC-050) ──► calibración de pie (DEC-053)
+                                                                      │
+                 ┌────────────────────────────────────────────────────┘
                  └──► FeatureExtractor.push ──features──► ExerciseTracker.update ──output──► SessionRecorder.record
                                                                       │
                                                         evento 'complete' (por rep)
@@ -146,6 +169,7 @@ PoseSource ──frame──► SkeletonRenderer.draw
                                    FeedbackPolicy.decide({output, assessment, fatigue, now}) ──► FeedbackSink[] (SpeechSink, StoreSink)
 ```
 
+- El suavizado, la nivelación y la calibración ya existen en `src/geometry/` (I-1 de `DEC-054`); el pipeline congela la calibración mientras dura el ejercicio (`StandingCalibrator.setLearning(false)`, se cablea en I-2).
 - `onState` se dispara solo cuando cambian `reps`, `feedbackLevel` o `feedbackMessage` (elimina el `setState` por frame).
 - Estado de UI en un store pequeño (zustand) `useWorkoutStore`; hook `useAnalysisPipeline()` conserva el delay de 450 ms de DEC-021.
 - `CameraView` se descompone en `WorkoutScreen = <CameraStage/> + <ExerciseOverlay/> + <ExerciseChips/> + <CameraToggle/>`, cada uno ≤ 60 líneas.
@@ -156,7 +180,7 @@ PoseSource ──frame──► SkeletonRenderer.draw
 | PR | Cambio | Red de seguridad | Estado |
 |---|---|---|---|
 | 0 | Tooling: pnpm, Vitest, scripts `typecheck` y `check`, GitHub Actions (lint/typecheck/test/build), commitlint + husky, plantilla de PR, CODEOWNERS, capa agéntica `.claude/`. | No toca `src/`. | **Completado** |
-| 1 | **Fixtures primero.** Flag dev `?debug=record` en `CameraView` que descarga `{t, landmarks, worldLandmarks}[]` como JSON. Grabar 3–5 secuencias por ejercicio (lateral/frontal, buena/corta, ruidosa). Tests `exercises/*.test.ts` que reproducen fixtures contra los trackers actuales; snapshot golden de `{reps, transiciones, frames de pico}`. Arranca con fixtures sintéticos (senoidales con ruido). | Congela el comportamiento actual antes de refactorizar. | En curso (`feat/fixtures-golden`) |
+| 1 | **Fixtures primero.** Flag dev `?debug=record` en `CameraView` que descarga `{t, landmarks, worldLandmarks}[]` como JSON. Grabar 3–5 secuencias por ejercicio (lateral/frontal, buena/corta, ruidosa). Tests `exercises/*.test.ts` que reproducen fixtures contra los trackers actuales; snapshot golden de `{reps, transiciones, frames de pico}`. Arranca con fixtures sintéticos (senoidales con ruido). | Congela el comportamiento actual antes de refactorizar. | **Completado** (fixtures reales: #15) |
 | 2 | `src/contracts/` con `LandmarkFrame`, `TrackerOutput`, `ExerciseTracker`; adaptadores finos sobre los 3 trackers; `CameraView` itera `Record<ExerciseId, ExerciseTracker>` y elimina el `if/else` de `CameraView.tsx:138-142`. | Golden sin cambios. | Pendiente |
 | 3 | Partir `poseDetector.ts` en `detect(video, t) → {image, world}` + `SkeletonRenderer`; `CameraPoseSource` y `ReplayPoseSource`. | Ya estaba previsto en el ARCHITECTURE.md del MVP. | Pendiente |
 | 4 | Extraer `FeedbackPolicy` (ambas estrategias) de `CameraView.tsx:146-188` a `src/feedback/`; tests con secuencias sintéticas (cooldown, utterance combinado, sin colisión). | `CameraView` baja a ~150 líneas. | Pendiente |
@@ -167,6 +191,16 @@ PoseSource ──frame──► SkeletonRenderer.draw
 | 9 | Scaffold `ml/`: espejo pydantic de `LandmarkFrame`/`FeatureVector`, JSON→Parquet, test de paridad de features TS vs Python (tolerancia 1e-3), modelos baseline, export ONNX, reporte de evaluación. | Gate de modelo. | Pendiente |
 | 10 | `ml-runtime` + `ModelRegistry` + `MlAnalyzer` en Worker; `EnsembleAnalyzer` en modo sombra → ponderado → ML primario con fallback. | Flag por ejercicio. | Pendiente |
 | 11+ | `domain`, `api-client`, auth/perfiles/sincronización de sesiones, Edge Function `coach` (Claude), rutinas/calendario, entrenadores, pagos, comunidad. | Puertos mockeados en tests. | Pendiente |
+
+**Pasos de integración de fitnetv2 (`DEC-054`).** Se intercalan con los PR anteriores, no forman una línea aparte:
+
+| Paso | Contenido | Se solapa con | Estado |
+|---|---|---|---|
+| I-1 | Motor puro en `src/geometry/` y `src/analysis/` (§1) | — (no toca producción) | **Completado** en `claude/dazzling-maxwell-npeqcz`, sin mergear |
+| I-2 | Trackers 3D reemplazan a los 2D, con los defectos de fitnetv2 corregidos (cooldown y pico en ms, asimetría, press con cadera visible, calibración congelada); cambia golden con DEC | PR 7 (`PeakDetector` en ms) | Pendiente |
+| I-3 | `poseDetector` devuelve `{screen, world}`; `DeviceGravityTracker` como adaptador DOM; permiso de sensores en iOS (workstream A) | PR 3 | Pendiente |
+| I-4 | UI de fitnetv2: catálogo, rutinas, editor, modo manual, perfil y logros, tutoriales y `Pose3DView` (three.js) en lazy, router (E + D) | PR 11+ | Pendiente |
+| I-5 | Cuestionario, generador de rutinas y paywall (`DEC-056`, D + E) | PR 11+ | Pendiente |
 
 ### 2.5 Quality gates (CI en cada PR)
 

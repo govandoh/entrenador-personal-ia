@@ -14,7 +14,9 @@ PWA mobile-first de entrenamiento con análisis de movimiento en tiempo real. La
 |---|---|---|
 | `src/pose/camera.ts` | `startCamera`/`stopCamera` con `getUserMedia`. | — |
 | `src/pose/poseDetector.ts` | Singleton `PoseLandmarker` (lite, `delegate: 'GPU'`), `detectAndDraw()` detecta **y** dibuja. | Descarta `result.worldLandmarks` (3D); mezcla detección y render. |
-| `src/geometry/angles.ts` | `calculateAngle(A,B,C)` con `atan2`, tipo `Point2D`. Único módulo con test (`angles.test.ts`). | — |
+| `src/geometry/angles.ts` | `calculateAngle(A,B,C)` con `atan2`, tipo `Point2D` (2D, el que usa producción). | — |
+| `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` | Motor 3D puro traído de fitnetv2 (I-1 de `DEC-054`): ángulos 3D, filtro One Euro, nivelación por gravedad, calibración de pie, vector de rasgos del k-NN. Con tests. | Sin conectar a la UI hasta I-2/I-3. |
+| `src/analysis/` | `movementQuality` (validación temporal por rep), `fatigue`, `messages`, `poseClassifier` (k-NN, `DEC-055`). Workstream B. Con tests. | Sin conectar a la UI hasta I-2. |
 | `src/exercises/{squat,bicepCurl,shoulderPress}.ts` | Trackers con histéresis y gate de confirmación. | Sin interfaz común (`atBottom`/`atTop`/`atPeak`); constantes en frames a 60 fps (`REP_COOLDOWN_FRAMES=15`, `MIN_RISING_FRAMES=3`); `ArmTracker` y `ArmPressTracker` son el mismo detector con polaridad invertida. |
 | `src/ui/CameraView.tsx` (299 líneas) | Cámara, loop RAF, selector de ejercicio, reglas de voz. | `if/else` por ejercicio (l. 138-142) y política de voz de DEC-016 inline (l. 146-188); `setState` por frame. |
 | `src/ui/ExerciseOverlay.tsx`, `useSpeech.ts`, `Onboarding/` | Overlay DOM, voz `es-ES`, onboarding de 4 pantallas. | — |
@@ -39,7 +41,7 @@ supabase/            migraciones, Edge Functions (coach)
 e2e/                 Playwright
 ```
 
-Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `src/exercises` + `src/geometry` (B), `src/ui` (E).
+Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `src/exercises` + `src/geometry` + `src/analysis` (B), `src/ui` (E).
 
 ## Reglas duras vigentes
 
@@ -115,7 +117,7 @@ Cada agente tiene una sola responsabilidad y directorios acotados; espejan los w
 | `architect-guardian` | Revisa fronteras y contratos; propone ADR ante decisiones implícitas. | Nada (solo lectura). |
 | `adr-scribe` | Redacta ADR en MADR y mantiene los índices. | `docs/adr/**`, `DECISIONS.md`. |
 | `pose-engine-dev` | Cámara, MediaPipe, `PoseSource`, renderer, fixtures. | `src/pose/**` → `packages/pose-engine`, `fixtures/`. |
-| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden. | `src/exercises/**`, `src/geometry/**` → `packages/analysis-core`, `packages/ml-runtime`. |
+| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden. | `src/exercises/**`, `src/geometry/**`, `src/analysis/**` → `packages/analysis-core`, `packages/ml-runtime`. |
 | `ml-engineer` | Datasets, features, entrenamiento, evaluación, ONNX. | `ml/**`, `models/**`. |
 | `backend-dev` | Esquema, RLS, Edge Functions, `domain`, `api-client`. | `supabase/**`, `packages/domain`, `packages/api-client`. |
 | `ui-dev` | Pantallas mobile-first, PWA, accesibilidad. | `src/ui/**`, `src/App.tsx`, `index.html`, `public/**` → `apps/web`, `packages/ui`. |

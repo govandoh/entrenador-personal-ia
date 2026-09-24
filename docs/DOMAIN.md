@@ -30,6 +30,11 @@
 | Grabación | `Recording` | Fixture con consentimiento asociado, subida al dataset de entrenamiento. |
 | Consentimiento | `RecordingConsent` | Autorización explícita del usuario para guardar una grabación de landmarks. |
 | Ejercicio | `Exercise` | Entrada del catálogo: articulaciones primarias, polaridad, tracker y modelos asociados. |
+| Objetivo de entrenamiento | `TrainingGoal` | Meta general declarada en el cuestionario (`muscle_gain`, `weight_loss`, `strength_gain`); fija la prescripción del generador de rutinas (`DEC-056`). No confundir con `Goal`, que es un objetivo medible con fecha. |
+| Lugar de entrenamiento | `TrainingLocation` | Dónde entrena el usuario: `gym_full`, `home_none`, `home_limited`; junto con `equipment[]` filtra el catálogo (`DEC-056`). |
+| Patrón de movimiento | `MovementPattern` | Clase biomecánica de un ejercicio (`knee_dominant`, `hip_hinge`, `horizontal_push`, `vertical_push`, `horizontal_pull`, `vertical_pull`, `isolation_upper`, `isolation_lower`, `core`, `cardio`); el generador llena cada día por patrones. |
+| Ola del asistente | `assistantWave` | Tanda de ejercicios que pasan a `tracking: camera` (análisis con cámara): 0 = sentadilla, curl, press; 1–3 amplían hacia casa sin equipo, casa con mancuernas y gimnasio (`DEC-056`). |
+| Plantilla de programa | `ProgramTemplate` | Rutina predefinida que el usuario adopta tal cual o que usa el generador; libre o premium. |
 | Rutina | `Routine` | Plan de días de entrenamiento con ejercicios, series, reps y método. |
 | Método de entrenamiento | `TrainingMethod` | Técnica de organización de series (`rest_pause`, `dropset`, `ppl_split`, `superset`). |
 | Plan | `Plan` | Producto de un entrenador: una o más rutinas, privado o en el marketplace. |
@@ -46,7 +51,8 @@
 User 1—1 Profile · User 1—* Goal · User 1—* Achievement · User 1—* Subscription 1—* Entitlement
 Trainer (rol sobre User) 1—* Plan (visibility: private|marketplace, price)
 Plan 1—* Routine 1—* RoutineDay 1—* RoutineExercise (Exercise, sets×reps, TrainingMethod)
-Exercise (catálogo: primaryJoints, polarity, trackerId, modelIds)
+Exercise (catálogo: primaryJoints, polarity, trackerId, modelIds, equipment[], locations[], movementPattern, tracking)
+ProgramTemplate (free|premium) → genera Routine
 User *—* Plan vía PlanEnrollment
 User 1—* WorkoutSession (routineDayId?, device, modelVersions) 1—* Set (exerciseId, method) 1—* Rep (durationMs, rom, peakVel, formScore, errors[])
 Set/WorkoutSession 1—* Metric (name, value, unit)   ← única entrada del CoachAssistant
@@ -60,7 +66,7 @@ RecordingConsent 1—* Recording (dataset de landmarks; retención, borrable)
 | Entidad | Descripción | Campos clave | Relaciones |
 |---|---|---|---|
 | `User` | Cuenta autenticada (Supabase Auth). | `id`, `email`, `createdAt`, `roles[]` | 1—1 `Profile`; 1—* `Goal`, `Achievement`, `Subscription`, `WorkoutSession`, `PlanEnrollment`. |
-| `Profile` | Datos visibles y de configuración. | `displayName`, `birthYear?`, `heightCm?`, `weightKg?`, `level`, `preferredCamera`, `publicProfile: boolean` | Pertenece a un `User`. |
+| `Profile` | Datos visibles, de configuración y respuestas del cuestionario (`DEC-056`). | `displayName`, `birthYear?`, `heightCm?`, `weightKg?`, `experienceLevel` (`beginner`/`intermediate`/`advanced`), `goal: TrainingGoal`, `trainingLocation: TrainingLocation`, `equipment[]` (etiquetas de equipo), `daysPerWeek` (2–6), `sessionMinutes`, `programType` (`full_body`/`upper_lower`/`ppl`), `preferredCamera`, `publicProfile: boolean` | Pertenece a un `User`. |
 | `Goal` | Objetivo medible con fecha. | `metricName`, `target`, `deadline`, `status` | Se evalúa contra `Metric` de progreso. |
 | `Achievement` | Logro desbloqueado. | `code`, `unlockedAt` | Otorgado por reglas sobre métricas o retos. |
 | `Subscription` | Estado de pago del usuario o del entrenador. | `provider` (`recurrente`/`paddle`), `plan`, `status`, `periodEnd`, `externalId` | Escrita solo por webhook (`DEC-030`); 1—* `Entitlement`. |
@@ -70,11 +76,12 @@ RecordingConsent 1—* Recording (dataset de landmarks; retención, borrable)
 
 | Entidad | Descripción | Campos clave | Relaciones |
 |---|---|---|---|
-| `Exercise` | Catálogo. | `id` (`squat`, `bicep_curl`, `shoulder_press`, ...), `name_es`, `primaryJoints[]`, `polarity` (`min`/`max`), `trackerId`, `modelIds[]`, `views[]` | Referenciado por `RoutineExercise` y `Set`. |
+| `Exercise` | Catálogo (60 ejercicios de fitnetv2, `DEC-040`, `DEC-056`). | `id` (`squat`, `bicep_curl`, `shoulder_press`, ...), `name_es`, `primaryJoints[]`, `polarity` (`min`/`max`), `trackerId`, `modelIds[]`, `views[]`, `equipment[]` (`bodyweight`, `dumbbell`, `barbell`, `bench`, `band`, `pullup_bar`, `kettlebell`, `machine`, `cable`, `cardio_machine`), `locations[]` (`gym`/`home`), `movementPattern: MovementPattern`, `tracking` (`camera`/`reps`/`time`; `camera` = "con asistente") | Referenciado por `RoutineExercise`, `Set` y `ProgramTemplate`. Elegible para un usuario si todas sus etiquetas de `equipment` están en `Profile.equipment`. |
+| `ProgramTemplate` | Rutina predefinida (p. ej. las 3 plantillas de fitnetv2: PPL, cuerpo completo, división por músculo). | `id`, `name`, `programType`, `daysPerWeek`, `experienceLevel?`, `tier` (`free`/`premium`) | Se instancia como `Routine` del usuario; las premium exigen `Entitlement` (`DEC-056`). |
 | `Plan` | Producto de un entrenador. | `trainerId`, `title`, `visibility` (`private`/`marketplace`), `price?`, `currency?` | 1—* `Routine`; *—* `User` vía `PlanEnrollment`. |
 | `Routine` | Programa de días. | `planId?`, `ownerId`, `name`, `weeks?` | 1—* `RoutineDay`. |
 | `RoutineDay` | Día del programa. | `dayIndex`, `label` (p. ej. "Push") | 1—* `RoutineExercise`. |
-| `RoutineExercise` | Prescripción. | `exerciseId`, `sets`, `reps`, `restSec`, `method: TrainingMethod`, `methodParams` | Pertenece a `RoutineDay`. |
+| `RoutineExercise` | Prescripción. | `exerciseId`, `sets`, `reps`, `restSec`, `loadKg?` (para medir progresión, `DEC-056`), `method: TrainingMethod`, `methodParams` | Pertenece a `RoutineDay`. |
 | `PlanEnrollment` | Inscripción de un usuario a un plan. | `userId`, `planId`, `startedAt`, `status` | — |
 | `WorkoutSession` | Sesión realizada. | `userId`, `routineDayId?`, `startedAt`, `endedAt`, `device`, `modelVersions` (versiones de `models/manifest.json` usadas) | 1—* `Set`, `Metric`. |
 | `Set` | Serie ejecutada. | `sessionId`, `exerciseId`, `method`, `loadKg?`, `rpe?`, `startedAt` | 1—* `Rep`, `Metric`. |

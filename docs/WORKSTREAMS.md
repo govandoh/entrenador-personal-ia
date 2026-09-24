@@ -7,7 +7,7 @@
 | Workstream | Dev | Posee (directorios, CODEOWNERS) | Consume (contratos) | Agentes asociados | Etiqueta |
 |---|---|---|---|---|---|
 | **A. Pose & Captura** | Dev A (`@dev-a`) | `src/pose/` → `packages/pose-engine`, `apps/web/src/features/capture`, `fixtures/` | `contracts.pose` (`LandmarkFrame`, `PoseSource`, `SkeletonRenderer`), `contracts.recording` (`SessionRecorder`) | `pose-engine-dev` | `ws:A-pose` |
-| **B. Análisis & Runtime** | Dev B (`@dev-b`) | `src/exercises/`, `src/geometry/`, `src/feedback/` → `packages/analysis-core`, `packages/ml-runtime`, `models/manifest.json` | `contracts.*`, artefactos ONNX y reportes de C | `analysis-dev` | `ws:B-analysis` |
+| **B. Análisis & Runtime** | Dev B (`@dev-b`) | `src/exercises/`, `src/geometry/`, `src/analysis/`, `src/feedback/` → `packages/analysis-core`, `packages/ml-runtime`, `models/manifest.json` | `contracts.*`, artefactos ONNX y reportes de C | `analysis-dev` | `ws:B-analysis` |
 | **C. ML Training** | Dev C (`@dev-c`) | `ml/`, `models/`, reportes de evaluación, artefactos ONNX en HF Hub | `fixtures/`, `contracts.features` (`FeatureVector`, esquema JSON v1) | `ml-engineer` | `ws:C-ml` |
 | **D. Backend de producto** | Dev D (`@dev-d`) | `packages/domain`, `packages/api-client`, `supabase/` (incl. Edge Function `coach`), `evals/coach/` | `contracts.domain`, `contracts.coach` (`CoachAssistant`) | `backend-dev`, `coach-prompt-engineer` | `ws:D-backend` |
 | **E. App & UI** | Dev E (`@dev-e`) | `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, `public/` → `apps/web` (salvo `features/capture`), `packages/ui`, `e2e/` | Todo vía interfaces; nunca implementaciones internas de otros paquetes | `ui-dev`, `qa-engineer` | `ws:E-app` |

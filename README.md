@@ -46,8 +46,9 @@ La prueba real es en un celular: cámara, voz y PWA no se validan en desktop. De
 
 ```
 src/pose/          cámara y MediaPipe
-src/geometry/      cálculo de ángulos
-src/exercises/     trackers por ejercicio (sentadilla, curl, press)
+src/geometry/      ángulos 2D y 3D, nivelación, filtro One Euro, calibración, vector de rasgos
+src/analysis/      calidad de movimiento, fatiga, clasificador k-NN de posturas
+src/exercises/     trackers por ejercicio (sentadilla, curl, press) y demos 3D
 src/ui/            CameraView, overlay, voz, onboarding
 public/            manifest, service worker, iconos
 docs/              producto, dominio, métricas, ML, datos, workstreams, estado, ADRs

@@ -18,6 +18,7 @@
 # ---------- B. Análisis & Runtime ----------
 /src/exercises/                     @dev-b
 /src/geometry/                      @dev-b
+/src/analysis/                      @dev-b
 /src/feedback/                      @dev-b
 /packages/analysis-core/            @dev-b
 /packages/ml-runtime/               @dev-b
