@@ -489,6 +489,22 @@ export const DEMOS: Record<string, DemoDefinition> = {
     measureLabel: 'Codo',
     targetText: 'La app cuenta la bajada como completa por debajo de 90° de codo.',
   },
+  // Plancha (ola 1): isométrica, la demo sostiene la tabla y nombra lo que se vigila.
+  plancha: {
+    initialRotation: -Math.PI / 2,
+    phases: [
+      { label: 'Antebrazos o manos bajo los hombros', durationMs: 2000, from: 0, to: 0 },
+      { label: 'Cuerpo en línea de la cabeza a los talones', durationMs: 2000, from: 0, to: 0 },
+      { label: 'Aprieta abdomen y glúteos, respira', durationMs: 2000, from: 0, to: 0 },
+    ],
+    pose: () => pushUpPose(0),
+    measure: w => (
+      calculateAngle3D(w[LM.LEFT_SHOULDER], w[LM.LEFT_HIP], w[LM.LEFT_ANKLE]) +
+      calculateAngle3D(w[LM.RIGHT_SHOULDER], w[LM.RIGHT_HIP], w[LM.RIGHT_ANKLE])
+    ) / 2,
+    measureLabel: 'Línea',
+    targetText: 'La app solo cuenta el tiempo con la línea hombro-cadera-tobillo recta (160° o más).',
+  },
   zancadas: {
     initialRotation: -Math.PI / 2.6,
     phases: [

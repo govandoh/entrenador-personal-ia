@@ -23,10 +23,14 @@ function otherSubject(w: Landmark3D[], gauss: () => number, yawDeg: number): Lan
   return jitter(rotateYaw(scaled, yawDeg), 0.01, gauss)
 }
 
+// La plancha es la postura alta de la flexión sostenida: por postura no se distingue de la
+// flexión; la separa el PlankTracker por tiempo sin repeticiones. Se deja fuera del k-NN.
+const MOVING_DEMOS = Object.fromEntries(Object.entries(DEMOS).filter(([id]) => id !== 'plancha'))
+
 describe('KnnPoseClassifier: identificar el ejercicio', () => {
   const train: LabeledSample[] = []
   const gTrain = seededGauss(1)
-  for (const [id, def] of Object.entries(DEMOS)) {
+  for (const [id, def] of Object.entries(MOVING_DEMOS)) {
     // Solo la parte con movimiento: la postura inicial de pie es casi igual en los tres.
     for (const f of playDemo(def, { fps: 15, cycles: 1 })) {
       if (f.p < 0.25) continue
@@ -41,7 +45,7 @@ describe('KnnPoseClassifier: identificar el ejercicio', () => {
     const g = seededGauss(7)
     let hits = 0
     let total = 0
-    for (const [id, def] of Object.entries(DEMOS)) {
+    for (const [id, def] of Object.entries(MOVING_DEMOS)) {
       for (const f of playDemo(def, { fps: 30, cycles: 2 })) {
         if (f.p < 0.25) continue
         total++
@@ -52,7 +56,7 @@ describe('KnnPoseClassifier: identificar el ejercicio', () => {
   })
 
   it('expone las etiquetas y el tamaño del modelo', () => {
-    expect(knn.labels).toEqual(Object.keys(DEMOS).sort())
+    expect(knn.labels).toEqual(Object.keys(MOVING_DEMOS).sort())
     expect(knn.size).toBe(train.length)
   })
 })
