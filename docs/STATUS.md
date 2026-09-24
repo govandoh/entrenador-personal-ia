@@ -2,7 +2,7 @@
 
 > Documento vivo. Lo actualiza quien cierra un PR que cambie el hito, el estado de la migración o una decisión (o el agente `docs-keeper`). No contiene reglas ni arquitectura: ver `AGENTS.md` y `ARCHITECTURE.md`.
 
-**Última actualización:** 2026-09-24 (tarde)
+**Última actualización:** 2026-09-24 (noche)
 
 ## Hito actual: Sprint 0 — Fundación
 
@@ -14,12 +14,13 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 | Capa agéntica | `.claude/agents/*` (10), `.claude/skills/{adr,fixture,pr-ready,promote-model}`, `.claude/hooks/*.mjs` + `settings.json`, `.claude/README.md`, `.github/CODEOWNERS`, plantillas de PR e issues | **Mergeado en `main`** |
 | Fundación documental | ADRs (migración DEC-001..025 + DEC-026..033), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/*`, `README.md`, `CONTRIBUTING.md`, `docs/academico/` | **Mergeado en `main`** |
 | PR 1 — fixtures y golden | Flag `?debug=record`, esquema v1 (`fixtures/landmarks/SCHEMA.md`), generador determinista, 10 fixtures sintéticos, helper de replay y 32 golden tests con snapshots | **Mergeado en `main`** |
-| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts` | PR #40, **sin mergear** |
-| Motor 3D detrás de `?engine=3d` (I-2 + I-3, `DEC-057`) | `CycleDetector`, `Tracker3D` + definiciones, `FramePipeline` (One Euro → gravedad → calibración → contador), adaptador del acelerómetro con permiso de iOS; defectos de fitnetv2 corregidos. Sin el flag, producción no cambia | PR #40, **sin probar en celular** |
-| Ola 1 del asistente (#39) | Flexiones, zancadas, puente de glúteo (definiciones 3D) y plancha (`PlankTracker`, isométrico), con demos 3D y chips en el modo 3D | PR #40; umbrales sin calibrar con personas |
-| PR 4 — `FeedbackPolicy` (#13) | Política de voz de DEC-016 extraída de `CameraView` a `src/feedback/`, compartida por los dos motores | PR #40 |
-| Grabación por guion y k-NN (#16, #36) | `?debug=record&cond=…&view=…&subject=…` guarda condición, sujeto y gravedad por frame; `pnpm knn <carpeta>` construye el modelo y lo evalúa LOSO | PR #40; faltan las grabaciones |
-| Catálogo y generador de rutinas (#35) | `src/domain/catalog.ts` (60 ejercicios con etiquetas de equipo) y `routineGenerator.ts` (cuestionario → rutina, progresión de 8 semanas, semana 1 libre) | PR #40; sin pantallas |
+| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts` | PR #40, **mergeado en `main`** |
+| Motor 3D detrás de `?engine=3d` (I-2 + I-3, `DEC-057`) | `CycleDetector`, `Tracker3D` + definiciones, `FramePipeline` (One Euro → gravedad → calibración → contador), adaptador del acelerómetro con permiso de iOS; defectos de fitnetv2 corregidos. Sin el flag, producción no cambia | Mergeado (PR #40); el equipo ya lo vio en el preview, falta el informe de prueba por ejercicio y celular |
+| Ola 1 del asistente (#39) | Flexiones, zancadas, puente de glúteo (definiciones 3D) y plancha (`PlankTracker`, isométrico), con demos 3D y chips en el modo 3D | Mergeado (PR #40); umbrales sin calibrar con personas |
+| PR 4 — `FeedbackPolicy` (#13) | Política de voz de DEC-016 extraída de `CameraView` a `src/feedback/`, compartida por los dos motores | Mergeado (PR #40) |
+| Grabación por guion y k-NN (#16, #36) | `?debug=record&cond=…&view=…&subject=…` guarda condición, sujeto y gravedad por frame; `pnpm knn <carpeta>` construye el modelo y lo evalúa LOSO | Mergeado (PR #40); faltan las grabaciones |
+| Catálogo y generador de rutinas (#35) | `src/domain/catalog.ts` (60 ejercicios con etiquetas de equipo) y `routineGenerator.ts` (cuestionario → rutina, progresión de 8 semanas, semana 1 libre) | Mergeado (PR #40); sin pantallas |
+| Identidad visual y movimiento (`DEC-058`, propuesta) | `docs/DESIGN.md` (paleta Tinta/Voltaje/Índigo, anillo de 33 nodos, Barlow, catálogo de animaciones), skill `fitnet-diseno` y 8 skills de Emil Kowalski en `.claude/skills/`; maquetas en el lienzo de diseño del equipo | En revisión; sin pantallas implementadas |
 | Tablero | 29 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues
@@ -58,6 +59,7 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 | DEC | Decisión |
 |---|---|
+| DEC-058 | Propuesta: identidad "la red de 33 puntos" (tema oscuro, Voltaje e Índigo, anillo de 33 nodos), movimiento en CSS con las reglas de Emil Kowalski y patrones de Cult UI sin dependencias. Reemplaza la sección de diseño de DEC-008. |
 | DEC-054 | Este repositorio es la base; fitnetv2 entra en cinco pasos por workstream (I-1 motor puro, hecho; I-2 trackers 3D; I-3 detector y sensores; I-4 UI; I-5 cuestionario y paywall). |
 | DEC-055 | Núcleo de IA: k-NN de posturas (después MLP) en TypeScript puro, sin TF.js ni ONNX; datos propios con etiqueta por guion; ST-GCN++ preentrenado como experimento de ≤ 3 días. Reemplaza la Fase 2 de DEC-034. |
 | DEC-056 | Rutina personalizada: cuestionario libre, generador determinista por reglas, catálogo de fitnetv2 con asistente por olas, programa completo premium con `MockPaymentProvider`. |
@@ -80,7 +82,7 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 Siguen el orden de `DEC-054`. Tests: 271 en verde (antes 32).
 
 1. **Probar el motor 3D en celulares** (Android e iOS) con `?engine=3d`: conteo de los 7 ejercicios, nivelación con el sensor (botón "Nivelar con el sensor" en iPhone), avisos de forma. Es el requisito para que el 3D pase a ser el predeterminado (`DEC-057`).
-2. Revisar y mergear el PR #40.
+2. Aprobar `DEC-058` y construir la base visual: `src/ui/tokens.css`, fuentes Barlow en `public/fonts/`, navegación inferior, pantalla Hoy, cámara con isla de aviso y preparación con nivelador (con `/fitnet-diseno`).
 3. **Grabación por guion con el equipo** (`docs/ML-PIPELINE.md` §1): primero los 5 integrantes, luego voluntarios — issue #16. Con 2 o más sujetos, `pnpm knn <carpeta>` da el primer reporte LOSO — issue #36.
 4. **Predeterminar el motor 3D**: DEC propia, fixtures con `world` para los golden y retiro de los contadores 2D — issue #33.
 5. PR 2 (`src/contracts/`, issue #11): requiere una rama `contracts/*`. Tipos candidatos: `ExerciseDefinition3D`, `Tracker3DResult` y `FrameInput`, ya estables en el código.
