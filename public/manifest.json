@@ -1,12 +1,12 @@
 {
-  "name": "Entrenador Personal IA",
-  "short_name": "Entrenador IA",
-  "description": "Entrenador personal con detección de poses en tiempo real usando inteligencia artificial",
+  "name": "Fitnet",
+  "short_name": "Fitnet",
+  "description": "Entrenamiento con asistente en tiempo real: la cámara lee tu cuerpo como una red de 33 puntos y te corrige en español.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0a0a",
-  "theme_color": "#FC4C02",
+  "background_color": "#0b0e14",
+  "theme_color": "#0b0e14",
   "icons": [
     {
       "src": "/favicon.svg",

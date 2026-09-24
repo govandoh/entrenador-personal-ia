@@ -1,0 +1,489 @@
+/*
+ * Pantalla de entrenamiento (DESIGN.md §5-6). Presupuesto de la cámara: sobre el video solo
+ * se anima transform y opacity, sin blur sobre el video ni sombras animadas.
+ */
+
+.workout {
+  position: fixed;
+  inset: 0;
+  background: var(--color-ink-camera);
+  color: var(--color-text);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.workout__video,
+.workout__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.workout__status {
+  position: absolute;
+  top: 50%;
+  left: var(--gutter);
+  right: var(--gutter);
+  translate: 0 -50%;
+  z-index: 5;
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-card);
+  background: var(--glass-strong);
+  text-align: center;
+}
+
+.workout__status--error {
+  color: var(--color-coral);
+}
+
+/* ---------- Barra superior ---------- */
+
+.workout__top {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: calc(env(safe-area-inset-top, 0px) + 12px) 12px 0;
+}
+
+.icon-btn--glass {
+  background: var(--glass);
+  border-radius: 22px;
+}
+
+.workout__title {
+  flex: 1;
+  min-width: 0;
+  height: var(--touch);
+  padding: 0 14px;
+  border-radius: 22px;
+  background: var(--glass);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  line-height: 1.1;
+}
+
+.workout__title strong {
+  font-size: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workout__title span {
+  font-size: var(--text-caption);
+  color: var(--color-text-muted);
+}
+
+/* ---------- Preparación y nivelador ---------- */
+
+.prep {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.prep__frame {
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 8%;
+  bottom: 48%;
+  border: 2px dashed rgba(238, 241, 247, 0.22);
+  border-radius: 28px;
+  pointer-events: none;
+}
+
+.prep__level {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+.level {
+  position: relative;
+  width: 176px;
+  height: 176px;
+  border-radius: 50%;
+  border: 2px solid rgba(238, 241, 247, 0.18);
+  background: var(--glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.level::before,
+.level::after {
+  content: '';
+  position: absolute;
+  background: rgba(238, 241, 247, 0.16);
+}
+
+.level::before { left: 24px; right: 24px; top: 50%; height: 1.5px; }
+.level::after { top: 24px; bottom: 24px; left: 50%; width: 1.5px; }
+
+.level__target {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px dashed rgba(215, 255, 58, 0.55);
+}
+
+/* La posición la escribe el bucle de cuadros con transform; el color cambia al centrarse. */
+.level__bubble {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--color-amber);
+  transition: background-color var(--dur-base) ease;
+  will-change: transform;
+}
+
+.prep__level[data-ok='true'] .level__bubble {
+  background: var(--color-volt);
+}
+
+.level__deg {
+  font-size: 44px;
+}
+
+.level__text {
+  font-size: var(--text-body);
+  font-weight: 600;
+  color: var(--color-amber);
+  text-align: center;
+  padding: 0 var(--gutter);
+}
+
+.prep__level[data-ok='true'] .level__text {
+  color: var(--color-volt);
+}
+
+.prep__card {
+  margin: 0 12px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  padding: var(--space-4) var(--space-5) var(--space-5);
+  border-radius: var(--radius-sheet);
+  background: var(--glass-strong);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.prep__chips {
+  margin: 0 calc(-1 * var(--space-5));
+  padding: 0 var(--space-5);
+}
+
+.prep__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.prep__list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--text-body);
+}
+
+.prep__calibration {
+  flex-wrap: wrap;
+}
+
+.prep__calibration .bar {
+  flex-basis: 100%;
+  margin-left: 40px;
+}
+
+.prep-check {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 2px solid var(--color-line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-ink);
+  transition: background-color var(--dur-fast) ease, border-color var(--dur-fast) ease;
+}
+
+.prep-check svg {
+  width: 16px;
+  height: 16px;
+}
+
+.prep-check--ok {
+  background: var(--color-volt);
+  border-color: var(--color-volt);
+}
+
+.prep-check--progress {
+  border-color: var(--color-indigo);
+}
+
+.prep__hint {
+  text-align: center;
+  font-size: var(--text-small);
+}
+
+/* ---------- Durante la serie ---------- */
+
+.hud {
+  position: relative;
+  z-index: 4;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Isla de aviso (patrón Dynamic Island de Cult UI): crece desde el centro y el texto
+   aparece después. Transición, no keyframes: se retoma si el aviso cambia seguido. */
+.island {
+  align-self: center;
+  margin-top: 14px;
+  max-width: calc(100% - 32px);
+  height: 48px;
+  padding: 0 20px 0 9px;
+  border-radius: var(--radius-island);
+  background: var(--color-black);
+  border: 1px solid var(--color-line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 700;
+  transform-origin: center;
+  transform: scaleX(0.34);
+  opacity: 0;
+  transition: transform var(--dur-base) var(--ease-in-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+.island[data-visible='true'] {
+  transform: scaleX(1);
+  opacity: 1;
+}
+
+.island__icon {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.island__icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.island[data-level='good'] .island__icon { background: var(--tint-volt); color: var(--color-volt); }
+.island[data-level='warning'] .island__icon { background: var(--tint-amber); color: var(--color-amber); }
+.island[data-level='bad'] .island__icon { background: var(--tint-coral); color: var(--color-coral); }
+
+.island__text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease-out) 60ms;
+}
+
+.island[data-visible='true'] .island__text {
+  opacity: 1;
+}
+
+.hud__counter {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 12px 20px 0;
+}
+
+/* Repetición contada: el número nuevo entra desde abajo (DESIGN.md §6, 180 ms, sin rebote). */
+.hud__reps {
+  font-size: var(--text-counter);
+  line-height: 0.82;
+  transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
+}
+
+@starting-style {
+  .hud__reps {
+    transform: translateY(40%);
+    opacity: 0;
+  }
+}
+
+.hud__of {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 4px;
+  color: var(--color-text-muted);
+}
+
+.hud__of strong {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.hud__spacer {
+  flex: 1;
+}
+
+.hud__panel {
+  margin: 0 8px calc(env(safe-area-inset-bottom, 0px) + 16px);
+  padding: 18px 16px 16px;
+  border-radius: var(--radius-sheet);
+  background: var(--glass-strong);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.hud__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.hud__metrics > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.hud__metrics span {
+  font-size: var(--text-caption);
+}
+
+.hud__metrics strong {
+  font-size: 26px;
+}
+
+.rep-bar {
+  display: grid;
+  gap: 5px;
+}
+
+.rep-bar span {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  transition: background-color var(--dur-fast) ease;
+}
+
+.rep-bar span[data-q='good'] { background: var(--color-volt); }
+.rep-bar span[data-q='warning'] { background: var(--color-amber); }
+.rep-bar span[data-q='bad'] { background: var(--color-coral); }
+
+.hud__rejected {
+  font-size: var(--text-small);
+}
+
+.hud__controls {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.hud__finish {
+  flex: 1;
+}
+
+/* ---------- Resumen ---------- */
+
+.summary {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  background: var(--color-ink);
+  overflow-y: auto;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 24px);
+}
+
+.summary__hero {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.summary__pct {
+  font-size: 32px;
+}
+
+.summary__valid {
+  font-size: 34px;
+}
+
+.summary__tech {
+  font-weight: 600;
+}
+
+.velocity-chart {
+  height: 110px;
+  display: grid;
+  gap: 6px;
+  align-items: end;
+}
+
+.velocity-chart span {
+  height: 100%;
+  border-radius: 6px 6px 3px 3px;
+  background: var(--color-volt);
+  transform-origin: bottom center;
+}
+
+.velocity-chart span[data-late='true'] {
+  opacity: 0.55;
+}
+
+/* ---------- Grabación de fixtures (?debug=record) ---------- */
+
+.record-fixture-btn {
+  position: absolute;
+  z-index: 20;
+  top: calc(env(safe-area-inset-top, 0px) + 68px);
+  right: 12px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: var(--radius-chip);
+  background: var(--color-coral);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .island {
+    transform: none;
+    transition: opacity var(--dur-fast) ease;
+  }
+
+  .island__text {
+    transition: none;
+  }
+
+  @starting-style {
+    .hud__reps {
+      transform: none;
+    }
+  }
+}

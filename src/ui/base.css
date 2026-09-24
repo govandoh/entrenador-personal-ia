@@ -1,0 +1,588 @@
+/*
+ * Estilos base y componentes de Fitnet (DEC-058, docs/DESIGN.md).
+ * Solo usa los tokens de tokens.css. El movimiento sigue el catálogo de DESIGN.md §6:
+ * solo transform y opacity, curvas propias y variante para movimiento reducido.
+ */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  background: var(--color-ink);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  line-height: 1.45;
+  overflow: hidden;
+  overscroll-behavior: none; /* evita el rebote de iOS */
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  width: 100%;
+  height: 100dvh;
+}
+
+button,
+a,
+input,
+select {
+  font: inherit;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+a {
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+button {
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+a {
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-volt);
+  outline-offset: 2px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- Estructura ---------- */
+
+.app-shell {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-content {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.screen {
+  min-height: 100%;
+  padding: calc(env(safe-area-inset-top, 0px) + 28px) var(--gutter) 28px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Retícula de puntos: motivo de "la red" en pantallas de gestión, nunca sobre la cámara. */
+.screen--dots {
+  background-image: radial-gradient(var(--dot-grid) 1px, transparent 1px);
+  background-size: 18px 18px;
+  background-attachment: local;
+}
+
+.screen-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.screen-title {
+  font-family: var(--font-display);
+  font-size: var(--text-screen-title);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  line-height: 0.95;
+}
+
+.eyebrow {
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  font-style: italic;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.eyebrow--indigo {
+  color: var(--color-indigo-text);
+}
+
+.muted {
+  color: var(--color-text-muted);
+}
+
+.display-number {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: var(--text-card-title);
+  font-weight: 700;
+  line-height: 1.05;
+}
+
+/* ---------- Tarjetas (borde doble con brillo, patrón Texture Card de Cult UI) ---------- */
+
+.card {
+  padding: var(--space-4);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.card--framed {
+  border-radius: var(--radius-card-lg);
+  border: 1px solid var(--color-line);
+  box-shadow: var(--shine);
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+/* ---------- Botones ---------- */
+
+.btn {
+  min-height: var(--touch);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-button);
+  transition: transform var(--dur-press) var(--ease-out), opacity var(--dur-fade) ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.btn svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.btn--primary {
+  height: var(--button-height);
+  padding: 0 var(--space-6);
+  background: var(--color-volt);
+  color: var(--color-ink);
+  font-family: var(--font-display);
+  font-size: var(--text-button);
+  font-weight: 800;
+  font-style: italic;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  box-shadow: var(--bevel);
+}
+
+.btn--secondary {
+  height: var(--button-height);
+  padding: 0 var(--space-5);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-size: var(--text-lead);
+  font-weight: 600;
+}
+
+.btn--ghost {
+  padding: 0 var(--space-4);
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.btn--block {
+  width: 100%;
+}
+
+.icon-btn {
+  width: var(--touch);
+  height: var(--touch);
+  flex-shrink: 0;
+  border-radius: var(--radius-chip);
+  background: var(--color-surface-2);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.icon-btn:active {
+  transform: scale(0.94);
+}
+
+.icon-btn svg {
+  width: 22px;
+  height: 22px;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover:not(:disabled) {
+    background: var(--color-volt-hover);
+  }
+}
+
+/* ---------- Chips, píldoras e insignias ---------- */
+
+.chip-row {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: var(--gutter);
+  margin: 0 calc(-1 * var(--gutter));
+  padding: 0 var(--gutter);
+}
+
+.chip-row::-webkit-scrollbar {
+  display: none;
+}
+
+.chip {
+  flex-shrink: 0;
+  height: 40px;
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-line);
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  scroll-snap-align: start;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.chip:active {
+  transform: scale(0.97);
+}
+
+.chip[aria-pressed='true'],
+.chip[aria-checked='true'],
+.chip[aria-selected='true'] {
+  background: var(--color-text);
+  border-color: var(--color-text);
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.chip svg {
+  width: 16px;
+  height: 16px;
+}
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px 0 9px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-caption);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.pill svg {
+  width: 15px;
+  height: 15px;
+}
+
+.pill--volt { background: var(--tint-volt); color: var(--color-volt); }
+.pill--amber { background: var(--tint-amber); color: var(--color-amber); }
+.pill--indigo { background: var(--tint-indigo); color: var(--color-indigo-text); }
+.pill--neutral { background: var(--color-surface-2); color: var(--color-text); }
+
+.badge-assist {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 8px;
+  border-radius: 7px;
+  background: var(--tint-indigo);
+  color: var(--color-indigo-text);
+  font-size: 12px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.badge-assist svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ---------- Barras de progreso ---------- */
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--color-volt);
+  transform-origin: left center;
+}
+
+.bar--indigo > span {
+  background: var(--color-indigo);
+}
+
+/* ---------- Anillo de 33 nodos ---------- */
+
+.node-ring {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.node-ring svg {
+  display: block;
+}
+
+.node-ring__center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.node-ring circle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* Serie completada: los 33 nodos se encienden en cadena (DESIGN.md §6, celebración). */
+.node-ring--celebrate circle[data-on='true'] {
+  animation: node-light var(--dur-fast) var(--ease-out) both;
+  animation-delay: calc(var(--i) * 30ms);
+}
+
+@keyframes node-light {
+  from { opacity: 0.25; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ---------- Navegación inferior ---------- */
+
+.bottom-nav {
+  flex-shrink: 0;
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px));
+  padding: 6px 8px env(safe-area-inset-bottom, 0px);
+  background: var(--color-ink);
+  border-top: 1px solid var(--color-surface-2);
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-items: center;
+}
+
+.bottom-nav__item {
+  min-height: var(--touch);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.bottom-nav__item svg {
+  width: 24px;
+  height: 24px;
+}
+
+.bottom-nav__item.active {
+  color: var(--color-volt);
+  font-weight: 700;
+}
+
+.bottom-nav__train {
+  justify-self: center;
+  width: 60px;
+  height: 60px;
+  margin-top: -22px;
+  border-radius: 20px;
+  background: var(--color-volt);
+  color: var(--color-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 0 5px var(--color-ink);
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.bottom-nav__train:active {
+  transform: scale(0.95);
+}
+
+.bottom-nav__train svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* ---------- Entrada de pantallas: tarjetas escalonadas (DESIGN.md §6) ---------- */
+
+.stagger > * {
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+  transition-delay: calc(min(var(--i, 0), 5) * var(--stagger));
+}
+
+@starting-style {
+  .stagger > * {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---------- Hoja inferior (patrón Family Drawer de Cult UI) ---------- */
+
+.sheet-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  background: var(--scrim);
+  transition: opacity var(--dur-sheet) var(--ease-drawer);
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 41;
+  max-height: 88dvh;
+  overflow-y: auto;
+  padding: 12px var(--gutter) calc(env(safe-area-inset-bottom, 0px) + 24px);
+  border-radius: var(--radius-sheet) var(--radius-sheet) 0 0;
+  background: var(--color-surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  transition: transform var(--dur-sheet) var(--ease-drawer);
+  touch-action: pan-y;
+}
+
+.sheet__grab {
+  margin: -12px calc(-1 * var(--gutter)) 0;
+  padding: 12px 0 10px;
+  display: flex;
+  justify-content: center;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sheet__handle {
+  align-self: center;
+  width: 40px;
+  height: 5px;
+  border-radius: 3px;
+  background: var(--color-line);
+  flex-shrink: 0;
+}
+
+@starting-style {
+  .sheet { transform: translateY(100%); }
+  .sheet-scrim { opacity: 0; }
+}
+
+/* ---------- Avisos ---------- */
+
+.notice {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  border-radius: 16px;
+  font-size: var(--text-small);
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.notice svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.notice--amber { background: var(--tint-amber); color: var(--color-amber); }
+.notice--indigo { background: var(--tint-indigo); color: var(--color-indigo-text); }
+
+/* ---------- Movimiento reducido: sin desplazamientos ni escalas, quedan fundidos ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .btn:active:not(:disabled),
+  .icon-btn:active,
+  .chip:active,
+  .bottom-nav__train:active {
+    transform: none;
+  }
+
+  .stagger > * {
+    transition: opacity var(--dur-base) ease;
+    transition-delay: 0ms;
+  }
+
+  @starting-style {
+    .stagger > * { transform: none; }
+    .sheet { transform: none; opacity: 0; }
+  }
+
+  .sheet {
+    transition: opacity var(--dur-base) ease;
+  }
+
+  .node-ring--celebrate circle[data-on='true'] {
+    animation: none;
+  }
+}

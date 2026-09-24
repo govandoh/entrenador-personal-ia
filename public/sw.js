@@ -1,4 +1,5 @@
-const CACHE = 'entrenador-ia-v3';
+// v4: identidad de DEC-058 (manifest, ícono y fuentes nuevos); subir en cada cambio (DEC-025).
+const CACHE = 'entrenador-ia-v4';
 
 self.addEventListener('install', () => {
   self.skipWaiting();

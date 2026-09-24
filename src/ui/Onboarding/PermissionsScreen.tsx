@@ -10,7 +10,7 @@ export function PermissionsScreen({ onNext }: Props) {
       stream.getTracks().forEach(t => t.stop());
     } catch {
       // El usuario denegó o el dispositivo no tiene cámara.
-      // Dejamos continuar igual — CameraView manejará el error con mensaje claro.
+      // Dejamos continuar igual — la pantalla de entrenamiento manejará el error con mensaje claro.
     }
 
     // Solicita permiso de notificaciones (opcional)

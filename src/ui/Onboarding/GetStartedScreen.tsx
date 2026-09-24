@@ -10,7 +10,7 @@ export function GetStartedScreen({ onComplete }: Props) {
   const [camera, setCamera] = useState<FacingMode>('environment');
 
   const handleStart = () => {
-    // Persiste la preferencia para que CameraView la tome como estado inicial
+    // Persiste la preferencia para que la pantalla de entrenamiento la tome como estado inicial
     localStorage.setItem('preferred_camera', camera);
     onComplete();
   };

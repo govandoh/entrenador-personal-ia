@@ -1,48 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <defs>
-    <radialGradient id="bg" cx="50%" cy="35%" r="75%">
-      <stop offset="0%" stop-color="#1e2d3d"/>
-      <stop offset="100%" stop-color="#0d1117"/>
-    </radialGradient>
-  </defs>
-
-  <!-- Fondo -->
-  <rect width="512" height="512" fill="url(#bg)"/>
-
-  <!-- Figura haciendo overhead press -->
-  <!-- Torso -->
-  <line x1="256" y1="158" x2="256" y2="302" stroke="#E8E8E8" stroke-width="20" stroke-linecap="round"/>
-
-  <!-- Brazo izquierdo: hombro → codo → muñeca (levantado) -->
-  <polyline points="196,168 144,112 108,68" fill="none" stroke="#E8E8E8" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Brazo derecho -->
-  <polyline points="316,168 368,112 404,68" fill="none" stroke="#E8E8E8" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Pierna izquierda: cadera → rodilla → tobillo -->
-  <polyline points="256,302 228,394 218,458" fill="none" stroke="#E8E8E8" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Pierna derecha -->
-  <polyline points="256,302 284,394 294,458" fill="none" stroke="#E8E8E8" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
-
-  <!-- Cabeza -->
-  <circle cx="256" cy="92" r="42" fill="#E8E8E8"/>
-
-  <!-- Mancuernas (rectángulos horizontales en las muñecas) -->
-  <rect x="78"  y="57" width="46" height="16" rx="6" fill="#E8E8E8"/>
-  <rect x="388" y="57" width="46" height="16" rx="6" fill="#E8E8E8"/>
-
-  <!-- Puntos de landmarks (estilo MediaPipe / IA) — naranja del app -->
-  <!-- Hombros -->
-  <circle cx="196" cy="168" r="13" fill="#FC4C02"/>
-  <circle cx="316" cy="168" r="13" fill="#FC4C02"/>
-  <!-- Codos -->
-  <circle cx="144" cy="112" r="13" fill="#FC4C02"/>
-  <circle cx="368" cy="112" r="13" fill="#FC4C02"/>
-  <!-- Muñecas -->
-  <circle cx="108" cy="68"  r="13" fill="#FC4C02"/>
-  <circle cx="404" cy="68"  r="13" fill="#FC4C02"/>
-  <!-- Caderas -->
-  <circle cx="256" cy="302" r="13" fill="#FC4C02"/>
-  <!-- Rodillas -->
-  <circle cx="228" cy="394" r="13" fill="#FC4C02"/>
-  <circle cx="284" cy="394" r="13" fill="#FC4C02"/>
+  <!-- Logo de Fitnet (DEC-058): cinco nodos voltaje unidos por líneas índigo que forman una "F". -->
+  <rect width="512" height="512" rx="112" fill="#0b0e14"/>
+  <g transform="translate(96 96) scale(8)">
+    <path d="M12 8L28 8M12 8L12 32M12 20L24 20" fill="none" stroke="#7b6cff" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="12" cy="8" r="4" fill="#d7ff3a"/>
+    <circle cx="28" cy="8" r="4" fill="#d7ff3a"/>
+    <circle cx="12" cy="20" r="4" fill="#d7ff3a"/>
+    <circle cx="24" cy="20" r="4" fill="#d7ff3a"/>
+    <circle cx="12" cy="32" r="4" fill="#d7ff3a"/>
+  </g>
 </svg>
