@@ -2,7 +2,7 @@
 
 > Documento vivo. Lo actualiza quien cierra un PR que cambie el hito, el estado de la migración o una decisión (o el agente `docs-keeper`). No contiene reglas ni arquitectura: ver `AGENTS.md` y `ARCHITECTURE.md`.
 
-**Última actualización:** 2026-09-24 (noche, técnica en 3D y mini mapa)
+**Última actualización:** 2026-09-26 (ajustes de la técnica en 3D tras los videos de referencia)
 
 ## Hito actual: Sprint 0 — Fundación
 
@@ -23,7 +23,7 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 | Identidad visual y movimiento (`DEC-058`) | `docs/DESIGN.md`, `src/ui/tokens.css`, skill `fitnet-diseno` y 8 skills de Emil Kowalski en `.claude/skills/`; bienvenida, navegación y pantallas con la identidad nueva | PR de la Fase 1 (UI), **sin probar en celular** |
 | Pantallas de la Fase 1 (I-4 parcial, I-5, #34, #35) | Hoy (anillo de 33 nodos, semana, racha, fatiga), cuestionario de 4 pasos, programa de 8 semanas con semana 1 libre y Premium simulado (`MockPaymentProvider`), catálogo con filtros, perfil; historial local de series | PR de la Fase 1 (UI) |
 | Entrenamiento con asistente (`DEC-058`, `DEC-059`) | Preparación con nivelador de burbuja y arranque automático, isla de aviso, contador, métricas, resumen de serie con velocidad y fatiga; la ola 1 usa el motor 3D sin flag | PR de la Fase 1 (UI); sentadilla, curl y press siguen en 2D |
-| Técnica en 3D y mini mapa (`DEC-061`) | Ficha de técnica de los 60 ejercicios (pasos, errores, respiración, colocación del celular) con demo 3D de 33 puntos que se gira en todas direcciones; mini mapa 3D arrastrable en el entrenamiento (en vivo o ejemplo); consejos plegables durante la serie; preferencias de vista guardadas | PR de la Fase 1 (UI), **sin probar en celular**; falta medir fps con el mini mapa en gama baja |
+| Técnica en 3D y mini mapa (`DEC-061`) | Ficha de técnica de los 60 ejercicios (pasos, errores, respiración, colocación del celular) con demo 3D de 33 puntos que se gira en todas direcciones; mini mapa 3D arrastrable en el entrenamiento (en vivo o ejemplo); consejos plegables durante la serie; preferencias de vista guardadas; ficha que se abre sola la primera vez con "Entendido, empezar", botón de técnica durante la serie (pausa el conteo), "Nivelado" en el mini mapa y vista del cuerpo en la barra superior | PR de la Fase 1 (UI), **sin probar en celular**; falta medir fps con el mini mapa en gama baja |
 | Tablero | 29 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues

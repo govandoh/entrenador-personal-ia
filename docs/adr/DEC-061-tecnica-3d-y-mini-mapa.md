@@ -1,7 +1,7 @@
 # DEC-061 · Ficha de técnica con modelo 3D, mini mapa arrastrable y preferencias de vista
 
 - **Estado:** Aceptada
-- **Fecha:** 2026-09-24
+- **Fecha:** 2026-09-24 (ajustes del 2026-09-26 tras los videos de referencia)
 - **Decisores:** Equipo (pedido explícito del responsable del proyecto), Workstreams B, D y E
 - **Etiquetas:** ui, 3d, entrenamiento
 
@@ -59,6 +59,16 @@ Faltaba decidir dónde vive cada una sin tapar la cámara, cómo convive un segu
 - La **demo de plancha** se añade a `demoPoses.ts` como postura sostenida. Queda fuera del k-NN de identificación porque por postura es igual a la parte alta de la flexión; la separa el `PlankTracker` por tiempo.
 - `three` y `@types/three` entran como dependencias según `DEC-039`.
 
+### Ajustes tras los videos de referencia (2026-09-26)
+
+El equipo subió tres videos de fitnetv2 (`docs/academico/Video_1..3.mp4`, solo de consulta). Se adoptó lo que aportaban sin cambiar las pestañas: el equipo prefirió quedarse con ellas y no con la lista única del video, porque en pantallas pequeñas cuestan menos de leer.
+
+- **Primera vez con cada ejercicio:** en la preparación la ficha se abre sola, con el aviso "Primera vez con este ejercicio" y las acciones "Cerrar" y "Entendido, empezar" fijas al pie de la hoja. Al cerrarla desde cualquier lugar (catálogo, programa o entrenamiento), el ejercicio queda en `seenTechnique` dentro de `fitnet_view_v1` y la ficha ya no se abre sola.
+- **Ayuda durante la serie:** el botón "Técnica del ejercicio" (?) va en la barra superior en todas las fases, con la acción "Seguir con la serie". Mientras la ficha está abierta, el bucle no cuenta ni arranca la serie. La plancha no suma el hueco porque descarta los saltos entre cuadros.
+- **Nivelado en el mini mapa:** muestra "Nivelado" o "Inclinado" según el acelerómetro, en todas las fases, y no aparece sin sensor. En la preparación del motor 3D muestra además "Párate derecho para calibrar".
+- **Vista del cuerpo:** la barra superior muestra "Serie N · De frente / De perfil / En diagonal" según `getBodyOrientation`, con un estabilizador de 400 ms (`bodyView.ts`, puro y con tests) para que no parpadee cerca de los umbrales.
+- **Colocación del mini mapa:** además del piso (`data-minimap-floor`), cada lado tiene un techo (`data-minimap-ceiling`). A la izquierda es el contador y a la derecha la columna de herramientas, y el panel se queda debajo si cabe. En pantallas de unos 568 px de alto no cabe y vuelve a la zona bajo la barra superior, por lo que puede tapar el contador (se arrastra o se oculta).
+
 ## Consecuencias
 
 ### Positivas
@@ -71,6 +81,7 @@ Faltaba decidir dónde vive cada una sin tapar la cámara, cómo convive un segu
 
 - Un segundo lienzo WebGL compite con MediaPipe por la GPU mientras se entrena. Se mitiga dibujando solo cuando cambia algo y cada 40 ms como mucho, y el mini mapa se puede ocultar. Falta medir los fps en celulares de gama baja.
 - En el motor 2D el mini mapa muestra el mundo crudo de MediaPipe, sin nivelar.
+- La ficha que se abre sola añade un paso la primera vez con cada ejercicio; a cambio se ve la técnica antes de la primera serie, como en fitnetv2.
 
 ## Referencias
 
