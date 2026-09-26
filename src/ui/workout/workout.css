@@ -78,6 +78,14 @@
 .workout__title span {
   font-size: var(--text-caption);
   color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workout__title b {
+  color: var(--color-text);
+  font-weight: 700;
 }
 
 /* ---------- Preparación y nivelador ---------- */
@@ -331,7 +339,10 @@
 /* Repetición contada: el número nuevo entra desde abajo (DESIGN.md §6, 180 ms, sin rebote). */
 .hud__reps {
   font-size: clamp(84px, 16dvh, var(--text-counter));
-  line-height: 0.82;
+  /* Línea con la altura completa de la fuente para que el número no desborde su caja; el
+     margen negativo conserva el contador compacto que daba line-height 0.82. */
+  line-height: 1.2;
+  margin-block: -0.19em;
   transition: transform var(--dur-fast) var(--ease-out), opacity var(--dur-fast) var(--ease-out);
 }
 
@@ -605,6 +616,44 @@
   background: var(--color-ink);
 }
 
+.minimap__stage {
+  position: relative;
+}
+
+.minimap__badge {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  background: var(--tint-amber);
+  color: var(--color-amber);
+}
+
+.minimap__badge[data-ok='true'] {
+  background: var(--tint-volt);
+  color: var(--color-volt);
+}
+
+.minimap__hint {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 14px 6px 6px;
+  font-size: 11px;
+  line-height: 1.25;
+  text-align: center;
+  color: var(--color-text-muted);
+  background: linear-gradient(to top, var(--color-ink), transparent);
+  pointer-events: none;
+}
+
 .minimap__loading {
   display: flex;
   align-items: center;
@@ -639,7 +688,7 @@
   align-self: flex-start;
   width: min(100% - max(12px, var(--safe-left)) - max(12px, var(--safe-right)) - 56px, 520px);
   margin: var(--space-3) 0 0 max(12px, var(--safe-left));
-  padding: 12px 40px 12px 14px;
+  padding: 12px 44px 12px 14px;
   border-radius: 16px;
   background: var(--glass-strong);
   display: flex;
@@ -659,10 +708,11 @@
 
 .set-tips__close {
   position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 36px;
-  height: 36px;
+  top: 0;
+  right: 0;
+  /* 44 px de objetivo táctil (DEC-060). */
+  width: 44px;
+  height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;

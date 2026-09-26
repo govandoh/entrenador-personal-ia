@@ -32,6 +32,8 @@ export interface ViewPrefs {
   showTips: boolean;
   /** Posición del mini mapa: lado de la pantalla y altura relativa (0 arriba, 1 abajo). */
   miniMap: { side: 'left' | 'right'; y: number };
+  /** Ejercicios (id del catálogo) cuya ficha de técnica ya se vio: la primera vez se abre sola. */
+  seenTechnique: string[];
 }
 
 export const DEFAULT_VIEW: ViewPrefs = {
@@ -39,7 +41,11 @@ export const DEFAULT_VIEW: ViewPrefs = {
   showMiniMap: true,
   showTips: false,
   miniMap: { side: 'left', y: 0.35 },
+  seenTechnique: [],
 };
+
+/** Tope de fichas recordadas (el catálogo tiene 60). */
+const MAX_SEEN = 100;
 
 function readView(v: unknown): ViewPrefs {
   if (typeof v !== 'object' || v === null) return DEFAULT_VIEW;
@@ -52,6 +58,8 @@ function readView(v: unknown): ViewPrefs {
     showTips: bool(o.showTips, DEFAULT_VIEW.showTips),
     miniMap: m && (m.side === 'left' || m.side === 'right') && typeof m.y === 'number' && m.y >= 0 && m.y <= 1
       ? { side: m.side, y: m.y } : DEFAULT_VIEW.miniMap,
+    seenTechnique: Array.isArray(o.seenTechnique)
+      ? o.seenTechnique.filter((x): x is string => typeof x === 'string').slice(-MAX_SEEN) : [],
   };
 }
 
@@ -150,6 +158,10 @@ export const appActions = {
   },
   setView(patch: Partial<ViewPrefs>): void {
     set({ view: { ...state.view, ...patch } });
+  },
+  markTechniqueSeen(exerciseId: string): void {
+    if (state.view.seenTechnique.includes(exerciseId)) return;
+    set({ view: { ...state.view, seenTechnique: [...state.view.seenTechnique, exerciseId].slice(-MAX_SEEN) } });
   },
 };
 

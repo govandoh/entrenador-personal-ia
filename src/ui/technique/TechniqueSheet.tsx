@@ -16,6 +16,10 @@ interface TechniqueSheetProps {
   onClose: () => void;
   /** "Entrenar con asistente" desde el catálogo o el programa; en la preparación no hace falta. */
   showTrainAction?: boolean;
+  /** Primera vez con el ejercicio en el entrenamiento: aviso arriba de la ficha. */
+  firstTime?: boolean;
+  /** Acción principal al pie ("Entendido, empezar"), solo desde el entrenamiento. */
+  primaryAction?: { label: string; onClick?: () => void };
 }
 
 const MUSCLE: Record<string, string> = {
@@ -27,10 +31,10 @@ const MUSCLE: Record<string, string> = {
 /**
  * Ficha de técnica (DEC-043, DEC-061): demostración 3D que se puede ocultar y, debajo,
  * una sola sección visible a la vez (cómo hacerlo, errores, respiración, celular) para no
- * cargar la hoja. El indicador de pestaña se desliza con transform (patrón Direction Aware
+ * cargar la hoja. En el entrenamiento se abre sola la primera vez con cada ejercicio. El indicador de pestaña se desliza con transform (patrón Direction Aware
  * Tabs de Cult UI).
  */
-export function TechniqueSheet({ exerciseId, onClose, showTrainAction = false }: TechniqueSheetProps) {
+export function TechniqueSheet({ exerciseId, onClose, showTrainAction = false, firstTime = false, primaryAction }: TechniqueSheetProps) {
   const exercise = getExercise(exerciseId);
   const tutorial = getTutorial(exerciseId);
   const { view } = useAppState();
@@ -45,9 +49,14 @@ export function TechniqueSheet({ exerciseId, onClose, showTrainAction = false }:
   ];
   const index = Math.max(0, tabs.findIndex(t => t.id === tab));
   const hasDemo = Boolean(getDemo(exerciseId));
+  // Vista desde cualquier lugar (catálogo, programa, entrenamiento): ya no se abre sola.
+  const close = () => { appActions.markTechniqueSeen(exerciseId); onClose(); };
 
   return (
-    <Sheet label={`Técnica: ${exercise.name}`} onClose={onClose}>
+    <Sheet label={`Técnica: ${exercise.name}`} onClose={close} primaryAction={primaryAction}>
+      {firstTime && (
+        <p className="notice notice--indigo" role="note"><IconAssist />Primera vez con este ejercicio: mira cómo se hace antes de empezar.</p>
+      )}
       <header className="technique__head">
         <div>
           <p className="eyebrow">{MUSCLE[exercise.muscleGroup] ?? exercise.muscleGroup} · {exercise.equipmentLabel}</p>
@@ -99,7 +108,8 @@ export function TechniqueSheet({ exerciseId, onClose, showTrainAction = false }:
       <p className="muted technique__disclaimer">{TUTORIAL_DISCLAIMER}</p>
 
       {showTrainAction && exercise.assistant && (
-        <Link className="btn btn--primary btn--block" to={`/entrenar?ex=${exercise.assistant}`}>
+        <Link className="btn btn--primary btn--block" to={`/entrenar?ex=${exercise.assistant}`}
+          onClick={() => appActions.markTechniqueSeen(exerciseId)}>
           <IconPlay />Entrenar con asistente
         </Link>
       )}

@@ -4,6 +4,8 @@ interface SheetProps {
   label: string;
   onClose: () => void;
   children: ReactNode;
+  /** Acción principal junto a "Cerrar" (por ejemplo "Entendido, empezar"); también cierra la hoja. */
+  primaryAction?: { label: string; onClick?: () => void };
 }
 
 /** Distancia o velocidad de arrastre hacia abajo que cierra la hoja. */
@@ -18,7 +20,7 @@ const CLOSE_FALLBACK_MS = 450;
  * hacia abajo, y sale por el mismo camino. El arrastre mueve la hoja con `transform`
  * directamente sobre el elemento, sin renders de React por movimiento.
  */
-export function Sheet({ label, onClose, children }: SheetProps) {
+export function Sheet({ label, onClose, children, primaryAction }: SheetProps) {
   const sheetRef = useRef<HTMLDivElement>(null);
   const scrimRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ y: number; t: number; dy: number } | null>(null);
@@ -90,7 +92,14 @@ export function Sheet({ label, onClose, children }: SheetProps) {
           <div className="sheet__handle" />
         </div>
         {children}
-        <button className="btn btn--ghost btn--block" onClick={close}>Cerrar</button>
+        {primaryAction ? (
+          <div className="sheet__actions">
+            <button className="btn btn--ghost" onClick={close}>Cerrar</button>
+            <button className="btn btn--primary" onClick={() => { primaryAction.onClick?.(); close(); }}>{primaryAction.label}</button>
+          </div>
+        ) : (
+          <button className="btn btn--ghost btn--block" onClick={close}>Cerrar</button>
+        )}
       </div>
     </>
   );

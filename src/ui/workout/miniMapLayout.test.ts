@@ -45,4 +45,21 @@ describe('posición del mini mapa 3D', () => {
     expect(again.x).toBe(59 + EDGE_GAP)
     expect(again.y).toBeGreaterThanOrEqual(TOP_BAR)
   })
+
+  it('se queda debajo del contador (izquierda) y de las herramientas (derecha) si cabe', () => {
+    const floor = 620
+    const ceiling = { left: 300, right: 360 }
+    expect(place({ side: 'left', y: 0 }, phone, panel, island, floor, ceiling).y).toBe(300 + EDGE_GAP)
+    expect(place({ side: 'right', y: 0 }, phone, panel, island, floor, ceiling).y).toBe(360 + EDGE_GAP)
+    const dropped = snap(20, 0, phone, panel, island, floor, ceiling)
+    expect(dropped.y).toBe(300 + EDGE_GAP)
+    expect(dropped.placement.y).toBe(0)
+  })
+
+  it('si no cabe bajo el contador, vuelve a la zona bajo la barra superior', () => {
+    const floor = 420
+    const top = place({ side: 'left', y: 0 }, phone, panel, island, floor, { left: 300, right: 300 })
+    expect(top.y).toBe(59 + TOP_BAR)
+    expect(top.y + panel.height).toBeLessThanOrEqual(floor)
+  })
 })

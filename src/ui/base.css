@@ -535,6 +535,22 @@ a {
   cursor: grab;
 }
 
+/* Acciones fijas al pie de la hoja: se ven sin bajar hasta el final (Video_2 y Video_3). */
+.sheet__actions {
+  position: sticky;
+  bottom: calc(-1 * (var(--safe-bottom) + 24px));
+  margin: 0 calc(-1 * var(--gutter-right)) calc(-1 * (var(--safe-bottom) + 24px)) calc(-1 * var(--gutter-left));
+  padding: var(--space-3) var(--gutter-right) calc(var(--safe-bottom) + 16px) var(--gutter-left);
+  background: var(--color-surface);
+  border-top: 1px solid var(--color-line);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.sheet__actions .btn--ghost { flex: 1 1 96px; }
+.sheet__actions .btn--primary { flex: 2 1 176px; padding: 0 var(--space-4); }
+
 .sheet__handle {
   align-self: center;
   width: 40px;

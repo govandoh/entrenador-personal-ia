@@ -4,7 +4,7 @@ import { getDemo, sampleDemo } from '../../exercises/demoPoses';
 import type { Pose3DHandle } from '../components/Pose3DView';
 import { IconClose } from '../components/icons';
 import { appActions, useAppState } from '../state/appStore';
-import { place, snap, type Box, type Insets } from './miniMapLayout';
+import { place, snap, type Box, type Ceiling, type Insets } from './miniMapLayout';
 
 const Pose3DView = lazy(() => import('../components/Pose3DView'));
 
@@ -20,6 +20,10 @@ interface MiniMap3DProps {
   onHide: () => void;
   /** Cambia cuando cambian los controles de abajo (fase): fuerza a recolocar el panel. */
   layoutKey: string;
+  /** Celular nivelado según el acelerómetro; `null` sin sensor (no se muestra). */
+  levelOk: boolean | null;
+  /** Aviso corto bajo el modelo (por ejemplo, la calibración de pie). */
+  hint: string | null;
 }
 
 /** Áreas seguras resueltas en px (una propiedad CSS con env() no se resuelve al leerla). */
@@ -40,7 +44,7 @@ function readSafeInsets(): Insets {
  * segura, con la curva de cajón (DESIGN.md §6). El arrastre escribe `transform` directo:
  * ningún render de React por movimiento.
  */
-export function MiniMap3D({ ref, demoId, onHide, layoutKey }: MiniMap3DProps) {
+export function MiniMap3D({ ref, demoId, onHide, layoutKey, levelOk, hint }: MiniMap3DProps) {
   const { view } = useAppState();
   const [mode, setMode] = useState<'live' | 'demo'>('live');
   const panelRef = useRef<HTMLElement>(null);
@@ -71,13 +75,20 @@ export function MiniMap3D({ ref, demoId, onHide, layoutKey }: MiniMap3DProps) {
     return () => cancelAnimationFrame(frame);
   }, [mode, demo]);
 
-  const measure = (): { viewport: Box; panel: Box; safe: Insets; floor: number } | null => {
+  const measure = (): { viewport: Box; panel: Box; safe: Insets; floor: number; ceiling: Ceiling } | null => {
     const el = panelRef.current;
     if (!el) return null;
     // Los controles de abajo se marcan con data-minimap-floor; el mini mapa se queda encima.
     const floorEl = document.querySelector('[data-minimap-floor]');
     const floor = floorEl ? floorEl.getBoundingClientRect().top : Infinity;
-    return { viewport: { width: innerWidth, height: innerHeight }, panel: { width: el.offsetWidth, height: el.offsetHeight }, safe: readSafeInsets(), floor };
+    // Lo que no debe tapar arriba se marca con data-minimap-ceiling="left|right" (contador,
+    // herramientas); el mini mapa se queda debajo si cabe.
+    const ceiling: Ceiling = { left: -Infinity, right: -Infinity };
+    for (const c of document.querySelectorAll<HTMLElement>('[data-minimap-ceiling]')) {
+      const side = c.dataset.minimapCeiling;
+      if (side === 'left' || side === 'right') ceiling[side] = Math.max(ceiling[side], c.getBoundingClientRect().bottom);
+    }
+    return { viewport: { width: innerWidth, height: innerHeight }, panel: { width: el.offsetWidth, height: el.offsetHeight }, safe: readSafeInsets(), floor, ceiling };
   };
 
   const apply = (x: number, y: number, animate: boolean) => {
@@ -93,7 +104,7 @@ export function MiniMap3D({ ref, demoId, onHide, layoutKey }: MiniMap3DProps) {
     const relayout = () => {
       const m = measure();
       if (!m) return;
-      const p = place(view.miniMap, m.viewport, m.panel, m.safe, m.floor);
+      const p = place(view.miniMap, m.viewport, m.panel, m.safe, m.floor, m.ceiling);
       apply(p.x, p.y, false);
     };
     relayout();
@@ -120,7 +131,7 @@ export function MiniMap3D({ ref, demoId, onHide, layoutKey }: MiniMap3DProps) {
     drag.current = null;
     const m = measure();
     if (!m) return;
-    const s = snap(pos.current.x, pos.current.y, m.viewport, m.panel, m.safe, m.floor);
+    const s = snap(pos.current.x, pos.current.y, m.viewport, m.panel, m.safe, m.floor, m.ceiling);
     apply(s.x, s.y, !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches);
     appActions.setView({ miniMap: s.placement });
   }
@@ -148,6 +159,11 @@ export function MiniMap3D({ ref, demoId, onHide, layoutKey }: MiniMap3DProps) {
           <Pose3DView ref={poseRef} className="pose3d" initialRotation={demo?.initialRotation ?? 0}
             label={mode === 'live' ? 'Tu esqueleto en 3D en tiempo real. Arrastra para girarlo.' : 'Modelo de ejemplo en 3D. Arrastra para girarlo.'} />
         </Suspense>
+        {/* Estado del celular y de la calibración encima del modelo; no captan toques (el modelo se gira). */}
+        {levelOk !== null && (
+          <span className="minimap__badge" data-ok={levelOk}>{levelOk ? 'Nivelado' : 'Inclinado'}</span>
+        )}
+        {hint && mode === 'live' && <span className="minimap__hint">{hint}</span>}
       </div>
       {/* Un solo interruptor (y no dos opciones) para que quepa con 40 px de alto en 320 px de ancho. */}
       {demo && (

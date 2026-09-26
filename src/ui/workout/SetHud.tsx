@@ -57,7 +57,7 @@ export function SetHud({ ex, hud, target, engine3D, onFinish, onCancel, tips }: 
         <span className="island__text">{hud.message}</span>
       </div>
 
-      <div className="hud__counter" aria-live="polite">
+      <div className="hud__counter" aria-live="polite" data-minimap-ceiling="left">
         <span key={hud.reps} className="display-number hud__reps">{hud.reps}</span>
         <span className="hud__of">
           {timed ? <span>segundos</span> : <><strong>/ {target}</strong><span>repeticiones</span></>}

@@ -105,3 +105,6 @@ export function FitnetMark({ size = 32 }: { size?: number }) {
     </svg>
   );
 }
+export const IconHelp = () => (
+  <Stroke><circle cx="12" cy="12" r="9" /><path d="M9.5 9.5a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6" /><circle cx="12" cy="17" r="0.6" fill="currentColor" /></Stroke>
+);
