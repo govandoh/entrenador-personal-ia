@@ -102,6 +102,11 @@ export class StandingCalibrator {
     this.learning = enabled;
   }
 
+  /** Avance de la calibración de 0 a 1: tiempo de pie acumulado sobre el necesario. */
+  get progress(): number {
+    return Math.min(1, this.standingMs / MIN_STANDING_MS);
+  }
+
   get calibrated(): boolean {
     return this.axis !== null && this.standingMs >= MIN_STANDING_MS;
   }

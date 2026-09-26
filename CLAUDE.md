@@ -23,6 +23,8 @@ Todo el contexto del proyecto, las reglas duras, la propiedad por workstream y l
 | `/fixture` | Guía para grabar con `?debug=record`, nombrar, validar el esquema v1, registrar el fixture y crear su golden. | Al añadir un ejercicio, vista de cámara o caso de error. |
 | `/promote-model` | Verifica el reporte contra `ml/thresholds.yaml` y el `sha256`, actualiza `models/manifest.json` y exige DEC. | Solo en ramas `adr/*` o `contracts/*`, con reporte aprobado. |
 | `/pr-ready` | Corre lint/typecheck/test/build, revisa el diff, exige DEC si toca rutas protegidas y arma el cuerpo del PR. | Antes de abrir cualquier PR. |
+| `/fitnet-diseno` | Aplica la identidad visual y el sistema de movimiento de `docs/DESIGN.md` (`DEC-058`) y dice qué skill de animación usar. | Antes de tocar cualquier pantalla, componente o animación. |
+| `/animate`, `/review-animations`, `/improve-animations`, `/find-animation-opportunities`, `/emil-design-eng`, `/mobile-native`, `/pick-ui-library`, `/animation-vocabulary` | Skills de Emil Kowalski (MIT, `.claude/skills/THIRD-PARTY.md`) para construir, revisar y auditar movimiento y pulido móvil. | Siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen (sin librerías nuevas, tokens, presupuesto de la cámara). |
 
 ## Hooks (`.claude/settings.json` + `.claude/hooks/*.mjs`)
 
@@ -47,9 +49,9 @@ Antes de editar, ubica la historia en esta tabla; si no encaja en una sola fila,
 | Historia | Directorio hoy (`src/`) | Directorio objetivo | Workstream / agente | Necesita DEC |
 |---|---|---|---|---|
 | Ajustar un umbral angular o el cooldown de un tracker | `src/exercises/*.ts` | `packages/analysis-core` | B / `analysis-dev` | Sí (cambia golden) |
-| Añadir un ejercicio nuevo | `src/exercises/` + chip en `CameraView.tsx` | `analysis-core` (tracker) + `contracts` (`ExerciseId`) + `ui` (chip) | B + E; contrato → issue + DEC | Sí |
+| Añadir un ejercicio nuevo | `src/exercises/` + `src/ui/workout/exercises.ts` | `analysis-core` (tracker) + `contracts` (`ExerciseId`) + `ui` (chip) | B + E; contrato → issue + DEC | Sí |
 | Añadir un ejercicio al asistente (ola de `DEC-056`) | `src/exercises/` (configuración) + ejemplos del k-NN (`src/analysis/poseClassifier.ts`) | `analysis-core` + `ml/` (datos) | B (+ C para grabar y etiquetar) | Solo si los umbrales cambian golden |
-| Cambiar la frase de voz o la prioridad entre mensajes | `CameraView.tsx` l.146-188 | `analysis-core/feedback` (`FeedbackPolicy`) | B | Si cambia DEC-016 |
+| Cambiar la frase de voz o la prioridad entre mensajes | `src/feedback/feedbackPolicy.ts` + `src/ui/workout/coaching.ts` | `analysis-core/feedback` (`FeedbackPolicy`) | B | Si cambia DEC-016 |
 | Conservar `worldLandmarks` o cambiar el modelo de MediaPipe | `src/pose/poseDetector.ts` | `packages/pose-engine` | A / `pose-engine-dev` | Sí si cambia versión/modelo |
 | Grabar o añadir un fixture | — (PR 1) | `fixtures/landmarks/` + `*.test.ts` | A (fixture) y B (golden) | No |
 | Pantalla nueva, estilos, onboarding, PWA | `src/ui/`, `public/` | `apps/web`, `packages/ui` | E / `ui-dev` | No, salvo dependencia nueva |

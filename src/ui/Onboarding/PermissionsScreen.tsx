@@ -10,7 +10,7 @@ export function PermissionsScreen({ onNext }: Props) {
       stream.getTracks().forEach(t => t.stop());
     } catch {
       // El usuario denegó o el dispositivo no tiene cámara.
-      // Dejamos continuar igual — CameraView manejará el error con mensaje claro.
+      // Dejamos continuar igual — la pantalla de entrenamiento manejará el error con mensaje claro.
     }
 
     // Solicita permiso de notificaciones (opcional)
@@ -36,10 +36,10 @@ export function PermissionsScreen({ onNext }: Props) {
         <div className="ob-perm-card">
           <div className="ob-perm-ico cam">
             <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-              <rect x="1" y="5" width="24" height="18" rx="4" stroke="#30D158" strokeWidth="2" />
-              <circle cx="13" cy="14" r="5" stroke="#30D158" strokeWidth="2" />
-              <circle cx="13" cy="14" r="2" fill="#30D158" />
-              <rect x="9" y="2" width="8" height="4" rx="2" fill="#30D158" />
+              <rect x="1" y="5" width="24" height="18" rx="4" stroke="var(--color-volt)" strokeWidth="2" />
+              <circle cx="13" cy="14" r="5" stroke="var(--color-volt)" strokeWidth="2" />
+              <circle cx="13" cy="14" r="2" fill="var(--color-volt)" />
+              <rect x="9" y="2" width="8" height="4" rx="2" fill="var(--color-volt)" />
             </svg>
           </div>
           <div className="ob-perm-info">
@@ -56,9 +56,9 @@ export function PermissionsScreen({ onNext }: Props) {
           <div className="ob-perm-ico bell">
             <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
               <path d="M13 3C9.1 3 6 6.1 6 10v6l-2 3h18l-2-3v-6c0-3.9-3.1-7-7-7z"
-                stroke="#34AADC" strokeWidth="2" strokeLinejoin="round" />
+                stroke="var(--color-indigo-text)" strokeWidth="2" strokeLinejoin="round" />
               <path d="M10.5 22c0 1.4 1.1 2.5 2.5 2.5s2.5-1.1 2.5-2.5"
-                stroke="#34AADC" strokeWidth="2" strokeLinecap="round" />
+                stroke="var(--color-indigo-text)" strokeWidth="2" strokeLinecap="round" />
             </svg>
           </div>
           <div className="ob-perm-info">
@@ -75,7 +75,7 @@ export function PermissionsScreen({ onNext }: Props) {
       <p className="ob-privacy">
         <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
           <path d="M7 1L2 3v4c0 3 2.2 5.5 5 6.4C9.8 12.5 12 10 12 7V3L7 1z"
-            stroke="#6e6e73" strokeWidth="1.3" strokeLinejoin="round" />
+            stroke="var(--color-text-muted)" strokeWidth="1.3" strokeLinejoin="round" />
         </svg>
         Todo el procesamiento ocurre en tu dispositivo. Sin servidores.
       </p>

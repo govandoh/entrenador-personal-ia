@@ -1,7 +1,7 @@
 /**
  * Grabación de fixtures de landmarks desde la app (`?debug=record`).
  *
- * Toda la lógica del modo grabación vive aquí para que `CameraView` solo tenga que
+ * Toda la lógica del modo grabación vive aquí para que la pantalla de entrenamiento (`WorkoutScreen`) solo tenga que
  * acumular frames y pintar un botón. Fuera del flag nada de esto se ejecuta.
  *
  * El archivo descargado cumple el esquema v1 (ver `fixtures/landmarks/SCHEMA.md`).

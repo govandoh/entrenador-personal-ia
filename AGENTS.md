@@ -15,14 +15,15 @@ PWA mobile-first de entrenamiento con análisis de movimiento en tiempo real. La
 | `src/pose/camera.ts` | `startCamera`/`stopCamera` con `getUserMedia`. | — |
 | `src/pose/poseDetector.ts` | Singleton `PoseLandmarker` (lite, `delegate: 'GPU'`), `detectAndDraw()` detecta **y** dibuja. | Descarta `result.worldLandmarks` (3D); mezcla detección y render. |
 | `src/geometry/angles.ts` | `calculateAngle(A,B,C)` con `atan2`, tipo `Point2D` (2D, el que usa producción). | — |
-| `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` | Motor 3D puro traído de fitnetv2 (I-1 de `DEC-054`): ángulos 3D, filtro One Euro, nivelación por gravedad, calibración de pie, vector de rasgos del k-NN. Con tests. | Sin conectar a la UI hasta I-2/I-3. |
-| `src/analysis/` | `movementQuality`, `fatigue`, `messages`, `cycleDetector`, `framePipeline` (DEC-057), `poseClassifier` + `knnDataset` (k-NN y LOSO, `DEC-055`). Workstream B. Con tests. | El motor 3D solo corre con `?engine=3d` hasta validarlo en celular. |
+| `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` | Motor 3D puro traído de fitnetv2 (I-1 de `DEC-054`): ángulos 3D, filtro One Euro, nivelación por gravedad, calibración de pie, vector de rasgos del k-NN. Con tests. | — |
+| `src/analysis/` | `movementQuality`, `fatigue`, `messages`, `cycleDetector`, `framePipeline` (DEC-057), `setSummary` (resumen de serie), `poseClassifier` + `knnDataset` (k-NN y LOSO, `DEC-055`). Workstream B. Con tests. | Sentadilla, curl y press usan el motor 3D solo con `?engine=3d`; la ola 1 siempre (DEC-059). |
 | `src/exercises/{tracker3d,definitions3d,plankTracker,demoPoses}.ts` | Motor de conteo 3D configurable (DEC-057): sentadilla, curl, press y ola 1 (flexiones, zancadas, puente, plancha). | Umbrales de la ola 1 sin calibrar con personas. |
 | `src/feedback/feedbackPolicy.ts` | Política de voz de DEC-016 (PR 4), compartida por los dos motores. | — |
-| `src/domain/{catalog,routineGenerator}.ts` | Catálogo de 60 ejercicios con etiquetas de equipo (DEC-040/056) y generador de rutinas por reglas (DEC-056). Workstream D. | Sin pantallas todavía (pasos I-4/I-5). |
+| `src/domain/{catalog,routineGenerator,tutorials,sessionHistory,payment}.ts` | Catálogo de 60 ejercicios (DEC-040/056), generador de rutinas por reglas (DEC-056), fichas de técnica (DEC-043/061), historial y estadísticas del día, puerto de pagos con `MockPaymentProvider` (regla dura 8). Workstream D. | El historial vive en `localStorage` hasta `api-client`. |
 | `src/exercises/{squat,bicepCurl,shoulderPress}.ts` | Trackers con histéresis y gate de confirmación. | Sin interfaz común (`atBottom`/`atTop`/`atPeak`); constantes en frames a 60 fps (`REP_COOLDOWN_FRAMES=15`, `MIN_RISING_FRAMES=3`); `ArmTracker` y `ArmPressTracker` son el mismo detector con polaridad invertida. |
-| `src/ui/CameraView.tsx` (299 líneas) | Cámara, loop RAF, selector de ejercicio, reglas de voz. | `if/else` por ejercicio (l. 138-142) y política de voz de DEC-016 inline (l. 146-188); `setState` por frame. |
-| `src/ui/ExerciseOverlay.tsx`, `useSpeech.ts`, `Onboarding/` | Overlay DOM, voz `es-ES`, onboarding de 4 pantallas. | — |
+| `src/ui/workout/` | Pantalla de entrenamiento (DEC-058): `WorkoutScreen` (cámara, bucle, fases preparación/serie/resumen), `PrepPanel` (nivelador), `SetHud` (isla de aviso, contador), `SetSummaryView`, `coaching.ts` (frases y estrategia de voz), `exercises.ts` (motor por ejercicio, DEC-059), `MiniMap3D` + `miniMapLayout.ts` (mini mapa arrastrable), `bodyView.ts` (vista del cuerpo) y `SetTips` (DEC-061). | `WorkoutScreen` concentra cámara, bucle y fases; las frases de técnica usan umbrales de los contadores. |
+| `src/ui/technique/`, `src/ui/components/Pose3DView.tsx` | Ficha de técnica en hoja inferior (demo 3D, pestañas) y visor three.js con órbita y zoom, siempre lazy (DEC-039/061). | El mini mapa comparte la GPU con MediaPipe; falta medir fps en gama baja. |
+| `src/ui/{tokens.css,base.css,AppShell.tsx,screens/,components/,state/}`, `useSpeech.ts`, `Onboarding/` | Identidad y tokens (DEC-058, `docs/DESIGN.md`), navegación inferior con HashRouter (DEC-042), pantallas Hoy, Rutinas, Ejercicios, Perfil y Cuestionario, hoja Premium simulada, estado local validado, voz `es-ES`, bienvenida. | — |
 | `public/sw.js`, `public/manifest.json` | PWA manual (network-first HTML, cache-first assets). | — |
 | `docs/academico/` | Entregables del curso (histórico, no se edita). | — |
 
@@ -48,7 +49,7 @@ Hasta que exista `packages/`, las mismas fronteras aplican a `src/pose` (A), `sr
 
 ## Reglas duras vigentes
 
-1. **Mobile-first.** La prueba real es en celular (Android Chrome, iOS Safari). No se desarrolla para webcam de escritorio ni hay app nativa.
+1. **Mobile-first.** La prueba real es en celular (Android Chrome, iOS Safari). No se desarrolla para webcam de escritorio ni hay app nativa. La app debe ser responsiva y funcional en cualquier tamaño de celular, en vertical y en horizontal, respetando notch, Dynamic Island y barra de gestos (`DEC-060`, `docs/DESIGN.md` §7): áreas seguras solo con los tokens `--safe-*`, pantallas con scroll real y `scripts/audit-responsive.cjs` sin problemas antes de pedir revisión.
 2. **El video nunca sale del dispositivo.** A la nube solo viajan landmarks y métricas estructuradas, con consentimiento explícito por grabación (`docs/DATA-GOVERNANCE.md`).
 3. **No exponer claves.** API keys (Claude, pagos, service-role) viven solo en Edge Functions o secretos de CI. Nunca en el bundle ni en el repo.
 4. **Español en UI y documentación entregable; identificadores de código en inglés.** Sin emojis en docs ni código.
@@ -99,6 +100,7 @@ apps/web importa todo; nada importa apps/web
 | Necesito… | Archivo |
 |---|---|
 | Visión, alcance, freemium, roadmap | `docs/PRODUCT.md` |
+| Identidad visual, tokens, componentes y movimiento | `docs/DESIGN.md` |
 | Pipeline actual y objetivo, contratos, tabla de migración por PR | `ARCHITECTURE.md` |
 | Por qué se decidió algo | `docs/adr/README.md` (índice), `DECISIONS.md` (acceso rápido) |
 | Definición formal de una métrica | `docs/METRICS.md` |

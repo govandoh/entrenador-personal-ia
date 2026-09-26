@@ -1,0 +1,100 @@
+/*
+ * Tokens de diseño de Fitnet (DEC-058). Fuente de verdad: docs/DESIGN.md.
+ * Ningún componente escribe un color, una curva o una duración fuera de aquí.
+ */
+
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 400; font-display: swap; src: url('./fonts/barlow-400-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 500; font-display: swap; src: url('./fonts/barlow-500-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/barlow-600-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/barlow-700-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 600; font-display: swap; src: url('./fonts/barlow-condensed-600-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: normal; font-weight: 700; font-display: swap; src: url('./fonts/barlow-condensed-700-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: italic; font-weight: 700; font-display: swap; src: url('./fonts/barlow-condensed-700-italic-latin.woff2') format('woff2'); }
+@font-face { font-family: 'Barlow Condensed'; font-style: italic; font-weight: 800; font-display: swap; src: url('./fonts/barlow-condensed-800-italic-latin.woff2') format('woff2'); }
+
+:root {
+  color-scheme: dark;
+
+  /* Color */
+  --color-ink: #0b0e14;
+  --color-ink-camera: #0f131b;
+  --color-surface: #141925;
+  --color-surface-2: #1d2433;
+  --color-line: #2a3345;
+  --color-text: #eef1f7;
+  --color-text-muted: #9aa4b8;
+  --color-volt: #d7ff3a;
+  --color-volt-hover: #e6ff7a;
+  --color-indigo: #7b6cff;
+  --color-indigo-text: #a99fff;
+  --color-amber: #ffb547;
+  --color-coral: #ff6b57;
+  --color-black: #000000;
+
+  /* Fondos tintados de estado */
+  --tint-volt: rgba(215, 255, 58, 0.14);
+  --tint-indigo: rgba(123, 108, 255, 0.2);
+  --tint-amber: rgba(255, 181, 71, 0.16);
+  --tint-coral: rgba(255, 107, 87, 0.16);
+  --scrim: rgba(0, 0, 0, 0.55);
+  --glass: rgba(11, 14, 20, 0.66);
+  --glass-strong: rgba(20, 25, 37, 0.94);
+  --dot-grid: rgba(154, 164, 184, 0.12);
+  --shine: inset 0 1px 0 rgba(238, 241, 247, 0.06);
+  --bevel: inset 0 -3px 0 rgba(11, 14, 20, 0.22);
+
+  /* Tipografía */
+  --font-body: 'Barlow', system-ui, sans-serif;
+  --font-display: 'Barlow Condensed', system-ui, sans-serif;
+  --text-caption: 13px;
+  --text-small: 14px;
+  --text-body: 16px;
+  --text-lead: 17px;
+  --text-button: 21px;
+  --text-card-title: 28px;
+  --text-screen-title: 44px;
+  --text-counter: 132px;
+
+  /*
+   * Áreas seguras (notch, Dynamic Island, barra de gestos, esquinas redondeadas). Toda la
+   * app las lee de aquí: con viewport-fit=cover el contenido llega hasta los bordes y cada
+   * contenedor fijo o de pantalla completa debe apartarse de estas zonas (DEC-060).
+   */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+
+  /* Espacio y forma */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --gutter: 18px;
+  /* Margen lateral que respeta el notch en horizontal. */
+  --gutter-left: max(var(--gutter), var(--safe-left));
+  --gutter-right: max(var(--gutter), var(--safe-right));
+  --radius-pill: 9px;
+  --radius-chip: 12px;
+  --radius-button: 18px;
+  --radius-card: 22px;
+  --radius-card-lg: 26px;
+  --radius-island: 24px;
+  --radius-sheet: 28px;
+  --touch: 44px;
+  --button-height: 54px;
+  --nav-height: 64px;
+
+  /* Movimiento (docs/DESIGN.md, sección 6) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 140ms;
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-sheet: 380ms;
+  --dur-fade: 150ms;
+  --stagger: 40ms;
+}

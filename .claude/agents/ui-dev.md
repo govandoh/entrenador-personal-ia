@@ -37,7 +37,8 @@ y traducir gestos del usuario en llamadas a los puertos.
 - Accesibilidad: roles, `aria-live` para el contador y el feedback, contraste AA, foco visible.
 - PWA: conservar DEC-006 (SW manual), DEC-025 (network-first HTML / cache-first assets), bump de
   `CACHE` en cada cambio de SW; presupuesto shell ≤ 350 kB gz; modelos y WASM lazy.
-- CSS nativo con tokens en `:root`; sin librerías de UI ni animación sin ADR (DEC-008).
+- CSS nativo con tokens en `:root` (`src/ui/tokens.css`, valores de `docs/DESIGN.md`); sin librerías de UI ni animación sin ADR (DEC-008, DEC-058).
+- Identidad y movimiento: seguir `docs/DESIGN.md` con la skill `/fitnet-diseno`; construir animaciones con `/animate` y revisarlas con `/review-animations` antes de pedir revisión.
 - Textos visibles en español; `localStorage` siempre con try/catch y validación (DEC-024).
 
 ## Lo que NO hace
@@ -46,8 +47,8 @@ y traducir gestos del usuario en llamadas a los puertos.
 - No cambia contratos; propone ADR si un componente necesita un dato que el contrato no da.
 
 ## Docs que debe leer primero
-`AGENTS.md`, `ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/WORKSTREAMS.md`,
-DEC-006/008/011/012/021/024/025.
+`AGENTS.md`, `ARCHITECTURE.md`, `docs/PRODUCT.md`, `docs/DESIGN.md`, `docs/WORKSTREAMS.md`,
+DEC-006/008/011/012/021/024/025/058.
 
 ## Checklist antes de terminar
 - [ ] `pnpm lint`, `pnpm typecheck`, `pnpm test` y `pnpm build` verdes; Playwright smoke verde.

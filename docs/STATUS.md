@@ -2,7 +2,7 @@
 
 > Documento vivo. Lo actualiza quien cierra un PR que cambie el hito, el estado de la migración o una decisión (o el agente `docs-keeper`). No contiene reglas ni arquitectura: ver `AGENTS.md` y `ARCHITECTURE.md`.
 
-**Última actualización:** 2026-09-24 (tarde)
+**Última actualización:** 2026-09-26 (ajustes de la técnica en 3D tras los videos de referencia)
 
 ## Hito actual: Sprint 0 — Fundación
 
@@ -14,12 +14,16 @@ El MVP académico (`entrenador-personal-ia`, curso IA26, entregado el 22/05/2026
 | Capa agéntica | `.claude/agents/*` (10), `.claude/skills/{adr,fixture,pr-ready,promote-model}`, `.claude/hooks/*.mjs` + `settings.json`, `.claude/README.md`, `.github/CODEOWNERS`, plantillas de PR e issues | **Mergeado en `main`** |
 | Fundación documental | ADRs (migración DEC-001..025 + DEC-026..033), `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `docs/*`, `README.md`, `CONTRIBUTING.md`, `docs/academico/` | **Mergeado en `main`** |
 | PR 1 — fixtures y golden | Flag `?debug=record`, esquema v1 (`fixtures/landmarks/SCHEMA.md`), generador determinista, 10 fixtures sintéticos, helper de replay y 32 golden tests con snapshots | **Mergeado en `main`** |
-| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts` | PR #40, **sin mergear** |
-| Motor 3D detrás de `?engine=3d` (I-2 + I-3, `DEC-057`) | `CycleDetector`, `Tracker3D` + definiciones, `FramePipeline` (One Euro → gravedad → calibración → contador), adaptador del acelerómetro con permiso de iOS; defectos de fitnetv2 corregidos. Sin el flag, producción no cambia | PR #40, **sin probar en celular** |
-| Ola 1 del asistente (#39) | Flexiones, zancadas, puente de glúteo (definiciones 3D) y plancha (`PlankTracker`, isométrico), con demos 3D y chips en el modo 3D | PR #40; umbrales sin calibrar con personas |
-| PR 4 — `FeedbackPolicy` (#13) | Política de voz de DEC-016 extraída de `CameraView` a `src/feedback/`, compartida por los dos motores | PR #40 |
-| Grabación por guion y k-NN (#16, #36) | `?debug=record&cond=…&view=…&subject=…` guarda condición, sujeto y gravedad por frame; `pnpm knn <carpeta>` construye el modelo y lo evalúa LOSO | PR #40; faltan las grabaciones |
-| Catálogo y generador de rutinas (#35) | `src/domain/catalog.ts` (60 ejercicios con etiquetas de equipo) y `routineGenerator.ts` (cuestionario → rutina, progresión de 8 semanas, semana 1 libre) | PR #40; sin pantallas |
+| Integración de fitnetv2, paso I-1 (`DEC-054`) + k-NN (`DEC-055`) | Motor puro en `src/geometry/{vectors3d,landmarkFilter,gravityAlign,standingCalibration,poseEmbedding}.ts` y `src/analysis/{movementQuality,fatigue,messages,poseClassifier}.ts`, `src/exercises/demoPoses.ts`, `src/testing/syntheticMotion.ts` | PR #40, **mergeado en `main`** |
+| Motor 3D detrás de `?engine=3d` (I-2 + I-3, `DEC-057`) | `CycleDetector`, `Tracker3D` + definiciones, `FramePipeline` (One Euro → gravedad → calibración → contador), adaptador del acelerómetro con permiso de iOS; defectos de fitnetv2 corregidos. Sin el flag, producción no cambia | Mergeado (PR #40); el equipo ya lo vio en el preview, falta el informe de prueba por ejercicio y celular |
+| Ola 1 del asistente (#39) | Flexiones, zancadas, puente de glúteo (definiciones 3D) y plancha (`PlankTracker`, isométrico), con demos 3D y chips en el modo 3D | Mergeado (PR #40); umbrales sin calibrar con personas |
+| PR 4 — `FeedbackPolicy` (#13) | Política de voz de DEC-016 extraída de `CameraView` a `src/feedback/`, compartida por los dos motores | Mergeado (PR #40) |
+| Grabación por guion y k-NN (#16, #36) | `?debug=record&cond=…&view=…&subject=…` guarda condición, sujeto y gravedad por frame; `pnpm knn <carpeta>` construye el modelo y lo evalúa LOSO | Mergeado (PR #40); faltan las grabaciones |
+| Catálogo y generador de rutinas (#35) | `src/domain/catalog.ts` (60 ejercicios con etiquetas de equipo) y `routineGenerator.ts` (cuestionario → rutina, progresión de 8 semanas, semana 1 libre) | Mergeado (PR #40); sin pantallas |
+| Identidad visual y movimiento (`DEC-058`) | `docs/DESIGN.md`, `src/ui/tokens.css`, skill `fitnet-diseno` y 8 skills de Emil Kowalski en `.claude/skills/`; bienvenida, navegación y pantallas con la identidad nueva | PR de la Fase 1 (UI), **sin probar en celular** |
+| Pantallas de la Fase 1 (I-4 parcial, I-5, #34, #35) | Hoy (anillo de 33 nodos, semana, racha, fatiga), cuestionario de 4 pasos, programa de 8 semanas con semana 1 libre y Premium simulado (`MockPaymentProvider`), catálogo con filtros, perfil; historial local de series | PR de la Fase 1 (UI) |
+| Entrenamiento con asistente (`DEC-058`, `DEC-059`) | Preparación con nivelador de burbuja y arranque automático, isla de aviso, contador, métricas, resumen de serie con velocidad y fatiga; la ola 1 usa el motor 3D sin flag | PR de la Fase 1 (UI); sentadilla, curl y press siguen en 2D |
+| Técnica en 3D y mini mapa (`DEC-061`) | Ficha de técnica de los 60 ejercicios (pasos, errores, respiración, colocación del celular) con demo 3D de 33 puntos que se gira en todas direcciones; mini mapa 3D arrastrable en el entrenamiento (en vivo o ejemplo); consejos plegables durante la serie; preferencias de vista guardadas; ficha que se abre sola la primera vez con "Entendido, empezar", botón de técnica durante la serie (pausa el conteo), "Nivelado" en el mini mapa y vista del cuerpo en la barra superior | PR de la Fase 1 (UI), **sin probar en celular**; falta medir fps con el mini mapa en gama baja |
 | Tablero | 29 issues con etiquetas e hitos (ver abajo). El GitHub Project no se creó: el token de `gh` no tiene el scope `project` (issue #21) | Parcial |
 
 ## Tablero de issues
@@ -58,6 +62,10 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 | DEC | Decisión |
 |---|---|
+| DEC-061 | Ficha de técnica con demo 3D (pestañas Pasos, Errores, Respiración, Celular), mini mapa 3D arrastrable durante el entrenamiento y preferencias de vista en el almacenamiento local. |
+| DEC-060 | Responsive y áreas seguras como regla: matriz de 7 tamaños Android/iOS con notch y Dynamic Island, tokens `--safe-*`, `scripts/audit-responsive.cjs`. |
+| DEC-059 | La ola 1 (flexiones, zancadas, puente, plancha) usa el motor 3D sin flag; sentadilla, curl y press siguen en 2D hasta el issue #33. |
+| DEC-058 | Identidad "la red de 33 puntos" (tema oscuro, Voltaje e Índigo, anillo de 33 nodos), movimiento en CSS con las reglas de Emil Kowalski y patrones de Cult UI sin dependencias. Reemplaza la sección de diseño de DEC-008. |
 | DEC-054 | Este repositorio es la base; fitnetv2 entra en cinco pasos por workstream (I-1 motor puro, hecho; I-2 trackers 3D; I-3 detector y sensores; I-4 UI; I-5 cuestionario y paywall). |
 | DEC-055 | Núcleo de IA: k-NN de posturas (después MLP) en TypeScript puro, sin TF.js ni ONNX; datos propios con etiqueta por guion; ST-GCN++ preentrenado como experimento de ≤ 3 días. Reemplaza la Fase 2 de DEC-034. |
 | DEC-056 | Rutina personalizada: cuestionario libre, generador determinista por reglas, catálogo de fitnetv2 con asistente por olas, programa completo premium con `MockPaymentProvider`. |
@@ -77,16 +85,16 @@ Los golden del PR 1 documentan cinco sensibilidades del análisis por reglas (de
 
 ## Próximos pasos (Sprint 1)
 
-Siguen el orden de `DEC-054`. Tests: 271 en verde (antes 32).
+Siguen el orden de `DEC-054`. Tests: 289 en verde (antes 32).
 
 1. **Probar el motor 3D en celulares** (Android e iOS) con `?engine=3d`: conteo de los 7 ejercicios, nivelación con el sensor (botón "Nivelar con el sensor" en iPhone), avisos de forma. Es el requisito para que el 3D pase a ser el predeterminado (`DEC-057`).
-2. Revisar y mergear el PR #40.
+2. **Probar el PR de la Fase 1 (UI) en celular**: bienvenida, cuestionario, programa y Premium simulado, catálogo, y una serie completa de cada ejercicio con el nivelador y el resumen.
 3. **Grabación por guion con el equipo** (`docs/ML-PIPELINE.md` §1): primero los 5 integrantes, luego voluntarios — issue #16. Con 2 o más sujetos, `pnpm knn <carpeta>` da el primer reporte LOSO — issue #36.
 4. **Predeterminar el motor 3D**: DEC propia, fixtures con `world` para los golden y retiro de los contadores 2D — issue #33.
 5. PR 2 (`src/contracts/`, issue #11): requiere una rama `contracts/*`. Tipos candidatos: `ExerciseDefinition3D`, `Tracker3DResult` y `FrameInput`, ya estables en el código.
 6. PR 3: separar detección y dibujo (`CameraPoseSource` + `ReplayPoseSource`) — issue #12. La parte de sensores ya está.
-7. **I-4 (E + D):** pantallas de fitnetv2 (catálogo, rutinas, editor, modo manual, perfil, tutoriales, `Pose3DView` lazy, router) — issue #34.
-8. **I-5 (D + E):** pantallas del cuestionario y del paywall simulado sobre `routineGenerator` — issue #35.
+7. **I-4 (E + D), lo que falta:** editor de rutinas, modo manual para ejercicios sin cámara, tutoriales, logros del perfil y `Pose3DView` lazy — issue #34. Catálogo, programa, perfil y router ya están.
+8. **I-5 (D + E):** hecho en el PR de la Fase 1 (UI); falta el calendario con recordatorios — issue #35.
 9. Experimento con ST-GCN++ preentrenado (≤ 3 días), cuando exista el dataset mínimo — issue #37; datasets públicos — issue #38.
 
 Detalle de cada PR y su red de seguridad: `ARCHITECTURE.md` §2.4.
