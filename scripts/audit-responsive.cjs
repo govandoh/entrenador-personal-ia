@@ -165,16 +165,32 @@ async function withSafe(ctx, dev) {
       await page.waitForTimeout(300);
     }
 
-    // Entrenamiento: preparación, serie y resumen.
+    // Entrenamiento: preparación, serie y resumen. Con MediaPipe y WebGL por software el hilo
+    // principal va cargado y el clic de Playwright no confirma a tiempo: se toca con un clic de DOM.
+    const tap = async (name, label) => {
+      const b = page.getByRole('button', { name, exact: true });
+      if (!(await b.count())) { all.push(`[${dev.name}] ${label}: no aparece el botón ${name}`); return; }
+      await b.first().evaluate(el => el.click());
+    };
     await page.goto(BASE + '#/entrenar?ex=squat'); await page.waitForTimeout(9000);
+    // La primera vez con el ejercicio la ficha de técnica se abre sola (DEC-061).
+    all.push(...await audit(page, dev, 'entrenar-ficha-primera-vez'));
+    await tap('Entendido, empezar', 'entrenar-ficha-primera-vez');
+    await page.waitForTimeout(800);
     all.push(...await audit(page, dev, 'entrenar-preparacion'));
-    await page.getByRole('button', { name: 'Empezar serie' }).click({ timeout: 3000 }).catch(() => {});
+    await tap('Empezar serie', 'entrenar-preparacion');
     await page.waitForTimeout(800);
     all.push(...await audit(page, dev, 'entrenar-serie'));
-    await page.getByRole('button', { name: 'Mostrar consejos' }).click({ timeout: 3000 }).catch(() => {});
+    await tap('Técnica del ejercicio', 'entrenar-serie');
+    // La hoja entra en 380 ms, pero con el hilo cargado tarda más: se espera a que termine.
+    await page.waitForTimeout(2500);
+    all.push(...await audit(page, dev, 'entrenar-serie-ficha'));
+    await tap('Seguir con la serie', 'entrenar-serie-ficha');
+    await page.waitForTimeout(800);
+    await tap('Mostrar consejos', 'entrenar-serie');
     await page.waitForTimeout(500);
     all.push(...await audit(page, dev, 'entrenar-serie-consejos'));
-    await page.getByRole('button', { name: 'Terminar serie' }).click({ timeout: 3000 }).catch(() => {});
+    await tap('Terminar serie', 'entrenar-serie-consejos');
     await page.waitForTimeout(800);
     all.push(...await audit(page, dev, 'entrenar-resumen'));
     await ctx.close();
