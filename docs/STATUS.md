@@ -12,16 +12,15 @@ La Fase 1 está en `main` (PRs #40 y #41, detalle en `docs/CHANGELOG.md`). 289 t
 
 ## Reparto del sprint
 
-Una persona por workstream y carpetas exclusivas. Los usuarios de GitHub se asignan al cerrar #18.
+Una persona por workstream y carpetas exclusivas. Cada issue tiene su brief (qué falta, archivos, criterio de aceptación) y su asignado.
 
 | Dev | Workstream | Issues, en orden | Carpetas exclusivas | Depende de |
 |---|---|---|---|---|
-| A | Pose y captura | #12 → #15 (fixtures reales con `world`) | `src/pose/**`, `fixtures/` | — |
-| B | Análisis | #11 (rama `contracts/*`) → #33 (golden, requiere DEC) | `src/exercises/**`, `src/geometry/**`, `src/analysis/**`, `src/feedback/**`, `src/contracts/` | #33 espera #15 y las pruebas en celular |
-| C | ML | #38 → #16 (protocolo, con A) → #36 | `ml/` (nueva) | #36 necesita grabaciones de #16 |
-| D | Backend | #17 → datos de #35 (calendario) | `supabase/` (nueva), `src/domain/` | — |
-| E | App y UI | Lo que falta de #34 (editor de rutinas, modo manual, tutoriales, logros) | `src/ui/**`, `public/**` | — |
-| Líder | Transversal | #18, #19, #21, #22, #32; `STATUS.md` semanal | `docs/` | — |
+| A · @ChejoUMG | Pose y captura | #12 → #15 (fixtures reales con `world`) | `src/pose/**`, `fixtures/` | — |
+| B · @ecaldcc | Análisis | #11 (rama `contracts/*`) → #33 (golden, requiere DEC) | `src/exercises/**`, `src/geometry/**`, `src/analysis/**`, `src/feedback/**`, `src/contracts/` | #33 espera #15 y las pruebas en celular |
+| C · @christian15alda-netizen | ML | #38 → #16 (protocolo, con A) → #36 | `ml/` (nueva) | #36 necesita grabaciones de #16 |
+| D · @govandoh (líder) | Backend y transversal | #17 → datos de #35 (calendario); #19, #21, #22, #32; `STATUS.md` semanal | `supabase/` (nueva), `src/domain/` | — |
+| E · @eliasgregoriomp-svg | App y UI | Lo que falta de #34 (editor de rutinas, modo manual, tutoriales, logros) | `src/ui/**`, `public/**` | — |
 
 **Primera semana, todos:** probar en su celular los 7 ejercicios con `?engine=3d` y una serie completa de la Fase 1. Resultados en una issue por dispositivo.
 
@@ -37,7 +36,7 @@ Una persona por workstream y carpetas exclusivas. Los usuarios de GitHub se asig
 
 | Pendiente | Issue |
 |---|---|
-| Usuarios de GitHub de los otros 4 desarrolladores; CODEOWNERS sigue con placeholders (`@dev-a`..`@dev-e`) que GitHub ignora | #18 |
+| Que ChejoUMG, ecaldcc y eliasgregoriomp-svg acepten la invitación al repositorio (sin eso CODEOWNERS no los cuenta ni se les puede asignar issues) | #18 |
 | Renombrar el repo (existe fitnetapp.com) y decidir público o privado | #19 |
 | Crear el GitHub Project (`gh auth refresh -s project`) | #21 |
 | Tope de costo del asistente IA, frescura de rankings, anti-trampa y aviso de privacidad | #22 |

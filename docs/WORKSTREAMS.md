@@ -6,17 +6,17 @@
 
 | Workstream | Dev | Posee (directorios, CODEOWNERS) | Consume (contratos) | Agentes asociados | Etiqueta |
 |---|---|---|---|---|---|
-| **A. Pose & Captura** | Dev A (`@dev-a`) | `src/pose/` → `packages/pose-engine`, `apps/web/src/features/capture`, `fixtures/` | `contracts.pose` (`LandmarkFrame`, `PoseSource`, `SkeletonRenderer`), `contracts.recording` (`SessionRecorder`) | `pose-engine-dev` | `ws:A-pose` |
-| **B. Análisis & Runtime** | Dev B (`@dev-b`) | `src/exercises/`, `src/geometry/`, `src/analysis/`, `src/feedback/` → `packages/analysis-core`, `packages/ml-runtime`, `models/manifest.json` | `contracts.*`, artefactos ONNX y reportes de C | `analysis-dev` | `ws:B-analysis` |
-| **C. ML Training** | Dev C (`@dev-c`) | `ml/`, `models/`, reportes de evaluación, artefactos ONNX en HF Hub | `fixtures/`, `contracts.features` (`FeatureVector`, esquema JSON v1) | `ml-engineer` | `ws:C-ml` |
-| **D. Backend de producto** | Dev D (`@dev-d`) | `packages/domain`, `packages/api-client`, `supabase/` (incl. Edge Function `coach`), `evals/coach/` | `contracts.domain`, `contracts.coach` (`CoachAssistant`) | `backend-dev`, `coach-prompt-engineer` | `ws:D-backend` |
-| **E. App & UI** | Dev E (`@dev-e`) | `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, `public/` → `apps/web` (salvo `features/capture`), `packages/ui`, `e2e/` | Todo vía interfaces; nunca implementaciones internas de otros paquetes | `ui-dev`, `qa-engineer` | `ws:E-app` |
+| **A. Pose & Captura** | Dev A (`@ChejoUMG`) | `src/pose/` → `packages/pose-engine`, `apps/web/src/features/capture`, `fixtures/` | `contracts.pose` (`LandmarkFrame`, `PoseSource`, `SkeletonRenderer`), `contracts.recording` (`SessionRecorder`) | `pose-engine-dev` | `ws:A-pose` |
+| **B. Análisis & Runtime** | Dev B (`@ecaldcc`) | `src/exercises/`, `src/geometry/`, `src/analysis/`, `src/feedback/` → `packages/analysis-core`, `packages/ml-runtime`, `models/manifest.json` | `contracts.*`, artefactos ONNX y reportes de C | `analysis-dev` | `ws:B-analysis` |
+| **C. ML Training** | Dev C (`@christian15alda-netizen`) | `ml/`, `models/`, reportes de evaluación, artefactos ONNX en HF Hub | `fixtures/`, `contracts.features` (`FeatureVector`, esquema JSON v1) | `ml-engineer` | `ws:C-ml` |
+| **D. Backend de producto** | Dev D (`@govandoh`, líder) | `packages/domain`, `packages/api-client`, `supabase/` (incl. Edge Function `coach`), `evals/coach/` | `contracts.domain`, `contracts.coach` (`CoachAssistant`) | `backend-dev`, `coach-prompt-engineer` | `ws:D-backend` |
+| **E. App & UI** | Dev E (`@eliasgregoriomp-svg`) | `src/ui/`, `src/App.tsx`, `src/main.tsx`, `index.html`, `public/` → `apps/web` (salvo `features/capture`), `packages/ui`, `e2e/` | Todo vía interfaces; nunca implementaciones internas de otros paquetes | `ui-dev`, `qa-engineer` | `ws:E-app` |
 
 Transversales: `architect-guardian` (revisión de fronteras, sin dueño de código), `adr-scribe` y `docs-keeper` (docs; cualquier dev puede invocarlos). Las issues que afectan a todos llevan `ws:todos`.
 
-`.github/CODEOWNERS` ya codifica esta tabla, incluidas las rutas objetivo que aún no existen, con dos handles adicionales para la co-propiedad de contratos: `@lead-b` (Dev B) y `@lead-d` (Dev D). Todos los handles son **placeholders**: GitHub ignora en silencio los que no son colaboradores con permiso de escritura, así que la protección no aplica hasta que se registren los usuarios reales (issue #18).
+`.github/CODEOWNERS` ya codifica esta tabla, incluidas las rutas objetivo que aún no existen. La co-propiedad de contratos es de los leads B (`@ecaldcc`) y D (`@govandoh`). GitHub ignora a quien no tenga permiso de escritura, así que cada handle cuenta desde que acepta la invitación al repositorio (issue #18).
 
-`src/contracts/` (que crea el PR 2) y `packages/contracts/` son co-propiedad de `@lead-b` y `@lead-d`; `models/manifest.json`, de B y C. Los tests (`**/*.test.ts`) y `e2e/` los cubre además `qa-engineer`.
+`src/contracts/` (que crea el PR 2) y `packages/contracts/` son co-propiedad de `@ecaldcc` (B) y `@govandoh` (D); `models/manifest.json`, de B y C. Los tests (`**/*.test.ts`) y `e2e/` los cubre además `qa-engineer`.
 
 ## 2. `packages/contracts`: reglas de cambio
 
