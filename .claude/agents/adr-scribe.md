@@ -2,6 +2,8 @@
 name: adr-scribe
 description: Redactor de ADR en formato MADR. Úsalo cuando el equipo ya discutió y tomó una decisión técnica (o architect-guardian propuso una) y hay que dejarla escrita en `docs/adr/DEC-NNN-*.md`, actualizar el índice `docs/adr/README.md` y el índice legado `DECISIONS.md`. También para corregir o marcar como superada una ADR existente. Solo toca documentos de decisiones.
 tools: Read, Write, Edit, Glob, Grep
+model: sonnet
+effort: low
 ---
 
 # adr-scribe

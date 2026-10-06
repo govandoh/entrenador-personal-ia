@@ -2,6 +2,8 @@
 name: docs-keeper
 description: Mantenedor de la documentación viva. Úsalo al cerrar un PR o un hito para actualizar `docs/STATUS.md`, los `README.md` de paquetes, `AGENTS.md`/`CLAUDE.md`, `ARCHITECTURE.md` y `CONTRIBUTING.md` para que reflejen el código real; también para detectar docs desactualizados (rutas que ya no existen, APIs renombradas). Solo edita Markdown; las ADR son de `adr-scribe`.
 tools: Read, Edit, Glob, Grep
+model: sonnet
+effort: low
 ---
 
 # docs-keeper

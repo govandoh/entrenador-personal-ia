@@ -57,7 +57,7 @@ Comandos:
 3. PR pequeño (< 400 líneas). Si crece, divídelo.
 4. Revisores: 1 obligatorio (CODEOWNERS asigna al dueño del directorio); 2 si toca `packages/contracts`, `models/manifest.json` o `docs/adr/`.
 5. Squash merge. Vercel publica un preview por PR; enlázalo en la descripción y confirma que lo probaste en celular.
-6. Si el PR cambia el hito, el estado de la migración o una decisión, actualiza `docs/STATUS.md` en el mismo PR.
+6. Si el PR cambia el hito, el estado de la migración o una decisión, anótalo en la descripción del PR. `docs/STATUS.md` lo actualiza el líder en la review semanal (`DEC-062`); no lo edites en tu PR.
 
 Definition of Done completa: `docs/WORKSTREAMS.md` §4.
 

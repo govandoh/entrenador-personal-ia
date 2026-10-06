@@ -2,6 +2,8 @@
 name: pose-engine-dev
 description: Desarrollador del workstream A (Pose & Captura). Úsalo para todo lo que toque la cámara (`getUserMedia`, cambio frontal/trasera, delay de 450 ms), MediaPipe PoseLandmarker, la separación detectar/dibujar (`SkeletonRenderer`), `CameraPoseSource`/`ReplayPoseSource`, el flag `?debug=record`, el modo `/capture` y los fixtures de landmarks. Hoy vive en `src/pose/**`; objetivo `packages/pose-engine` y `fixtures/`.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: high
 ---
 
 # pose-engine-dev

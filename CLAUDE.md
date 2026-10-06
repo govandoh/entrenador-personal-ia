@@ -6,41 +6,30 @@ Todo el contexto del proyecto, las reglas duras, la propiedad por workstream y l
 
 ## Cómo trabajar en una sesión
 
-1. **Ubícate antes de tocar nada.** Lee `docs/STATUS.md` (hito actual, PRs en curso, issues abiertas) y, según la historia, `ARCHITECTURE.md` y `docs/WORKSTREAMS.md` para saber qué paquete/directorio es tuyo. Si la tarea cruza una frontera de paquete, detente y pide un cambio de contrato (issue con la plantilla `adr` + `/adr`), no lo resuelvas con un import cruzado.
+1. **Ubícate antes de tocar nada.** Lee la issue que vas a trabajar y `docs/STATUS.md` (corto: hito, reparto y pendientes). Abre `ARCHITECTURE.md` o `docs/WORKSTREAMS.md` solo si la tarea toca más de un directorio. Si la tarea cruza una frontera de paquete, detente y pide un cambio de contrato (issue con la plantilla `adr` + `/adr`), no lo resuelvas con un import cruzado.
 2. **Propón un plan antes de cambios grandes.** Para cualquier cambio que toque más de un módulo, un contrato, un umbral o un snapshot golden: lista archivos a tocar/crear, contratos afectados y cómo se va a probar. Espera aprobación antes de escribir código.
 3. **No instalar dependencias sin avisar.** Cualquier `pnpm add`/`npm install` se discute primero y, si se aprueba, se documenta (DEC si es una tecnología nueva). No introducir frameworks ni servicios fuera de los decididos en `docs/adr/`.
 4. **Documentar decisiones vía `/adr`.** Si durante la sesión se toma una decisión técnica (umbral nuevo, proveedor, patrón), invoca `/adr` para generar el borrador MADR en `docs/adr/` y añade la fila al índice. No dejes decisiones solo en comentarios de código o en el mensaje de commit.
 5. **Probar en celular es la verdad.** Cualquier cambio en cámara, detección, trackers, voz o PWA se valida en un celular real (`pnpm dev` con HTTPS local o preview de Vercel). Indica explícitamente qué no pudiste probar en desktop.
 6. **No cambies snapshots golden** (`fixtures/`, tests `*.test.ts` con snapshots) sin una DEC enlazada. Si un cambio legítimo los altera, crea la DEC primero.
-7. **Cierra la sesión dejando rastro.** Si cambió el estado del proyecto (PR mergeado, hito alcanzado, decisión tomada), actualiza `docs/STATUS.md` con la fecha. El agente `docs-keeper` puede hacerlo por ti.
+7. **Cierra la sesión dejando rastro.** Si cambió el estado del proyecto, anótalo en la descripción del PR y en la issue. `docs/STATUS.md` lo actualiza solo el líder en la review semanal (`DEC-062`); no lo edites en PRs de workstream.
 8. **Comentarios en código:** explican el "por qué" (cálculos geométricos, máquinas de estados, umbrales), citando la DEC (`// ver DEC-016`). Español o inglés, consistente dentro del archivo.
 
-## Skills disponibles (`.claude/skills/`)
+## Skills, hooks y agentes
 
-| Skill | Qué hace | Cuándo usarla |
-|---|---|---|
-| `/adr` | Crea `docs/adr/DEC-NNN-<slug>.md` desde la conversación, actualiza los índices y propone el commit en rama `adr/*`. | Al tomar cualquier decisión técnica. |
-| `/fixture` | Guía para grabar con `?debug=record`, nombrar, validar el esquema v1, registrar el fixture y crear su golden. | Al añadir un ejercicio, vista de cámara o caso de error. |
-| `/promote-model` | Verifica el reporte contra `ml/thresholds.yaml` y el `sha256`, actualiza `models/manifest.json` y exige DEC. | Solo en ramas `adr/*` o `contracts/*`, con reporte aprobado. |
-| `/pr-ready` | Corre lint/typecheck/test/build, revisa el diff, exige DEC si toca rutas protegidas y arma el cuerpo del PR. | Antes de abrir cualquier PR. |
-| `/fitnet-diseno` | Aplica la identidad visual y el sistema de movimiento de `docs/DESIGN.md` (`DEC-058`) y dice qué skill de animación usar. | Antes de tocar cualquier pantalla, componente o animación. |
-| `/animate`, `/review-animations`, `/improve-animations`, `/find-animation-opportunities`, `/emil-design-eng`, `/mobile-native`, `/pick-ui-library`, `/animation-vocabulary` | Skills de Emil Kowalski (MIT, `.claude/skills/THIRD-PARTY.md`) para construir, revisar y auditar movimiento y pulido móvil. | Siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen (sin librerías nuevas, tokens, presupuesto de la cámara). |
+- **Skills del repo** (`.claude/skills/`, se listan solas): `/adr`, `/fixture`, `/promote-model`, `/pr-ready` y `/fitnet-diseno`. Las de animación de Emil Kowalski se usan siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen.
+- **Hooks** (`.claude/settings.json`; detalle en `.claude/README.md`): `guard-protected-paths.mjs` **bloquea** ediciones en `src/contracts/**`, `packages/contracts/**` y `models/manifest.json` fuera de ramas `adr/*` o `contracts/*`; `lint-on-edit.mjs` corre `eslint --fix` sobre el archivo editado; `remind-status.mjs` solo avisa.
+- `.claude/settings.local.json` es personal y está en `.gitignore`; no pongas ahí reglas que el equipo deba compartir.
 
-## Hooks (`.claude/settings.json` + `.claude/hooks/*.mjs`)
+## Modelos, esfuerzo y tokens (`DEC-062`)
 
-Scripts Node ESM sin dependencias; leen el evento por stdin y corren desde la raíz del repo.
-
-| Evento | Script | Efecto |
-|---|---|---|
-| `PreToolUse` (Edit/Write/MultiEdit) | `guard-protected-paths.mjs` | **Bloquea** (exit 2) ediciones en `packages/contracts/**`, `src/contracts/**` y `models/manifest.json` si la rama no empieza por `adr/` o `contracts/`. Cambia de rama o pide el cambio de contrato. |
-| `PostToolUse` (Edit/Write/MultiEdit) | `lint-on-edit.mjs` | `eslint --fix` sobre el `.ts`/`.tsx` editado si hay `node_modules`; nunca falla el paso. |
-| `Stop` | `remind-status.mjs` | Recuerda actualizar `docs/STATUS.md` si hubo cambios en `src/`, `packages/`, `apps/`, `ml/` o `supabase/` sin tocarlo. Solo avisa. |
-
-`.claude/settings.local.json` es personal y está en `.gitignore`; los hooks de `settings.json` se **acumulan** con los locales, no se reemplazan (cómo desactivarlos: `.claude/README.md`). No pongas ahí reglas que el equipo deba compartir.
-
-## Agentes
-
-Los diez agentes de `.claude/agents/` (`architect-guardian`, `adr-scribe`, `pose-engine-dev`, `analysis-dev`, `ml-engineer`, `backend-dev`, `ui-dev`, `qa-engineer`, `coach-prompt-engineer`, `docs-keeper`) están en la tabla de `AGENTS.md` y descritos en `.claude/README.md`. La sesión principal orquesta: delega a un agente solo trabajo dentro de su propiedad y compone los resultados. Un agente nunca redelega su tarea completa a otro.
+- **Sesión principal: Sonnet con esfuerzo medio por defecto** (`/model sonnet`). Sube solo cuando un error sutil es caro:
+  - `/model opusplan` (Opus planea, Sonnet escribe) para cambios de contrato, umbrales con golden o refactors de varios módulos.
+  - Opus con esfuerzo alto para depurar geometría o máquinas de estados que Sonnet no resolvió.
+  - Esfuerzo bajo para commits, `/pr-ready`, docs y renombres.
+- **Una issue, una rama, una sesión.** `/clear` al cambiar de tarea; PR por debajo de 400 líneas. Si la issue no dice qué falta, archivos y criterio de aceptación, complétala antes de empezar.
+- **Trabaja tu workstream en la sesión principal**, sin delegarlo a un subagente (duplica contexto). Para adoptar un agente completo: `claude --agent <nombre>`.
+- **Subagentes solo para trabajo aislado que devuelve poco texto:** `architect-guardian` (antes del PR), `adr-scribe`, `docs-keeper`, `qa-engineer`, `Explore` para búsquedas amplias. Cada agente fija su `model` y `effort` en su frontmatter; no los cambies sin DEC. Un agente nunca redelega su tarea completa a otro.
 
 ## Tareas típicas y dónde van
 
@@ -73,7 +62,7 @@ Antes de editar, ubica la historia en esta tabla; si no encaja en una sola fila,
 1. `pnpm check` en verde (o `/pr-ready`, que además revisa el diff y arma el cuerpo del PR).
 2. Si tocaste cámara, trackers, voz o PWA: confirma en el mensaje final qué probaste en celular y qué no.
 3. Si hubo una decisión: DEC creada con `/adr` y fila en `docs/adr/README.md`.
-4. Si cambió el estado: `docs/STATUS.md` con fecha (el hook `Stop` te lo recuerda).
+4. Si cambió el estado: anótalo en la descripción del PR; `docs/STATUS.md` lo actualiza el líder (`DEC-062`). Si es visible al usuario, entrada en `docs/CHANGELOG.md`.
 5. Commit con conventional commit en español — commitlint rechaza cualquier otro formato. No hagas push a `main`.
 
 ## Comandos útiles

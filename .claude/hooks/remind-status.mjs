@@ -54,9 +54,9 @@ const touchedStatus = paths.some((p) => p === STATUS_DOC);
 if (touchedCode.length > 0 && !touchedStatus) {
   const sample = touchedCode.slice(0, 5).join(', ') + (touchedCode.length > 5 ? ', …' : '');
   const msg =
-    `Recordatorio: hay cambios sin commit en código (${sample}) y docs/STATUS.md no cambió. ` +
-    `Si este trabajo cierra un hito o un PR de la migración, actualiza docs/STATUS.md ` +
-    `(o pide a docs-keeper que lo haga) antes de abrir el PR.`;
+    `Recordatorio: hay cambios sin commit en código (${sample}). ` +
+    `Si este trabajo cierra un hito o un PR de la migración, anótalo en la descripción del PR; ` +
+    `docs/STATUS.md lo actualiza el líder en la review semanal (DEC-062).`;
   // systemMessage se muestra al usuario sin bloquear la detención.
   process.stdout.write(JSON.stringify({ systemMessage: msg }) + '\n');
 }

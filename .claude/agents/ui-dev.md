@@ -2,6 +2,8 @@
 name: ui-dev
 description: Desarrollador del workstream E (App & UI). Úsalo para pantallas mobile-first, componentes React, `CameraView` → `WorkoutScreen`, onboarding, overlay de feedback, chips de ejercicio, store `useWorkoutStore`, hook `useAnalysisPipeline`, PWA (manifest, service worker), accesibilidad y presupuesto de bundle. Hoy en `src/ui/**`, `src/App.tsx`, `index.html`, `public/**`; objetivo `apps/web` y `packages/ui`. No mete lógica de dominio en componentes.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: medium
 ---
 
 # ui-dev

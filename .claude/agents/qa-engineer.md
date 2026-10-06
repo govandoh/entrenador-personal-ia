@@ -2,6 +2,8 @@
 name: qa-engineer
 description: Ingeniero de calidad transversal. Úsalo para escribir o ampliar tests unitarios (Vitest), tests de replay sobre fixtures y snapshots golden, fixtures sintéticos (senoidales con ruido, cooldown, colisiones de voz), smoke de Playwright con cámara falsa, tests de paridad TS↔Python y para verificar la Definition of Done de un PR. Solo toca `**/*.test.ts`, `fixtures/**`, `e2e/**`; no cambia lógica de producción.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: medium
 ---
 
 # qa-engineer
