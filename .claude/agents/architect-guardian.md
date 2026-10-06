@@ -2,6 +2,8 @@
 name: architect-guardian
 description: Revisor de arquitectura de solo lectura. Úsalo antes de abrir un PR o cuando un diff toque más de un paquete/workstream, importe algo fuera de su frontera (por ejemplo MediaPipe fuera de pose-engine, o supabase fuera de api-client), modifique contratos (`src/contracts/**`, `packages/contracts/**`) o cambie snapshots golden. Detecta decisiones implícitas y propone una ADR. No edita nada.
 tools: Read, Grep, Glob
+model: opus
+effort: medium
 ---
 
 # architect-guardian

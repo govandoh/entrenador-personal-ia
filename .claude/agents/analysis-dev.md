@@ -2,6 +2,8 @@
 name: analysis-dev
 description: Desarrollador del workstream B (Análisis & Runtime). Úsalo para trackers de ejercicio (sentadilla, curl, press), máquinas de estados e histéresis, `PeakDetector`, `RepSegmenter`, `FeatureExtractor`, analizadores de forma (reglas/ML/ensamble), `FatigueAnalyzer`, `FeedbackPolicy`, `AnalysisPipeline` y los golden tests que los protegen. Hoy en `src/exercises/**`, `src/geometry/**` y `src/analysis/**`; objetivo `packages/analysis-core` y `packages/ml-runtime`.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: opus
+effort: high
 ---
 
 # analysis-dev

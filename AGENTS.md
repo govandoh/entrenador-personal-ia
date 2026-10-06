@@ -91,7 +91,9 @@ apps/web importa todo; nada importa apps/web
 - **Conventional commits en español**: `feat(analysis-core): agregar PeakDetector basado en tiempo`, `docs(adr): DEC-034 ...`. **commitlint** (hook `commit-msg` de husky) rechaza los mensajes que no cumplan el formato.
 - **Antes de abrir el PR:** `pnpm check` (lint + typecheck + test + build) en verde. El mismo comando corre en CI (`.github/workflows/ci.yml`).
 - **PR pequeño** (< 400 líneas), 1 revisor obligatorio (2 si toca contratos o `docs/adr/`), squash merge, plantilla `.github/PULL_REQUEST_TEMPLATE.md` con checklist DoD.
-- **Definition of Done:** tests verdes; golden intactos o DEC enlazada; docs del paquete actualizadas; preview probado en celular; entrada en CHANGELOG si aplica; `docs/STATUS.md` actualizado si cambió el estado del proyecto.
+- **Definition of Done:** tests verdes; golden intactos o DEC enlazada; docs del paquete actualizadas; preview probado en celular; entrada en `docs/CHANGELOG.md` si es visible al usuario; cambio de estado anotado en la descripción del PR (`docs/STATUS.md` lo actualiza solo el líder en la review semanal, `DEC-062`).
+- **Numeración de DEC:** el número es provisional hasta el merge; si al mergear ya existe en `main`, renumera quien mergea segundo (`DEC-062`).
+- **Una issue, una rama, una sesión de IA**; modelo y esfuerzo por tarea en `CLAUDE.md` (`DEC-062`).
 - **Antes de un cambio grande, proponer plan** (archivos a tocar, contratos afectados) y esperar aprobación.
 - El trabajo se organiza en issues de GitHub con etiquetas `epic`, `historia`, `adr`, `equipo` y `ws:A-pose`..`ws:E-app` (`ws:todos` para lo transversal), agrupadas por hito (`Sprint 0 — Fundación`, `Sprint 1 — Migración y datos`). Ver `docs/STATUS.md`.
 
@@ -108,7 +110,8 @@ apps/web importa todo; nada importa apps/web
 | Datos, fixtures, entrenamiento, evaluación, promoción de modelos | `docs/ML-PIPELINE.md` |
 | Consentimiento, retención, RLS, licencias de datasets | `docs/DATA-GOVERNANCE.md` |
 | Quién posee qué, rituales, DoD | `docs/WORKSTREAMS.md` |
-| Estado actual y próximos pasos | `docs/STATUS.md` |
+| Estado actual, reparto del sprint y próximos pasos | `docs/STATUS.md` |
+| Lo ya entregado, por hito | `docs/CHANGELOG.md` |
 | Setup local, grabar fixtures, correr tests | `CONTRIBUTING.md` |
 | Entregables históricos del curso | `docs/academico/README.md` |
 | Agentes, skills y hooks de Claude Code | `.claude/README.md`, `CLAUDE.md` |

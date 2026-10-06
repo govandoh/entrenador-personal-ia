@@ -27,7 +27,7 @@ DEC-___ · <título> · `docs/adr/DEC-___-slug.md`
 - [ ] Tests nuevos para comportamiento nuevo
 - [ ] Golden intactos **o** DEC enlazada arriba y snapshot actualizado en este PR
 - [ ] README del paquete actualizado (propósito · API · qué NO hace · cómo probar)
-- [ ] `docs/STATUS.md` actualizado si cierra un hito o un PR de la migración
+- [ ] Si cierra un hito o un PR de la migración, está anotado aquí (el líder actualiza `docs/STATUS.md`, DEC-062)
 - [ ] Probado en celular (indicar modelo/navegador abajo) si toca cámara, UI o PWA
 - [ ] Sin secretos ni datos personales (landmarks solo con consentimiento; nunca video)
 - [ ] PR < 400 líneas o justificación de por qué no se partió

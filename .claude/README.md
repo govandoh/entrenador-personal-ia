@@ -8,21 +8,23 @@ propiedad por workstream, en `docs/WORKSTREAMS.md`.
 Un agente = una responsabilidad = un conjunto de directorios. Espejan los workstreams para que
 la regla de propiedad sea la misma para humanos (CODEOWNERS) y para IA.
 
-| Agente | Responsabilidad | Posee |
-|---|---|---|
-| `architect-guardian` | Revisar fronteras y contratos; proponer ADR (solo lectura) | — |
-| `adr-scribe` | Redactar ADR en MADR | `docs/adr/**`, `DECISIONS.md` |
-| `pose-engine-dev` | Cámara, MediaPipe, `PoseSource`, renderer, fixtures | `src/pose/**` → `packages/pose-engine`, `fixtures/` |
-| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden | `src/exercises/**`, `src/geometry/**`, `src/analysis/**` → `packages/analysis-core`, `packages/ml-runtime` |
-| `ml-engineer` | Datasets, features, entrenamiento, evaluación, ONNX | `ml/**`, `models/**` |
-| `backend-dev` | Esquema, RLS, Edge Functions, `domain`, `api-client` | `supabase/**`, `packages/domain`, `packages/api-client` |
-| `ui-dev` | Pantallas mobile-first, `packages/ui`, PWA, a11y | `src/ui/**`, `src/App.tsx`, `index.html`, `public/**` → `apps/web`, `packages/ui` |
-| `qa-engineer` | Tests, fixtures sintéticos, Playwright, DoD | `**/*.test.ts`, `fixtures/**`, `e2e/**` |
-| `coach-prompt-engineer` | Prompts, esquemas y evals del `CoachAssistant` | `supabase/functions/coach/**` (prompts/esquemas), `evals/coach/**` |
-| `docs-keeper` | `docs/STATUS.md`, READMEs, `AGENTS.md`/`CLAUDE.md` | solo Markdown |
+| Agente | Responsabilidad | Posee | Modelo / esfuerzo |
+|---|---|---|---|
+| `architect-guardian` | Revisar fronteras y contratos; proponer ADR (solo lectura) | — | opus / medium |
+| `adr-scribe` | Redactar ADR en MADR | `docs/adr/**`, `DECISIONS.md` | sonnet / low |
+| `pose-engine-dev` | Cámara, MediaPipe, `PoseSource`, renderer, fixtures | `src/pose/**` → `packages/pose-engine`, `fixtures/` | sonnet / high |
+| `analysis-dev` | Trackers, analizadores, feedback, pipeline, golden | `src/exercises/**`, `src/geometry/**`, `src/analysis/**` → `packages/analysis-core`, `packages/ml-runtime` | opus / high |
+| `ml-engineer` | Datasets, features, entrenamiento, evaluación, ONNX | `ml/**`, `models/**` | sonnet / high |
+| `backend-dev` | Esquema, RLS, Edge Functions, `domain`, `api-client` | `supabase/**`, `packages/domain`, `packages/api-client` | sonnet / high |
+| `ui-dev` | Pantallas mobile-first, `packages/ui`, PWA, a11y | `src/ui/**`, `src/App.tsx`, `index.html`, `public/**` → `apps/web`, `packages/ui` | sonnet / medium |
+| `qa-engineer` | Tests, fixtures sintéticos, Playwright, DoD | `**/*.test.ts`, `fixtures/**`, `e2e/**` | sonnet / medium |
+| `coach-prompt-engineer` | Prompts, esquemas y evals del `CoachAssistant` | `supabase/functions/coach/**` (prompts/esquemas), `evals/coach/**` | sonnet / medium |
+| `docs-keeper` | `docs/STATUS.md`, READMEs, `AGENTS.md`/`CLAUDE.md` | solo Markdown | sonnet / low |
 
-Uso: el orquestador (tu sesión) los elige por la `description`; también puedes pedirlo:
-"usa `analysis-dev` para …". Regla de oro: un agente edita solo dentro de su propiedad; si
+Modelo y esfuerzo van en el frontmatter de cada agente (`DEC-062`). Uso: cada desarrollador
+trabaja su workstream en la sesión principal (o con `claude --agent <nombre>`); los subagentes
+se reservan para trabajo aislado que devuelve poco texto (revisión, ADR, docs, tests).
+Regla de oro: un agente edita solo dentro de su propiedad; si
 necesita algo de otro paquete, pide un cambio de contrato (issue + ADR), no lo hackea.
 
 ## Skills (`skills/`)

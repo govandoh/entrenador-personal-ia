@@ -2,6 +2,8 @@
 name: backend-dev
 description: Desarrollador del workstream D (Backend de producto). Úsalo para esquema Postgres y migraciones en `supabase/migrations`, políticas RLS (`is_premium(uid)`, `coaching_relationships`), Edge Functions (`supabase/functions/**`, incluida la infraestructura de `coach` —no su prompt—), entidades y casos de uso en `packages/domain`, adaptadores y cola offline en `packages/api-client`, webhooks de pagos (Recurrente) y particionado/`pg_cron`. Nunca expone claves al cliente.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: high
 ---
 
 # backend-dev

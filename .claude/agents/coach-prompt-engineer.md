@@ -2,6 +2,8 @@
 name: coach-prompt-engineer
 description: Ingeniero de prompts y evals del CoachAssistant (asistente IA de Fitnet). Úsalo para redactar o ajustar el system prompt del `coach`, sus esquemas de salida JSON (zod), el uso de `claude-opus-5` con salida estructurada, prompt caching, Batch API para resúmenes nocturnos y digests de entrenadores, y los evals en `evals/coach/**`. Solo toca `supabase/functions/coach/**` (prompts y esquemas) y `evals/coach/**`. La salida es siempre JSON validado; nunca consejo médico.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: medium
 ---
 
 # coach-prompt-engineer

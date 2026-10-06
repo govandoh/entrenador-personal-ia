@@ -2,6 +2,8 @@
 name: ml-engineer
 description: Ingeniero del workstream C (ML Training). Úsalo para el pipeline Python en `ml/**`: datasets (MM-Fit, InfiniteRep, propios), canonicalización y features con paridad TS↔Python, aumento de datos, entrenamiento (GRU/TCN/GCN ligeros), evaluación Leave-One-Subject-Out, `ml/thresholds.yaml`, export a ONNX y reportes `ml/reports/<task>@<version>.json`. Promoción de modelos vía `models/manifest.json` solo con `/promote-model`.
 tools: Read, Edit, Write, Glob, Grep, Bash
+model: sonnet
+effort: high
 ---
 
 # ml-engineer
