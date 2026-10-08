@@ -1,10 +1,10 @@
 import {
   PoseLandmarker,
   FilesetResolver,
-  DrawingUtils,
   type Landmark,
   type NormalizedLandmark,
 } from '@mediapipe/tasks-vision';
+import { CanvasSkeletonRenderer } from './skeletonRenderer';
 
 // Versión debe coincidir exactamente con el paquete instalado (0.10.35)
 const WASM_CDN =
@@ -13,15 +13,9 @@ const WASM_CDN =
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
 
+// Singleton de módulo: descargar el modelo y compilar el WASM es caro y solo hay una
+// cámara activa (ARCHITECTURE.md §3).
 let landmarker: PoseLandmarker | null = null;
-let drawingUtils: DrawingUtils | null = null;
-
-// Landmarks 3D en metros (origen en la cadera) de la última detección. MediaPipe ya los
-// calcula en cada `detectForVideo`, así que guardarlos cuesta una asignación por frame.
-// Existen para que el modo `?debug=record` pueda exportarlos sin rediseñar este módulo;
-// el PR 3 del plan sustituye este singleton por `detect(video, t) → { image, world }`
-// + `SkeletonRenderer`, y entonces esta función desaparece.
-let lastWorldLandmarks: Landmark[] | null = null;
 
 export async function initPoseDetector(): Promise<void> {
   if (landmarker) return;
@@ -38,45 +32,67 @@ export async function initPoseDetector(): Promise<void> {
   });
 }
 
+/** Resultado de una detección sobre un frame de video (una sola persona, `numPoses: 1`). */
+export interface PoseDetection {
+  /** `result.landmarks[0]`: 33 puntos normalizados a la imagen, o `null` si no hay persona. */
+  image: NormalizedLandmark[] | null;
+  /** `result.worldLandmarks[0]`: 33 puntos en metros, origen en la cadera, o `null`. */
+  world: Landmark[] | null;
+}
+
+/**
+ * Detecta la pose en el frame actual del video. No dibuja nada (PR 3, issue #12).
+ *
+ * Devuelve `null` si todavía no se puede detectar (modelo sin cargar o video sin datos);
+ * así quien dibuja distingue "aún no hay imagen" (no tocar el canvas) de "no hay persona"
+ * (limpiar el canvas), que es lo que hacía `detectAndDraw`.
+ */
+export function detect(video: HTMLVideoElement, timestampMs: number): PoseDetection | null {
+  if (!landmarker || video.readyState < 2) return null;
+  const result = landmarker.detectForVideo(video, timestampMs);
+  return {
+    image: result.landmarks[0] ?? null,
+    world: result.worldLandmarks[0] ?? null,
+  };
+}
+
+// --- Compatibilidad -----------------------------------------------------------------
+// `WorkoutScreen` (workstream E) todavía llama a `detectAndDraw` + `getLastWorldLandmarks`.
+// Se mantienen como envoltura de `detect` + `CanvasSkeletonRenderer` para no tocar `src/ui`
+// en este PR; se eliminan cuando la pantalla consuma `CameraPoseSource` (PR 5, issue #14).
+
+let lastWorldLandmarks: Landmark[] | null = null;
+let compatRenderer: CanvasSkeletonRenderer | null = null;
+
+/** @deprecated Usar `detect` + `SkeletonRenderer`, o `CameraPoseSource`. */
 export function detectAndDraw(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
   timestampMs: number
 ): NormalizedLandmark[][] {
   if (!landmarker || video.readyState < 2) return [];
-
-  const ctx = canvas.getContext('2d');
-  if (!ctx) return [];
-
-  // Sincronizar dimensiones internas del canvas con el stream real
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
-
-  const result = landmarker.detectForVideo(video, timestampMs);
-  lastWorldLandmarks = result.worldLandmarks[0] ?? null;
-
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (!drawingUtils) drawingUtils = new DrawingUtils(ctx);
-
-  for (const landmarks of result.landmarks) {
-    drawingUtils.drawConnectors(landmarks, PoseLandmarker.POSE_CONNECTIONS, {
-      color: '#00FF00',
-      lineWidth: 2,
-    });
-    drawingUtils.drawLandmarks(landmarks, {
-      color: '#FF3333',
-      lineWidth: 1,
-      radius: 3,
-    });
+  if (!compatRenderer || compatRenderer.canvas !== canvas) {
+    const r = CanvasSkeletonRenderer.create(canvas);
+    if (!r) return [];
+    compatRenderer = r;
   }
 
-  return result.landmarks;
+  const detection = detect(video, timestampMs);
+  if (!detection) return [];
+  lastWorldLandmarks = detection.world;
+
+  compatRenderer.resize(video.videoWidth, video.videoHeight);
+  if (detection.image) {
+    compatRenderer.draw({ t: timestampMs, seq: 0, image: detection.image, view: 'unknown' });
+  } else {
+    compatRenderer.clear();
+  }
+  return detection.image ? [detection.image] : [];
 }
 
 /**
- * `worldLandmarks` de la última llamada a `detectAndDraw` (null si no hubo persona).
- * Solo la usa el modo de grabación de fixtures; ver el comentario de `lastWorldLandmarks`.
+ * @deprecated `worldLandmarks` de la última llamada a `detectAndDraw` (null si no hubo
+ * persona). Con `detect` vienen en el mismo resultado.
  */
 export function getLastWorldLandmarks(): Landmark[] | null {
   return lastWorldLandmarks;
