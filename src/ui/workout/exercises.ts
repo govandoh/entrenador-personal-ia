@@ -1,5 +1,10 @@
 import { EXERCISE_CATALOG, type AssistantId } from '../../domain/catalog';
+import { FramePipeline } from '../../analysis/framePipeline';
+import {
+  Engine3DTracker, PlankExerciseTracker, curl2D, press2D, squat2D, type EngineTracker,
+} from '../../exercises/exerciseTrackers';
 import { ENGINE_3D } from '../engineFlag';
+import { definitionFor } from './coaching';
 
 /** Ejercicios con asistente por cámara, en el orden de los chips. */
 export const ASSISTED: readonly AssistantId[] = ['squat', 'curl', 'press', 'pushup', 'lunge', 'bridge', 'plank'];
@@ -30,4 +35,29 @@ export function usesEngine3D(ex: AssistantId): boolean {
 
 export function isAssistantId(v: string | null): v is AssistantId {
   return v !== null && (ASSISTED as readonly string[]).includes(v);
+}
+
+export interface WorkoutTrackers {
+  /** Pipeline 3D compartido; la preparación lo usa para calibrar antes de la serie. */
+  pipeline: FramePipeline;
+  trackers: Record<AssistantId, EngineTracker>;
+}
+
+/**
+ * Un contador por ejercicio, con el motor que le toca (contrato de DEC-063). Los 3D
+ * comparten un pipeline para que la calibración de pie sobreviva al cambio de ejercicio.
+ */
+export function createWorkoutTrackers(initial: AssistantId): WorkoutTrackers {
+  const pipeline = new FramePipeline(definitionFor(initial));
+  const engine3D = (ex: Exclude<AssistantId, 'plank'>) => new Engine3DTracker(ex, pipeline, definitionFor(ex));
+  const trackers: Record<AssistantId, EngineTracker> = {
+    squat: usesEngine3D('squat') ? engine3D('squat') : squat2D(),
+    curl: usesEngine3D('curl') ? engine3D('curl') : curl2D(),
+    press: usesEngine3D('press') ? engine3D('press') : press2D(),
+    pushup: engine3D('pushup'),
+    lunge: engine3D('lunge'),
+    bridge: engine3D('bridge'),
+    plank: new PlankExerciseTracker(pipeline, definitionFor('plank')),
+  };
+  return { pipeline, trackers };
 }

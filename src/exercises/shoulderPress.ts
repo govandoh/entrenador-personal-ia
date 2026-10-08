@@ -1,4 +1,4 @@
-import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import type { FeedbackLevel, Landmark } from '../contracts/index.ts';
 import { calculateAngle } from '../geometry/angles.ts';
 
 const LM = {
@@ -23,7 +23,6 @@ const MIN_VISIBILITY         = 0.5;
 const LATERAL_VIS_DIFF       = 0.35;  // diferencia de visibilidad para detectar vista lateral
 
 export type PressPhase    = 'lowered' | 'pressed';
-export type FeedbackLevel = 'idle' | 'good' | 'warning' | 'bad';
 
 export interface ShoulderPressResult {
   phase:           PressPhase;
@@ -105,7 +104,7 @@ export class ShoulderPressTracker {
   private reps        = 0;
   private repCooldown = 0;  // frames restantes de cooldown post-rep
 
-  update(landmarks: NormalizedLandmark[]): ShoulderPressResult {
+  update(landmarks: Landmark[]): ShoulderPressResult {
     // Visibilidad mínima del trío hombro-codo-muñeca por lado
     const leftVis  = Math.min(
       landmarks[LM.LEFT_SHOULDER]?.visibility  ?? 0,

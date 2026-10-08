@@ -8,6 +8,7 @@ import {
 } from '../analysis/movementQuality.ts';
 import { FatigueDetector, FRESH_FATIGUE, type FatigueState } from '../analysis/fatigue.ts';
 import { FATIGUE_MESSAGES, REJECTION_MESSAGES } from '../analysis/messages.ts';
+import type { FeedbackLevel } from '../contracts/index.ts';
 
 /**
  * Contador de repeticiones 3D configurable por ejercicio (ver DEC-057, paso I-2 de DEC-054).
@@ -28,7 +29,7 @@ import { FATIGUE_MESSAGES, REJECTION_MESSAGES } from '../analysis/messages.ts';
  * y el `t` de cada frame.
  */
 
-export type FeedbackLevel = 'idle' | 'good' | 'warning' | 'bad';
+export type { FeedbackLevel };
 export type Side = 'left' | 'right';
 
 /** Contexto que reciben las comprobaciones de forma y el feedback de cada ejercicio. */
