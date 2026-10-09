@@ -32,3 +32,20 @@ coverage/
 *.sln
 *.sw?
 audit-shots/
+
+# ml/ (workstream C): datasets externos, salidas de conversión y modelos locales.
+# Nunca video ni datos de usuario en el repo (AGENTS.md regla dura 2 y docs/ML-PIPELINE.md §5).
+ml/data/raw/
+ml/data/out/
+*.mp4
+*.task
+
+# Entorno virtual de Python
+.venv/
+
+# Datos locales de prueba (no subir videos ni landmarks personales)
+ml/data/samples/
+
+# Cache de Python
+__pycache__/
+*.pyc
