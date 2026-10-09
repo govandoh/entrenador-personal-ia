@@ -1,0 +1,7 @@
+# Dependencias Python para convertir video a landmarks (esquema v2, Issue #38).
+# Instalar con: pip install -r ml/datasets/mm-fit/requirements.txt
+# Mismo modelo que la app (pose_landmarker_lite); el paquete Python no es el mismo
+# paquete que @mediapipe/tasks-vision (ver ml/README.md, sección MediaPipe).
+mediapipe==0.10.14
+opencv-python-headless==4.10.0.84
+numpy==1.26.4

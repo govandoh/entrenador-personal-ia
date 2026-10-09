@@ -1,0 +1,21 @@
+{
+  "id": "mm-fit",
+  "status": "phase1-pending-license",
+  "citation": "Strömbäck, Huang, Radu. 2020. MM-Fit. ACM IMWUT 4(4):168. doi.org/10.1145/3432701",
+  "verified": {
+    "starterCodeLicense": { "url": "https://github.com/KDMStromback/mm-fit/blob/master/LICENCE.txt", "license": "MIT" },
+    "rgbVideoLicense": { "url": "https://zenodo.org/records/7672767", "license": "CC BY 4.0", "allowedFor": ["product"] },
+    "selectedSession": {
+      "sessionId": "w19", "rgbFile": "w19_rgb.mp4",
+      "labelsExpectedPath": "mm-fit/w19/w19_labels.csv",
+      "labelsColumns": ["startFrame", "endFrame", "repetitionCount", "activityClass"]
+    }
+  },
+  "pending": {
+    "multimodalPackageUrl": { "status": "unverified", "candidate": "https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip" },
+    "labelsLicense": { "status": "unverified" },
+    "allowedFor": { "status": "unverified" },
+    "contacts": ["k.d.m.stromback@gmail.com", "valentin.radu@sheffield.ac.uk"],
+    "blockedBy": "Issue #38 Fase 2: confirmar URL oficial y permiso de uso antes de convertir."
+  }
+}
