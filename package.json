@@ -19,7 +19,14 @@
     "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "prepare": "husky",
     "preview": "vite preview",
-    "knn": "node scripts/knn-model.ts"
+    "knn": "node scripts/knn-model.ts",
+    "seed:exercises": "node scripts/generate-exercises-seed.ts",
+    "seed:check": "node scripts/generate-exercises-seed.ts --check",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local > src/domain/database.types.ts"
   },
   "dependencies": {
     "@mediapipe/tasks-vision": "^0.10.35",
@@ -43,6 +50,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.5.0",
     "husky": "^9.1.7",
+    "supabase": "^2.120.0",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.2",
     "vite": "^8.0.10",
