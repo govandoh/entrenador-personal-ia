@@ -4,21 +4,18 @@ import { startCamera, stopCamera } from '../../pose/camera';
 import { initPoseDetector, detectAndDraw, getLastWorldLandmarks } from '../../pose/poseDetector';
 import { DeviceGravityTracker, motionPermissionRequired, requestMotionPermission } from '../../pose/deviceGravity';
 import { RECORD_MODE, RECORD_SCRIPT, captureFrame, downloadFixture, type RecordedFrame } from '../../testing/fixtureRecorder';
-import { SquatTracker, type SquatResult } from '../../exercises/squat';
-import { BicepCurlTracker, type BicepCurlResult } from '../../exercises/bicepCurl';
-import { ShoulderPressTracker, type ShoulderPressResult } from '../../exercises/shoulderPress';
-import { PlankTracker, type PlankResult } from '../../exercises/plankTracker';
-import type { FeedbackLevel } from '../../exercises/tracker3d';
-import { FramePipeline } from '../../analysis/framePipeline';
+import type { PlankResult } from '../../exercises/plankTracker';
+import type { FeedbackLevel, Tracker3DResult } from '../../exercises/tracker3d';
+import type { EngineOutput } from '../../exercises/exerciseTrackers';
 import { SetSummaryBuilder, type SetSummary } from '../../analysis/setSummary';
 import { FeedbackPolicy } from '../../feedback/feedbackPolicy';
 import type { AssistantId } from '../../domain/catalog';
 import { useSpeech } from '../useSpeech';
 import { appActions, useAppState } from '../state/appStore';
-import { ASSISTED, ASSISTED_NAMES, catalogIdFor, isAssistantId, usesEngine3D } from './exercises';
+import { ASSISTED, ASSISTED_NAMES, catalogIdFor, createWorkoutTrackers, isAssistantId, usesEngine3D } from './exercises';
 import {
   DEFAULT_TARGET_REPS, FEEDBACK_STRATEGY, PLANK_ANNOUNCE_EVERY_S, PLANK_WARNING_MIN_MS,
-  definitionFor, fatigueSummary, peakPhrase,
+  fatigueSummary, peakPhrase,
 } from './coaching';
 import { AUTO_START_MS, LEVEL_OK_DEG, bodyInFrame, bubbleOffset, isReady, phoneTilt, type PrepState } from './prep';
 import { PrepPanel } from './PrepPanel';
@@ -35,7 +32,6 @@ import './workout.css';
 type Status = 'loading' | 'ready' | 'error';
 type Phase = 'prep' | 'active' | 'summary';
 type FacingMode = 'environment' | 'user';
-type Result2D = SquatResult | BicepCurlResult | ShoulderPressResult;
 
 /** Espera antes de ofrecer el permiso de sensores en iOS si no llegó ninguna lectura, en ms. */
 const MOTION_PERMISSION_WAIT_MS = 1500;
@@ -76,6 +72,8 @@ export function WorkoutScreen() {
   const cameraStopPendingRef = useRef(false);
 
   const [ex, setEx] = useState<AssistantId>(isAssistantId(initialEx) ? initialEx : 'squat');
+  // Un contador por ejercicio (DEC-063); se crean una vez y el bucle usa el del ejercicio activo.
+  const [{ pipeline, trackers }] = useState(() => createWorkoutTrackers(ex));
   const [phase, setPhase] = useState<Phase>('prep');
   const [status, setStatus] = useState<Status>('loading');
   const [errorMsg, setErrorMsg] = useState('');
@@ -107,15 +105,9 @@ export function WorkoutScreen() {
   const exRef = useRef(ex);
   const phaseRef = useRef<Phase>('prep');
   const voiceRef = useRef(voiceEnabled);
-  const squatRef = useRef(new SquatTracker());
-  const curlRef = useRef(new BicepCurlTracker());
-  const pressRef = useRef(new ShoulderPressTracker());
-  const plankRef = useRef(new PlankTracker());
-  const pipelineRef = useRef<FramePipeline | null>(null);
   const gravityRef = useRef<DeviceGravityTracker | null>(null);
   const policyRef = useRef(new FeedbackPolicy(FEEDBACK_STRATEGY[ex]));
   const builderRef = useRef(new SetSummaryBuilder());
-  const prevRepsRef = useRef(-1);
   const lastPeakLevelRef = useRef<FeedbackLevel>('good');
   const readySinceRef = useRef<number | null>(null);
   const prepKeyRef = useRef('');
@@ -158,27 +150,20 @@ export function WorkoutScreen() {
   }, []);
 
   function resetCounters(next: AssistantId) {
-    squatRef.current.reset();
-    curlRef.current.reset();
-    pressRef.current.reset();
-    plankRef.current.reset();
+    // Solo el contador que se va a usar: los demás se reinician al activarlos.
+    trackers[next].reset();
     plankAnnouncedRef.current = 0;
     plankSecondsRef.current = 0;
-    prevRepsRef.current = -1;
     lastPeakLevelRef.current = 'good';
     builderRef.current = new SetSummaryBuilder();
     policyRef.current = new FeedbackPolicy(FEEDBACK_STRATEGY[next]);
     hudKeyRef.current = '';
     pushHud(EMPTY_HUD);
-    if (usesEngine3D(next)) {
-      if (!pipelineRef.current) pipelineRef.current = new FramePipeline(definitionFor(next));
-      else if (pipelineRef.current.definition !== definitionFor(next)) pipelineRef.current.setExercise(definitionFor(next));
-    }
   }
 
   function startSet() {
     resetCounters(exRef.current);
-    pipelineRef.current?.startNewSet();
+    pipeline.startNewSet();
     readySinceRef.current = null;
     phaseRef.current = 'active';
     setPhase('active');
@@ -253,8 +238,7 @@ export function WorkoutScreen() {
         setStatus('ready');
 
         // Cámara nueva: filtro y calibración desde cero.
-        pipelineRef.current?.reset();
-        if (usesEngine3D(exRef.current) && !pipelineRef.current) pipelineRef.current = new FramePipeline(definitionFor(exRef.current));
+        pipeline.reset();
 
         // El acelerómetro alimenta el nivelador, el motor 3D y la gravedad de las grabaciones.
         if (!gravityRef.current) gravityRef.current = new DeviceGravityTracker();
@@ -311,9 +295,9 @@ export function WorkoutScreen() {
       } else if (phaseRef.current === 'prep') {
         updateBubble(worldDown);
         let calibration: number | null = null;
-        if (engine3D && world && pipelineRef.current) {
+        if (engine3D && world) {
           // En preparación solo se aprende la calibración de pie (el contador no cuenta).
-          const prepared = pipelineRef.current.prepare({ world, t: now, worldDown });
+          const prepared = pipeline.prepare({ world, t: now, worldDown });
           calibration = prepared.diagnostics.calibrationProgress;
           liveWorld = prepared.world;
         } else if (engine3D) {
@@ -339,21 +323,13 @@ export function WorkoutScreen() {
           readySinceRef.current = null;
         }
       } else if (phaseRef.current === 'active' && landmarkSets.length > 0) {
-        if (engine3D) {
-          if (world && pipelineRef.current) {
-            const input = { world, t: now, worldDown };
-            if (current === 'plank') {
-              const prepared = pipelineRef.current.prepare(input);
-              liveWorld = prepared.world;
-              handlePlank(plankRef.current.update(prepared.world, now), now);
-            } else {
-              const out = pipelineRef.current.process(input);
-              liveWorld = out.world;
-              handle3D(out, current, now);
-            }
-          }
-        } else {
-          handle2D(landmarkSets[0], current, now);
+        const out = trackers[current].update({ t: now, image: landmarkSets[0], world: world ?? undefined, down: worldDown });
+        const d = out.detail;
+        switch (d.engine) {
+          case 'hold': liveWorld = d.world; handlePlank(d.result, now); break;
+          case '3d': liveWorld = d.world; handleReps(out, d.result, current, now); break;
+          case '2d': handleReps(out, null, current, now); break;
+          case 'none': break; // el motor 3D no recibió landmarks 3D en este frame
         }
       }
 
@@ -378,60 +354,42 @@ export function WorkoutScreen() {
       }
     }
 
-    function handle3D(out: ReturnType<FramePipeline['process']>, current: AssistantId, now: number) {
-      const r = out.result;
-      builderRef.current.addFrame(r);
+    /** Ejercicios por repeticiones, en cualquier motor. `result3D` alimenta el resumen 3D. */
+    function handleReps(out: EngineOutput, result3D: Tracker3DResult | null, current: AssistantId, now: number) {
+      let peakDeg: number | null = null;
+      let repCounted = false;
+      let rejection: string | null = null;
+      for (const e of out.events) {
+        if (e.kind === 'peak') peakDeg = e.extremeAngle;
+        else if (e.kind === 'complete') repCounted = true;
+        else rejection = e.message;
+      }
+
+      const b = builderRef.current;
+      if (result3D) {
+        b.addFrame(result3D);
+      } else {
+        // Motor 2D: la calidad de la rep es el nivel de aviso del último pico o fondo.
+        if (peakDeg !== null) lastPeakLevelRef.current = out.feedbackLevel;
+        if (repCounted) b.addRep2D(lastPeakLevelRef.current);
+      }
       for (const u of policyRef.current.decide({
-        now, reps: builderRef.current.validReps, repCounted: r.repCounted,
-        peakPhrase: r.peak ? peakPhrase(current, r.extremeDeg) : null,
-        rejectionMessage: r.rejectionMessage,
+        now, reps: b.validReps, repCounted,
+        peakPhrase: peakDeg === null ? null : peakPhrase(current, peakDeg),
+        rejectionMessage: rejection,
       })) speak(u);
 
-      // El contador del motor acumula entre series; el HUD y la voz cuentan la serie en curso.
-      const b = builderRef.current;
+      // El contador del motor 3D acumula entre series; el HUD y la voz cuentan la serie en curso.
       const prev = hudRef.current;
-      const s = r.repCounted || r.rejection ? b.summary() : null;
+      const s = repCounted || rejection ? b.summary() : null;
       pushHud({
         reps: b.validReps,
-        level: r.rejectionMessage ? 'bad' : r.feedbackLevel,
-        message: r.rejectionMessage ?? r.feedbackMessage,
-        extreme: r.peak ? Math.round(r.extremeDeg) : prev.extreme,
+        level: rejection ? 'bad' : out.feedbackLevel,
+        message: rejection ?? out.feedbackMessage,
+        extreme: peakDeg === null ? prev.extreme : Math.round(peakDeg),
         lastConcentricMs: s ? s.reps.at(-1)?.concentricMs ?? prev.lastConcentricMs : prev.lastConcentricMs,
         qualities: s ? s.reps.map(x => x.quality) : prev.qualities,
         rejected: s ? s.rejectedReps : prev.rejected,
-      });
-    }
-
-    function handle2D(landmarks: Parameters<SquatTracker['update']>[0], current: AssistantId, now: number) {
-      const result: Result2D = current === 'squat' ? squatRef.current.update(landmarks)
-        : current === 'curl' ? curlRef.current.update(landmarks)
-          : pressRef.current.update(landmarks);
-      const peakAngle =
-        current === 'squat' ? ((result as SquatResult).atBottom ? (result as SquatResult).minAngleReached : null)
-          : current === 'curl' ? ((result as BicepCurlResult).atTop ? (result as BicepCurlResult).minAngleReached : null)
-            : ((result as ShoulderPressResult).atPeak ? (result as ShoulderPressResult).maxAngleReached : null);
-      if (peakAngle !== null) lastPeakLevelRef.current = result.feedbackLevel;
-
-      const prevReps = prevRepsRef.current;
-      if (prevReps >= 0) {
-        for (const u of policyRef.current.decide({
-          now, reps: result.reps, repCounted: result.reps > prevReps,
-          peakPhrase: peakAngle === null ? null : peakPhrase(current, peakAngle),
-        })) speak(u);
-        if (result.reps > prevReps) builderRef.current.addRep2D(lastPeakLevelRef.current);
-      }
-      prevRepsRef.current = result.reps;
-
-      const prev = hudRef.current;
-      const s = builderRef.current.summary();
-      pushHud({
-        reps: s.validReps,
-        level: result.feedbackLevel,
-        message: result.feedbackMessage,
-        extreme: peakAngle !== null ? Math.round(peakAngle) : prev.extreme,
-        lastConcentricMs: null,
-        qualities: s.reps.map(x => x.quality),
-        rejected: 0,
       });
     }
 
@@ -462,7 +420,7 @@ export function WorkoutScreen() {
         cameraStopPendingRef.current = true;
       }
     };
-  }, [facingMode, speak, pushHud]);
+  }, [facingMode, speak, pushHud, pipeline, trackers]);
 
   function askMotion() {
     // iOS: el permiso se pide directamente desde el toque, antes de cualquier await.

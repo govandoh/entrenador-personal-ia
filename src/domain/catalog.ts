@@ -18,6 +18,8 @@
  * Sin colores ni otros datos de UI (esos viven en `src/ui`). Módulo puro.
  */
 
+import type { ExerciseId } from '../contracts/index.ts';
+
 export type MuscleGroup =
   | 'pecho' | 'espalda' | 'hombros' | 'biceps' | 'triceps'
   | 'cuadriceps' | 'isquiotibiales' | 'gluteos' | 'pantorrillas'
@@ -47,8 +49,8 @@ export type MovementPattern =
   | 'horizontal_push' | 'vertical_push' | 'horizontal_pull' | 'vertical_pull'
   | 'isolation_upper' | 'isolation_lower' | 'core' | 'cardio';
 
-/** Contador 3D asociado (`src/exercises/definitions3d.ts`, `plankTracker.ts`). */
-export type AssistantId = 'squat' | 'curl' | 'press' | 'pushup' | 'lunge' | 'bridge' | 'plank';
+/** Contador asociado; la lista la define el contrato de los contadores (DEC-063). */
+export type AssistantId = ExerciseId;
 
 export interface CatalogExercise {
   id: string;

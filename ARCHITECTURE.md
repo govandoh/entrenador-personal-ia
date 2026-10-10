@@ -109,11 +109,11 @@ Layout completo de directorios: `AGENTS.md` y `DEC-028`.
 
 ### 2.2 Contratos núcleo (`packages/contracts`)
 
-Firmas resumidas; la fuente de verdad será el código TypeScript + zod del paquete. Todo tipo persistido lleva `schemaVersion`.
+Firmas resumidas; la fuente de verdad será el código TypeScript + zod del paquete. Todo tipo persistido lleva `schemaVersion`. Lo marcado `v1` ya existe en `src/contracts/` (versión 1.0.0, DEC-063); el resto es objetivo.
 
 ```ts
 // Pose
-interface LandmarkFrame { t: number; seq: number; image: Landmark[33]; world?: Landmark[33]; view: 'front' | 'side' | 'unknown' }
+interface LandmarkFrame { t: number; image: Landmark[33]; world?: Landmark[33]; down?: Vec3 | null }  // v1; seq y view llegarán como opcionales
 interface PoseSource   { start(): Promise<void>; stop(): void; onFrame(cb: (f: LandmarkFrame) => void): void }
 //   implementaciones: CameraPoseSource (getUserMedia + MediaPipe), ReplayPoseSource (fixture JSON)
 interface SkeletonRenderer { draw(frame: LandmarkFrame): void }          // separa dibujo de detección
@@ -124,9 +124,10 @@ interface FeatureVector { angles: Record<JointId, number>; angVel: Record<JointI
 interface FeatureExtractor { push(frame: LandmarkFrame): FeatureVector }
 
 // Trackers y segmentación
-type RepEvent = { kind: 'peak' | 'complete'; t: number; extremeAngle: number }
-interface TrackerOutput { phase: string; reps: number; feedbackLevel: FeedbackLevel; feedbackMessage: string; events: RepEvent[] }
-interface ExerciseTracker { exerciseId: ExerciseId; update(frame: LandmarkFrame, features?: FeatureVector): TrackerOutput; reset(): void }
+type RepEvent = { kind: 'peak'; t: number; extremeAngle: number } | { kind: 'complete'; t: number }
+               | { kind: 'rejected'; t: number; reason: string; message: string }                           // v1
+interface TrackerOutput { phase: string; reps: number; feedbackLevel: FeedbackLevel; feedbackMessage: string; events: RepEvent[] }  // v1
+interface ExerciseTracker { exerciseId: ExerciseId; update(frame: LandmarkFrame): TrackerOutput; reset(): void }  // v1; `features?` llega con FeatureExtractor (PR 7)
 class PeakDetector { constructor(opts: { polarity: 'min' | 'max'; confirmMs: number; minDeltaDeg: number }) }  // reemplaza ArmTracker/ArmPressTracker
 interface RepSegmenter { push(frame, features): RepWindow | null }      // RuleRepSegmenter (histéresis actual) | MlRepSegmenter
 

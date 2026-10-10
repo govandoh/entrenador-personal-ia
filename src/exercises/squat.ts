@@ -1,4 +1,4 @@
-import type { NormalizedLandmark } from '@mediapipe/tasks-vision';
+import type { FeedbackLevel, Landmark } from '../contracts/index.ts';
 import { calculateAngle } from '../geometry/angles.ts';
 
 const LM = {
@@ -17,7 +17,6 @@ const RISING_THRESHOLD =   2; // grados de subida para confirmar que se pasó el
 const MIN_VISIBILITY   = 0.5;
 
 export type SquatPhase    = 'standing' | 'squatting' | 'transition';
-export type FeedbackLevel = 'idle' | 'good' | 'warning' | 'bad';
 
 export interface SquatResult {
   phase:           SquatPhase;
@@ -38,7 +37,7 @@ export class SquatTracker {
   private minAngleSeen   = 180; // mínimo acumulado en la bajada actual
   private bottomFired    = false; // garantiza que el evento dispare solo una vez por rep
 
-  update(landmarks: NormalizedLandmark[]): SquatResult {
+  update(landmarks: Landmark[]): SquatResult {
     const keyIndices = [
       LM.LEFT_HIP,  LM.RIGHT_HIP,
       LM.LEFT_KNEE, LM.RIGHT_KNEE,

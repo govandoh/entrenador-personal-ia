@@ -91,8 +91,9 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-060](DEC-060-responsive-areas-seguras.md) | Responsive y áreas seguras como regla de diseño y funcionalidad: matriz de dispositivos, tokens `--safe-*` y auditoría automática | 2026-09-24 | Aceptada |
 | [DEC-061](DEC-061-tecnica-3d-y-mini-mapa.md) | Ficha de técnica con modelo 3D, mini mapa arrastrable y preferencias de vista | 2026-09-24 | Aceptada |
 | [DEC-062](DEC-062-modelo-esfuerzo-y-trabajo-en-paralelo.md) | Modelo y esfuerzo por agente, una issue por sesión y estado del proyecto a cargo del líder | 2026-10-05 | Propuesta |
+| [DEC-063](DEC-063-contrato-exercise-tracker.md) | Contrato `ExerciseTracker` v1.0.0 y adaptadores de los contadores | 2026-10-07 | Propuesta |
 
-Próximo número libre: **DEC-063** (provisional hasta el merge, ver DEC-062).
+Próximo número libre: **DEC-064** (provisional hasta el merge, ver DEC-062).
 
 **Decisiones importadas de fitnetv2.** DEC-036..053 son las DEC-026..043 de `ecaldcc/07-FitNet` renumeradas con +10 (tabla completa en `DEC-054`). Conservan su contenido literal y añaden notas de integración.
 
