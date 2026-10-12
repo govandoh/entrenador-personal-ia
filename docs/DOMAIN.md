@@ -58,7 +58,7 @@ User 1—* WorkoutSession (routineDayId?, device, modelVersions) 1—* Set (exer
 Set/WorkoutSession 1—* Metric (name, value, unit)   ← única entrada del CoachAssistant
 Trainer *—* User(cliente) vía CoachingRelationship 1—1 CoachingThread 1—* Message (trainer|client|assistant) · Thread 1—* Report
 Challenge 1—* ChallengeEntry · LeaderboardEntry (challengeId|global, userId, score, period)
-RecordingConsent 1—* Recording (dataset de landmarks; retención, borrable)
+RecordingConsent 1—1 Recording (dataset de landmarks; retención, borrable)
 ```
 
 ### Identidad y cuenta
@@ -110,7 +110,7 @@ RecordingConsent 1—* Recording (dataset de landmarks; retención, borrable)
 
 | Entidad | Descripción | Campos clave | Relaciones |
 |---|---|---|---|
-| `RecordingConsent` | Consentimiento explícito. | `userId`, `scope` (`training_dataset`), `grantedAt`, `revokedAt?`, `textVersion` | 1—* `Recording`. |
+| `RecordingConsent` | Consentimiento explícito. | `userId`, `scope` (`training_dataset`), `grantedAt`, `revokedAt?`, `textVersion` | 1—1 `Recording` (un consentimiento por grabación, DATA-GOVERNANCE §2). |
 | `Recording` | Grabación de landmarks (nunca video). | `consentId`, `exerciseId`, `view`, `device`, `schemaVersion`, `storagePath`, `labels[]`, `retentionUntil` | Borrable por el usuario; detalle en `DATA-GOVERNANCE.md`. |
 
 ## Métodos de entrenamiento (`TrainingMethod`)
