@@ -1,7 +1,7 @@
 -- Tests de RLS con pgTAP. Se ejecutan con `pnpm db:test` (supabase test db).
 -- Criterio de la issue #17: un usuario no lee ni escribe datos de otro.
 begin;
-select plan(31);
+select plan(32);
 
 -- Dos usuarios y un anónimo. Las filas se crean como superusuario (sin RLS).
 insert into auth.users (id, instance_id, aud, role, email)
@@ -127,6 +127,8 @@ select throws_ok($$select * from public.profiles$$, '42501', null, 'anon no lee 
 select throws_ok($$select * from public.set_logs$$, '42501', null, 'anon no lee series');
 select throws_ok($$select * from public.exercises$$, '42501', null, 'anon no lee el catálogo');
 select throws_ok($$select * from public.set_logs_default$$, '42501', null, 'anon no lee particiones');
+-- La única puerta de anon es el ping de keepalive.
+select is((select public.keepalive() is not null), true, 'anon puede llamar a keepalive()');
 
 select * from finish();
 rollback;

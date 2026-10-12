@@ -283,7 +283,9 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            [_ in never]: never
+            "keepalive":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           }
           }
           Enums: {
             [_ in never]: never

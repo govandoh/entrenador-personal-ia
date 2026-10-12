@@ -21,7 +21,9 @@ jobs:
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
           test -n "$SUPABASE_URL" && test -n "$SUPABASE_ANON_KEY" || { echo "Faltan los secretos SUPABASE_URL y SUPABASE_ANON_KEY"; exit 1; }
-          curl --fail --silent --show-error --max-time 30 \
+          # anon no lee tablas (RLS); la función keepalive() de 0400 es su única puerta.
+          curl --fail --silent --show-error --max-time 30 -X POST \
             -H "apikey: $SUPABASE_ANON_KEY" \
-            "$SUPABASE_URL/rest/v1/exercises?select=id&limit=1" > /dev/null
+            -H "Content-Type: application/json" -d '{}' \
+            "$SUPABASE_URL/rest/v1/rpc/keepalive" > /dev/null
           echo "Proyecto activo."
