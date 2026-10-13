@@ -116,7 +116,7 @@ Aplicada de forma idéntica en `analysis-core` (TS; hoy `src/geometry/`) y `ml/f
 | FLEX | No comercial, acceso por solicitud | Solo prototipos y benchmarks. |
 | **Checkpoints preentrenados sobre NTU RGB+D** (ST-GCN++, CTR-GCN, HD-GCN, SkateFormer, ProtoGCN…) | Código Apache-2.0 o MIT; los **pesos** derivan de datos de uso académico y de investigación | **Permitidos en el prototipo** (`DEC-035`: Fitnet no se comercializa). Este repositorio no los redistribuye: se descargan de su origen al entrenar. Todo modelo derivado se marca `provenance: "academic-pretrained"` y `commercialUse: false` en `models/manifest.json`. Prohibidos en un hipotético producto comercial. |
 
-Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | ["product"]`; `ml/train` rechaza mezclar datasets `prototype` en un run marcado `--for-product`. La misma regla aplica a pesos de partida: un run `--for-product` solo admite inicialización aleatoria o checkpoints propios. Mientras el proyecto sea académico no hay runs `--for-product`; la bandera existe para que la frontera quede explícita y para poder cuantificar el costo de comercializar (`DEC-035` §4).
+Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | ["academic"] | ["product"]`. `academic` es para datos sin licencia pública verificada que se usan amparados por la autorización del responsable del proyecto (`DEC-065`); `ml/train` rechaza mezclar datasets `prototype` o `academic` en un run marcado `--for-product`. La misma regla aplica a pesos de partida: un run `--for-product` solo admite inicialización aleatoria o checkpoints propios. Mientras el proyecto sea académico no hay runs `--for-product`; la bandera existe para que la frontera quede explícita y para poder cuantificar el costo de comercializar (`DEC-035` §4).
 
 ## 6. Entrenamiento
 
@@ -140,7 +140,7 @@ Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | 
 {
   "task": "form_errors", "exerciseId": "squat", "version": "0.3.0",
   "featureSchemaVersion": "1", "opset": 17, "sha256": "…",
-  "datasets": [{ "id": "own-2026-10", "license": "internal" }, { "id": "mm-fit", "license": "CC BY 4.0 (video); etiquetas sin licencia pública" }],
+  "datasets": [{ "id": "own-2026-10", "license": "internal" }, { "id": "infinite-rep", "license": "CC BY 4.0" }],
   "loso": { "accuracy": 0.91, "f1_macro": 0.78,
             "perClass": { "shallow_depth": { "f1": 0.83 }, "knee_valgus": { "f1": 0.72 } },
             "perView": { "side": { "f1_macro": 0.81 }, "front": { "f1_macro": 0.74 } } },

@@ -2,7 +2,7 @@
 
 - **Estado:** Propuesta
 - **Fecha:** 2026-10-13
-- **Decisores:** @govandoh (responsable del proyecto); revisan B y E (`docs/adr/README.md`)
+- **Decisores:** @govandoh (responsable del proyecto); revisan B, D y E (`docs/adr/README.md`)
 - **Etiquetas:** `ml`, `datos`, `licencias`, `proceso`
 
 ## Contexto y problema
@@ -30,10 +30,11 @@ Los datasets externos (MM-Fit, Fitness-AQA, etc.) se usan **solo con fines acad�
 Para MM-Fit:
 
 - Código: MIT. Video RGB: CC BY 4.0, con atribución. Etiquetas y sensores: sin licencia pública verificada; uso amparado en la autorización del responsable (2026-10-12), solo para este proyecto académico.
-- `allowedFor` de MM-Fit pasa a `academic` para las etiquetas y el paquete multimodal. El video RGB conserva `product` por su CC BY 4.0.
-- Se corrigen `docs/DATA-GOVERNANCE.md` §6 y `docs/ML-PIPELINE.md` §5 (tabla y ejemplo de manifest). Las ADR previas no se reescriben: `DEC-027`, `DEC-034` y `DEC-055` quedan matizadas por esta DEC en lo que dicen de MM-Fit ("MIT", "permiten uso comercial").
+- `allowedFor` de MM-Fit en `dataset.json` pasa a `["academic"]`; `verified.rgbVideoLicense.allowedFor` conserva `["product"]` por su CC BY 4.0.
+- `academic` se añade al esquema de `allowedFor` (`docs/ML-PIPELINE.md` §5) junto a `prototype` y `product`: datos sin licencia pública verificada, amparados por la autorización del responsable. `ml/train` rechazará mezclarlo en un run `--for-product`, igual que `prototype`.
+- Se corrigen `docs/DATA-GOVERNANCE.md` §6, `docs/ML-PIPELINE.md` §5 (tabla, esquema `allowedFor` y ejemplo de manifest, que pasa a usar InfiniteRep) y `.claude/agents/ml-engineer.md`. Las ADR previas no se reescriben: `DEC-027`, `DEC-034` y `DEC-055` quedan matizadas por esta DEC en lo que dicen de MM-Fit ("MIT", "permiten uso comercial").
 
-**Qué cambiaría el alcance:** publicar un modelo en `models/manifest.json` o usar la app fuera del curso. Antes habría que (a) confirmar la licencia del paquete de etiquetas con los autores (`k.d.m.stromback@gmail.com`, `valentin.radu@sheffield.ac.uk`) o excluir esos datos del entrenamiento, y (b) añadir MM-Fit a la sección "Créditos" de la app. El gate de promoción ya bloquea modelos con datasets que no declaran `allowedFor: product`.
+**Qué cambiaría el alcance:** publicar un modelo en `models/manifest.json` o usar la app fuera del curso. Antes habría que (a) confirmar la licencia del paquete de etiquetas con los autores (`k.d.m.stromback@gmail.com`, `valentin.radu@sheffield.ac.uk`) o excluir esos datos del entrenamiento, y (b) añadir MM-Fit a la sección "Créditos" de la app. El gate de promoción (`docs/ML-PIPELINE.md` §9, punto 4) bloqueará modelos con datasets que no declaren `allowedFor: product`.
 
 ## Consecuencias
 
@@ -49,7 +50,7 @@ Para MM-Fit:
 
 ### Pendiente
 
-- `.claude/agents/ml-engineer.md` (línea de licencias) dice que MM-Fit puede preentrenar; la actualiza `docs-keeper` o el responsable del agente.
+- `ml/train` y el CI todavía no implementan el rechazo de `academic` y `prototype` en `--for-product` ni el gate de promoción; hay que hacerlo cuando exista el pipeline (workstream C).
 
 ## Referencias
 
