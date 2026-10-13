@@ -1,21 +1,42 @@
 {
   "id": "mm-fit",
-  "status": "phase1-pending-license",
+  "status": "phase2-rgb-only",
+  "allowedFor": ["product"],
   "citation": "Strömbäck, Huang, Radu. 2020. MM-Fit. ACM IMWUT 4(4):168. doi.org/10.1145/3432701",
   "verified": {
     "starterCodeLicense": { "url": "https://github.com/KDMStromback/mm-fit/blob/master/LICENCE.txt", "license": "MIT" },
-    "rgbVideoLicense": { "url": "https://zenodo.org/records/7672767", "license": "CC BY 4.0", "allowedFor": ["product"] },
+    "rgbVideoLicense": {
+      "url": "https://zenodo.org/records/7672767", "license": "CC BY 4.0", "allowedFor": ["product"],
+      "note": "Licencia confirmada en la página de Zenodo; esta es la única parte del dataset usada en la Fase 2."
+    },
     "selectedSession": {
-      "sessionId": "w19", "rgbFile": "w19_rgb.mp4",
-      "labelsExpectedPath": "mm-fit/w19/w19_labels.csv",
-      "labelsColumns": ["startFrame", "endFrame", "repetitionCount", "activityClass"]
+      "sessionId": "w19", "rgbFile": "w19_rgb.mp4", "rgbFileSizeMb": 415.4,
+      "rgbDownloadUrl": "https://zenodo.org/records/7672767/files/w19_rgb.mp4?download=1"
+    },
+    "phase2Conversion": {
+      "status": "verified-manual-run",
+      "executedAt": "2026-10-12",
+      "subjectId": "mmfit-w19",
+      "exerciseId": "squat",
+      "clip": { "startSec": 35, "durationSec": 8, "note": "Sentadillas identificadas visualmente, sin CSV oficial de reps." },
+      "outputFile": "ml/data/out/mmfit_w19_squat_v2.json",
+      "frames": 240,
+      "validation": { "tool": "ml/datasets/validate_v2.py", "result": "OK", "framesReported": 240 },
+      "unitTests": { "tool": "ml/datasets/test_validate_v2.py", "result": "9 passed in 0.08s", "python": "3.11.9", "pytest": "9.1.1" },
+      "note": "Ejecución manual fuera de CI (entorno Windows sin sandbox de filesystem para Shell del agente); salida reportada por el desarrollador del workstream C. No se subieron el video ni el JSON (ambos en .gitignore)."
     }
   },
   "pending": {
     "multimodalPackageUrl": { "status": "unverified", "candidate": "https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip" },
+    "labelsFormat": {
+      "status": "confirmed-via-starter-code",
+      "columns": ["startFrame", "endFrame", "repetitionCount", "activityClass"],
+      "expectedPath": "mm-fit/w19/w19_labels.csv",
+      "source": "https://raw.githubusercontent.com/KDMStromback/mm-fit/master/utils/utils.py"
+    },
     "labelsLicense": { "status": "unverified" },
-    "allowedFor": { "status": "unverified" },
+    "labelsAllowedFor": { "status": "unverified" },
     "contacts": ["k.d.m.stromback@gmail.com", "valentin.radu@sheffield.ac.uk"],
-    "blockedBy": "Issue #38 Fase 2: confirmar URL oficial y permiso de uso antes de convertir."
+    "blockedBy": "Issue #38: confirmar URL oficial vigente y licencia de las etiquetas antes de usarlas; no bloquea el uso del RGB (licencia ya verificada)."
   }
 }

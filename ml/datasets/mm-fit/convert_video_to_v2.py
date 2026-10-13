@@ -1,11 +1,18 @@
 #!/usr/bin/env python3
-"""Convierte un video RGB a JSON v2 de landmarks (Issue #38, Fase 1).
+"""Convierte un video RGB a JSON v2 de landmarks (Issue #38, Fase 1 y 2).
 Usa `pose_landmarker_lite` (mismo `.task` que la app) con el paquete Python `mediapipe`
 (Tasks API, modo VIDEO) -no es `@mediapipe/tasks-vision`; la equivalencia es por modelo,
 no por paquete (ver `ml/README.md`). Esquema: `docs/ML-PIPELINE.md` §2. Una etiqueta
-`exercise` por clip; segmentar varios ejercicios/etiquetas queda para la Fase 2.
-Uso: python convert_video_to_v2.py --video clip.mp4 --exercise-id squat \
+`exercise` por clip; segmentar varios ejercicios/etiquetas queda para cuando haya
+etiquetas originales verificadas (bloqueado, `ml/datasets/mm-fit/dataset.json`).
+`--start-sec`/`--duration-sec` recortan el clip sin depender de ffmpeg (Fase 2: videos
+largos de MM-Fit). `--dataset-id`/`--source-url`/`--license`/`--citation` anotan la
+procedencia en `meta.dataset`; se omiten si no se pasan (no afecta el flujo sintético).
+Uso Fase 1: python convert_video_to_v2.py --video clip.mp4 --exercise-id squat \
     --subject-id anon-smoke --synthetic --out out.json
+Uso Fase 2: python convert_video_to_v2.py --video w19_rgb.mp4 --exercise-id squat \
+    --subject-id mmfit-w19 --start-sec 12 --duration-sec 8 --dataset-id mm-fit \
+    --source-url https://zenodo.org/records/7672767 --license "CC BY 4.0" --out out.json
 """
 from __future__ import annotations
 
@@ -33,7 +40,8 @@ def _ensure_model(path: str) -> str:
 def _to_tuples(lms):
     return [[float(lm.x), float(lm.y), float(lm.z), float(getattr(lm, "visibility", 0.0) or 0.0)] for lm in lms]
 
-def convert(video_path, exercise_id, subject_id, view, synthetic, notes):
+def convert(video_path, exercise_id, subject_id, view, synthetic, notes, start_sec=0.0, duration_sec=None,
+            dataset_id=None, source_url=None, license_name=None, citation=None):
     import mediapipe as mp
     from mediapipe.tasks import python as mp_python
     from mediapipe.tasks.python import vision as mp_vision
@@ -55,13 +63,19 @@ def convert(video_path, exercise_id, subject_id, view, synthetic, notes):
             break
         ts_ms = int(frame_idx * 1000 / fps)
         frame_idx += 1
+        t_sec = ts_ms / 1000.0
+        if t_sec < start_sec:
+            continue
+        if duration_sec is not None and (t_sec - start_sec) >= duration_sec:
+            break
         rgb = cv2.cvtColor(bgr, cv2.COLOR_BGR2RGB)
         result = landmarker.detect_for_video(mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb), ts_ms)
         if not result.pose_landmarks:
             skipped += 1
             continue
         world = _to_tuples(result.pose_world_landmarks[0]) if result.pose_world_landmarks else None
-        frames.append({"t": float(ts_ms), "seq": seq, "image": _to_tuples(result.pose_landmarks[0]), "world": world})
+        t_rel_ms = ts_ms - start_sec * 1000
+        frames.append({"t": float(t_rel_ms), "seq": seq, "image": _to_tuples(result.pose_landmarks[0]), "world": world})
         seq += 1
     cap.release()
     landmarker.close()
@@ -79,6 +93,18 @@ def convert(video_path, exercise_id, subject_id, view, synthetic, notes):
         "recordedAt": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "subjectId": subject_id, "notes": notes,
     }
+    # Procedencia de datasets externos (Issue #38 Fase 2): solo se agrega si se declara
+    # explícitamente un dataset_id, para no afectar el flujo sintético/local de Fase 1.
+    if dataset_id:
+        dataset_meta = {"id": dataset_id}
+        if source_url:
+            dataset_meta["sourceUrl"] = source_url
+        if license_name:
+            dataset_meta["license"] = license_name
+        if citation:
+            dataset_meta["citation"] = citation
+        dataset_meta["clip"] = {"startSec": start_sec, "durationSec": duration_sec}
+        meta["dataset"] = dataset_meta
     labels = [{"kind": "exercise", "exerciseId": exercise_id, "start": 0, "end": seq - 1}]
     return {"schemaVersion": "2", "meta": meta, "frames": frames, "labels": labels}
 
@@ -92,8 +118,16 @@ def main() -> None:
     p.add_argument("--view", default="front", choices=["side", "front", "45"])
     p.add_argument("--synthetic", action="store_true")
     p.add_argument("--notes", default="")
+    p.add_argument("--start-sec", type=float, default=0.0, help="Segundo de inicio del recorte (Fase 2).")
+    p.add_argument("--duration-sec", type=float, default=None, help="Duración del recorte en segundos (Fase 2).")
+    p.add_argument("--dataset-id", default=None, help="Id del dataset externo, p. ej. 'mm-fit' (Fase 2).")
+    p.add_argument("--source-url", default=None, help="URL oficial verificada del dataset (Fase 2).")
+    p.add_argument("--license", dest="license_name", default=None, help="Licencia verificada, p. ej. 'CC BY 4.0'.")
+    p.add_argument("--citation", default=None, help="Cita bibliográfica del dataset.")
     args = p.parse_args()
-    result = convert(args.video, args.exercise_id, args.subject_id, args.view, args.synthetic, args.notes)
+    result = convert(args.video, args.exercise_id, args.subject_id, args.view, args.synthetic, args.notes,
+                      start_sec=args.start_sec, duration_sec=args.duration_sec, dataset_id=args.dataset_id,
+                      source_url=args.source_url, license_name=args.license_name, citation=args.citation)
     os.makedirs(os.path.dirname(args.out) or ".", exist_ok=True)
     with open(args.out, "w", encoding="utf-8") as f:
         json.dump(result, f, indent=2)
