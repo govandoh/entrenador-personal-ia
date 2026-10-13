@@ -108,7 +108,7 @@ Aplicada de forma idéntica en `analysis-core` (TS; hoy `src/geometry/`) y `ml/f
 
 | Dataset | Licencia | Uso permitido en Fitnet |
 |---|---|---|
-| MM-Fit | MIT | Identificar el ejercicio: se convierte offline (Kaggle) a landmarks de MediaPipe y se añade como ejemplos al k-NN (`DEC-055`); cubre ejercicios de las olas 1 y 2 de `DEC-056`. Formato de keypoints y etiquetas por verificar antes de convertir. Producto. |
+| MM-Fit | Código MIT; video RGB CC BY 4.0; etiquetas y sensores sin licencia pública verificada (`DEC-065`) | Identificar el ejercicio: se convierte offline (Kaggle) a landmarks de MediaPipe y se añade como ejemplos al k-NN (`DEC-055`); cubre ejercicios de las olas 1 y 2 de `DEC-056`. Formato de keypoints y etiquetas por verificar antes de convertir. Video RGB: producto con atribución. Etiquetas y sensores: solo uso académico por autorización del responsable (`DEC-065`). |
 | InfiniteRep | CC BY 4.0 | Preentrenar el clasificador; producto, con atribución en `DATA-GOVERNANCE.md` y en la app. |
 | EC3D | Sin licencia comercial explícita | **Solo prototipos y benchmarks**; ningún peso entrenado con él se publica en `models/manifest.json`. |
 | REHAB24-6 | No comercial | Solo prototipos y benchmarks. |
@@ -140,7 +140,7 @@ Cada entrada de `ml/datasets/` declara `license` y `allowedFor: ["prototype"] | 
 {
   "task": "form_errors", "exerciseId": "squat", "version": "0.3.0",
   "featureSchemaVersion": "1", "opset": 17, "sha256": "…",
-  "datasets": [{ "id": "own-2026-10", "license": "internal" }, { "id": "mm-fit", "license": "MIT" }],
+  "datasets": [{ "id": "own-2026-10", "license": "internal" }, { "id": "mm-fit", "license": "CC BY 4.0 (video); etiquetas sin licencia pública" }],
   "loso": { "accuracy": 0.91, "f1_macro": 0.78,
             "perClass": { "shallow_depth": { "f1": 0.83 }, "knee_valgus": { "f1": 0.72 } },
             "perView": { "side": { "f1_macro": 0.81 }, "front": { "f1_macro": 0.74 } } },

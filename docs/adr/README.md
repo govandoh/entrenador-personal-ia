@@ -93,8 +93,9 @@ En Claude Code, la skill `/adr` genera el borrador a partir de la conversación 
 | [DEC-062](DEC-062-modelo-esfuerzo-y-trabajo-en-paralelo.md) | Modelo y esfuerzo por agente, una issue por sesión y estado del proyecto a cargo del líder | 2026-10-05 | Propuesta |
 | [DEC-063](DEC-063-contrato-exercise-tracker.md) | Contrato `ExerciseTracker` v1.0.0 y adaptadores de los contadores | 2026-10-07 | Propuesta |
 | [DEC-064](DEC-064-consentimiento-una-grabacion.md) | Un consentimiento de grabación vale para una sola grabación (`unique` sobre `consent_id`) | 2026-10-10 | Propuesta |
+| [DEC-065](DEC-065-datasets-externos-alcance-academico.md) | Datasets externos: licencias de MM-Fit corregidas (código MIT, video CC BY 4.0, etiquetas sin licencia pública) y alcance solo académico | 2026-10-13 | Propuesta |
 
-Próximo número libre: **DEC-065** (provisional hasta el merge, ver DEC-062).
+Próximo número libre: **DEC-066** (provisional hasta el merge, ver DEC-062).
 
 **Decisiones importadas de fitnetv2.** DEC-036..053 son las DEC-026..043 de `ecaldcc/07-FitNet` renumeradas con +10 (tabla completa en `DEC-054`). Conservan su contenido literal y añaden notas de integración.
 

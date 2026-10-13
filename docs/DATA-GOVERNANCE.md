@@ -63,11 +63,12 @@ El usuario puede en cualquier momento: ver qué grabaciones existen, borrar una 
 
 Uso condicionado a licencia (tabla en `ML-PIPELINE.md` §5):
 
-- **Permitidos en producto:** MM-Fit (MIT) e InfiniteRep (CC BY 4.0, exige atribución: se incluye en la sección "Créditos" de la app y en este archivo).
+- **Permitidos en producto:** InfiniteRep (CC BY 4.0, exige atribución: se incluye en la sección "Créditos" de la app y en este archivo) y el video RGB de MM-Fit (CC BY 4.0, misma atribución).
+- **Solo uso académico (`DEC-065`):** las etiquetas y sensores del paquete multimodal de MM-Fit no tienen licencia pública verificada; su uso se ampara en la autorización del responsable del proyecto (2026-10-12). Ningún modelo publicado en `models/manifest.json` puede haberse entrenado con ellos hasta resolver su licencia.
 - **Solo prototipos y benchmarks (no comercial o sin licencia clara):** EC3D, REHAB24-6, Fitness-AQA. Ningún modelo publicado en `models/manifest.json` puede haberse entrenado o afinado con ellos; el gate de promoción lo verifica por la declaración `allowedFor` de cada dataset.
 - Los datasets externos se descargan desde sus fuentes originales en el entorno de entrenamiento; no se redistribuyen en el repo ni en Storage.
 
 Atribuciones:
 
 - InfiniteRep — Infinity AI, licencia CC BY 4.0.
-- MM-Fit — Strömbäck, Huang y Radu (2020), licencia MIT.
+- MM-Fit — Strömbäck, Huang y Radu (2020). Código MIT; video RGB CC BY 4.0; etiquetas y sensores sin licencia pública verificada (`DEC-065`).
