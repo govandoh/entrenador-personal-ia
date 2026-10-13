@@ -25,6 +25,7 @@ import { IconBack, IconBulb, IconCube, IconHelp, IconSwitchCamera, IconVoice, Ic
 import { MiniMap3D, type MiniMapHandle } from './MiniMap3D';
 import { SetTips } from './SetTips';
 import { TechniqueSheet } from '../technique/TechniqueSheet';
+import { buildSetRecord } from '../../domain/sessionBuild';
 import type { BodyOrientation, Landmark3D } from '../../geometry/vectors3d';
 import { VIEW_LABEL, ViewStabilizer, bodyView } from './bodyView';
 import './workout.css';
@@ -181,18 +182,18 @@ export function WorkoutScreen() {
     setSummary({ summary: s, heldSeconds: held });
     setPhase('summary');
     const valid = timed ? held ?? 0 : s?.validReps ?? 0;
-    if (valid > 0) {
-      appActions.addSet({
-        id: newId(),
-        completedAt: new Date().toISOString(),
-        exerciseId: catalogIdFor(current),
-        validReps: valid,
-        rejectedReps: s?.rejectedReps ?? 0,
-        goodReps: timed ? valid : s?.goodReps ?? 0,
-        timed,
-        fatigue: s ? fatigueSummary(s.fatigue.level, s.validReps) : null,
-      });
-    }
+    // Misma construcción que el modo manual (`domain/sessionBuild`): el historial no distingue el origen.
+    const record = buildSetRecord({
+      id: newId(),
+      now: new Date(),
+      exerciseId: catalogIdFor(current),
+      validReps: valid,
+      rejectedReps: s?.rejectedReps ?? 0,
+      goodReps: timed ? valid : s?.goodReps ?? 0,
+      timed,
+      fatigue: s ? fatigueSummary(s.fatigue.level, s.validReps) : null,
+    });
+    if (record) appActions.addSet(record);
     speak(timed ? `Serie completada. ${valid} segundos` : `Serie completada. ${valid} repeticiones`);
   }
 
