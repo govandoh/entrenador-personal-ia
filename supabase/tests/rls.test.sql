@@ -1,7 +1,7 @@
 -- Tests de RLS con pgTAP. Se ejecutan con `pnpm db:test` (supabase test db).
 -- Criterio de la issue #17: un usuario no lee ni escribe datos de otro.
 begin;
-select plan(32);
+select plan(35);
 
 -- Dos usuarios y un anónimo. Las filas se crean como superusuario (sin RLS).
 insert into auth.users (id, instance_id, aud, role, email)
@@ -38,6 +38,7 @@ select is((select count(*)::int from public.set_logs), 1, 'A solo ve sus series'
 select is((select count(*)::int from public.metrics), 0, 'A no ve métricas de B');
 select is((select count(*)::int from public.recording_consents), 1, 'A solo ve su consentimiento');
 select is((select count(*)::int from public.exercises), 60, 'A lee el catálogo completo');
+select is((select preferred_camera from public.profiles), 'environment', 'la cámara por defecto es la trasera, como en la app');
 
 select throws_ok(
   $$insert into public.profiles (user_id, display_name) values ('00000000-0000-0000-0000-00000000000b', 'Intruso')$$,
@@ -62,6 +63,11 @@ select lives_ok(
   $$insert into public.recordings (user_id, consent_id, exercise_id, view, storage_path)
     values ('00000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'sentadilla', 'front', 'a/1.json')$$,
   'A graba con su consentimiento vigente');
+
+select throws_ok(
+  $$insert into public.recordings (user_id, consent_id, exercise_id, view, storage_path)
+    values ('00000000-0000-0000-0000-00000000000a', '20000000-0000-0000-0000-00000000000a', 'sentadilla', 'back', 'a/view.json')$$,
+  '23514', null, 'la vista de una grabación solo puede ser side, front o 45');
 
 select throws_ok(
   $$insert into public.recordings (user_id, consent_id, exercise_id, view, storage_path)
@@ -106,6 +112,9 @@ select throws_ok(
 select throws_ok(
   $$update public.recording_consents set revoked_at = null where id = '20000000-0000-0000-0000-00000000000a'$$,
   'P0001', null, 'una revocación no se puede deshacer');
+select is(
+  (select retention_until <= now() from public.recordings where storage_path = 'a/1.json'),
+  true, 'revocar el consentimiento vence la grabación asociada');
 
 select is((select count(*)::int from public.recordings), 1, 'A puede ver (y borrar) su grabación ya creada');
 

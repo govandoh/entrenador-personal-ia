@@ -94,11 +94,19 @@ export interface RecordingConsent {
   revokedAt: string | null;
 }
 
-/** Consentimiento explícito por grabación (regla dura 2, docs/DATA-GOVERNANCE.md §2). */
+/**
+ * Consentimiento explícito por grabación (regla dura 2, docs/DATA-GOVERNANCE.md §2,
+ * DEC-064): cada consentimiento vale para UNA sola grabación, así que no hay un
+ * consentimiento "vigente" que reutilizar; se pide uno nuevo antes de cada grabación.
+ */
 export interface ConsentRepository {
   grant(textVersion: string): Promise<RecordingConsent>;
-  /** Revocar bloquea nuevas grabaciones; las existentes se borran con `deleteRecording`. */
+  /**
+   * Revocar es definitivo y vence la grabación asociada (`retention_until = now()`) para que
+   * la purga y la exportación a ML la excluyan; la fila se borra con `deleteRecording`.
+   */
   revoke(consentId: string): Promise<void>;
-  current(): Promise<RecordingConsent | null>;
+  /** Consentimiento de una grabación; null si no existe. */
+  forRecording(recordingId: string): Promise<RecordingConsent | null>;
   deleteRecording(recordingId: string): Promise<void>;
 }

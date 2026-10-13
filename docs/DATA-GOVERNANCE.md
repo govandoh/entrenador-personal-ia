@@ -34,7 +34,7 @@ Datos de actividad física y medidas corporales son datos sensibles de salud a e
 
 | Dato | Retención | Borrado |
 |---|---|---|
-| Grabaciones (`Recording`) | Hasta `retentionUntil` (por defecto 24 meses desde la grabación) o hasta revocación del consentimiento. | El usuario borra desde la app; job nocturno purga Storage y tabla. Los modelos ya entrenados no se re-entrenan retroactivamente, pero la grabación deja de usarse en runs futuros. |
+| Grabaciones (`Recording`) | Hasta `retentionUntil` (por defecto 24 meses desde la grabación) o hasta revocación del consentimiento (al revocar, la base fija `retentionUntil` en ese instante, DEC-064). | El usuario borra desde la app; job nocturno purga Storage y tabla. Los modelos ya entrenados no se re-entrenan retroactivamente, pero la grabación deja de usarse en runs futuros. |
 | Métricas y sesiones | Mientras exista la cuenta. | Borrado de cuenta = borrado en cascada (Postgres `ON DELETE CASCADE`) + purga de Storage, en ≤ 30 días; exportación previa disponible en JSON. |
 | Mensajes de coaching | Mientras exista la relación o la cuenta. | Cascada con la cuenta; el entrenador conserva reportes anonimizados. |
 | Agregados anonimizados (`daily_user_stats` sin `userId` tras borrado) | Indefinida. | No reversible; no identifican al usuario. |

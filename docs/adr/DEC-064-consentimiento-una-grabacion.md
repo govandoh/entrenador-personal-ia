@@ -35,7 +35,7 @@ Se elige A porque es la más protectora para datos de salud y es la única rever
 ### Positivas
 
 - El esquema cumple `docs/DATA-GOVERNANCE.md` §2 por construcción, no solo por convención de la app.
-- Revocar un consentimiento afecta a una sola grabación.
+- Revocar un consentimiento afecta a una sola grabación y la vence en ese instante: un trigger fija `retention_until = now()` (migración `20261013000000_revocacion_y_ajustes.sql`), de modo que el job nocturno de purga y la exportación para ML, que filtran por `retention_until`, la excluyen sin lógica adicional.
 - Cada consentimiento revocado queda inmutable (trigger en la migración 0100).
 
 ### Negativas
