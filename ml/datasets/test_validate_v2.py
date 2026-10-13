@@ -72,6 +72,34 @@ def test_world_landmarks_validated_when_present():
     assert any("world" in e for e in errors)
 
 
+def test_dataset_official_label_metadata_does_not_break_validation():
+    """meta.dataset.officialLabel (Issue #38, etiquetas originales de MM-Fit) es
+    metadata adicional y opcional: el validador no la exige ni la restringe, por lo
+    que un documento que la incluya debe seguir siendo válido sin cambios de contrato.
+    """
+    doc = _doc(
+        meta={
+            "synthetic": False,
+            "consentId": None,
+            "dataset": {
+                "id": "mm-fit",
+                "sourceUrl": "https://zenodo.org/records/7672767",
+                "license": "CC BY 4.0",
+                "clip": {"startSec": 35, "durationSec": 8},
+                "officialLabel": {
+                    "source": "mm-fit/w19/w19_labels.csv",
+                    "activity": "squats",
+                    "setStartFrame": 1014,
+                    "setEndFrame": 1510,
+                    "setRepCount": 10,
+                    "note": "setRepCount corresponde al set oficial completo, no al recorte.",
+                },
+            },
+        }
+    )
+    assert validate_document(doc) == []
+
+
 if __name__ == "__main__":
     import sys
 

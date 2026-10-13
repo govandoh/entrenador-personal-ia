@@ -1,13 +1,13 @@
 {
   "id": "mm-fit",
-  "status": "phase2-rgb-only",
+  "status": "phase2-rgb-plus-authorized-labels",
   "allowedFor": ["product"],
   "citation": "Strömbäck, Huang, Radu. 2020. MM-Fit. ACM IMWUT 4(4):168. doi.org/10.1145/3432701",
   "verified": {
     "starterCodeLicense": { "url": "https://github.com/KDMStromback/mm-fit/blob/master/LICENCE.txt", "license": "MIT" },
     "rgbVideoLicense": {
       "url": "https://zenodo.org/records/7672767", "license": "CC BY 4.0", "allowedFor": ["product"],
-      "note": "Licencia confirmada en la página de Zenodo; esta es la única parte del dataset usada en la Fase 2."
+      "note": "Licencia confirmada en la página de Zenodo; esta es la única parte del dataset con licencia pública verificada."
     },
     "selectedSession": {
       "sessionId": "w19", "rgbFile": "w19_rgb.mp4", "rgbFileSizeMb": 415.4,
@@ -18,25 +18,57 @@
       "executedAt": "2026-10-12",
       "subjectId": "mmfit-w19",
       "exerciseId": "squat",
-      "clip": { "startSec": 35, "durationSec": 8, "note": "Sentadillas identificadas visualmente, sin CSV oficial de reps." },
+      "clip": {
+        "startSec": 35, "durationSec": 8,
+        "note": "Confirmado contra la etiqueta oficial (ver labelsProvenance.w19SquatsInterval): el recorte cae dentro del set oficial de sentadillas, pero es un subconjunto del set (no el set completo de 10 reps)."
+      },
       "outputFile": "ml/data/out/mmfit_w19_squat_v2.json",
       "frames": 240,
       "validation": { "tool": "ml/datasets/validate_v2.py", "result": "OK", "framesReported": 240 },
       "unitTests": { "tool": "ml/datasets/test_validate_v2.py", "result": "9 passed in 0.08s", "python": "3.11.9", "pytest": "9.1.1" },
       "note": "Ejecución manual fuera de CI (entorno Windows sin sandbox de filesystem para Shell del agente); salida reportada por el desarrollador del workstream C. No se subieron el video ni el JSON (ambos en .gitignore)."
+    },
+    "labelsProvenance": {
+      "sourceZip": "https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip",
+      "entry": "mm-fit/w19/w19_labels.csv",
+      "format": {
+        "columns": ["startFrame", "endFrame", "repetitionCount", "activityClass"],
+        "source": "https://raw.githubusercontent.com/KDMStromback/mm-fit/master/utils/utils.py"
+      },
+      "integrityCheck": {
+        "method": "Peticiones HTTP por rango (bytes): ~2 MiB del directorio central del ZIP para localizar la entrada, y 845 bytes exactos para el local file header + datos comprimidos de w19_labels.csv. No se descargó el ZIP completo (1.62 GiB) ni ningún archivo .npy.",
+        "crc32": "0xf54a2c25",
+        "result": "El CRC32 del CSV descomprimido coincide con el registrado en el directorio central del ZIP."
+      },
+      "w19SquatsInterval": {
+        "setStartFrame": 1014, "setEndFrame": 1510, "setRepCount": 10,
+        "fpsAssumed": 30,
+        "setStartSec": 33.8, "setEndSec": 50.33,
+        "note": "Primer set de squats del CSV oficial (fila '1014,1510,10,squats'). El repCount=10 describe este set completo, no los 240 frames del recorte de 35-43s."
+      },
+      "clipOverlap": {
+        "clipStartSec": 35, "clipEndSec": 43, "clipFramesApprox": [1050, 1290],
+        "note": "El recorte de 8s (frames ~1050-1290 a 30fps) está contenido dentro del set oficial 1014-1510, confirmando que es sentadillas. Es un subconjunto del set, no el set completo: no deben registrarse las 10 repeticiones como ocurridas dentro de los 240 frames procesados."
+      },
+      "authorization": {
+        "grantedBy": "@govandoh (responsable del proyecto Fitnet)",
+        "date": "2026-10-12",
+        "scope": "Uso de las etiquetas originales de MM-Fit (w19_labels.csv, archivo mm-fit/w19/ del paquete multimodal) en este proyecto académico Fitnet.",
+        "note": "Esta es una autorización del responsable del proyecto para este uso académico puntual, NO una licencia pública verificada. El paquete original de etiquetas no es el mismo que el video RGB de Zenodo (CC BY 4.0); ver labelsLicense en 'pending' para el estado de la licencia."
+      }
     }
   },
   "pending": {
-    "multimodalPackageUrl": { "status": "unverified", "candidate": "https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip" },
-    "labelsFormat": {
-      "status": "confirmed-via-starter-code",
-      "columns": ["startFrame", "endFrame", "repetitionCount", "activityClass"],
-      "expectedPath": "mm-fit/w19/w19_labels.csv",
-      "source": "https://raw.githubusercontent.com/KDMStromback/mm-fit/master/utils/utils.py"
+    "labelsLicense": {
+      "status": "unverified",
+      "note": "Se inspeccionaron las 324 entradas del ZIP (https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip) sin encontrar ningún archivo LICENSE, README ni TERMS. No se le atribuye una licencia SPDX ni pública a este paquete. El uso actual de w19_labels.csv se ampara exclusivamente en la autorización registrada en verified.labelsProvenance.authorization, no en una licencia verificada."
     },
-    "labelsLicense": { "status": "unverified" },
-    "labelsAllowedFor": { "status": "unverified" },
+    "multimodalPackageUrl": {
+      "status": "technically-available-license-unverified",
+      "candidate": "https://s3.eu-west-2.amazonaws.com/vradu.uk/mm-fit.zip",
+      "note": "El bucket responde y permite descargas parciales (HTTP range); solo se usó para extraer w19_labels.csv puntualmente (845 bytes), no se descargó el ZIP completo."
+    },
     "contacts": ["k.d.m.stromback@gmail.com", "valentin.radu@sheffield.ac.uk"],
-    "blockedBy": "Issue #38: confirmar URL oficial vigente y licencia de las etiquetas antes de usarlas; no bloquea el uso del RGB (licencia ya verificada)."
+    "blockedBy": "Ninguna acción de Issue #38 bloqueada: el video RGB tiene licencia CC BY 4.0 verificada y el uso de las etiquetas originales está autorizado por el responsable del proyecto. Sigue pendiente, para un eventual uso más amplio del dataset, confirmar con los autores una licencia pública formal del paquete de etiquetas/sensores."
   }
 }
