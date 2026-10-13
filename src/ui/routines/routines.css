@@ -120,9 +120,11 @@
   transform: rotate(180deg);
 }
 
+/* Dos columnas solo si el valor cabe: con los botones de 40 px a cada lado, cada campo necesita unos 140 px.
+   En 320 y 360 px pasa a una columna en vez de dejar el número en 19 px de ancho. */
 .editor-entry__fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: var(--space-3);
 }
 
@@ -222,4 +224,11 @@
 /* En 360 px dos selects lado a lado no caben con el relleno normal: se reduce para no recortar "Intermedio". */
 .editor-entry__pair .text-field {
   padding: 0 var(--space-2);
+}
+
+/* La hoja del selector es una columna flex con altura máxima: sin esto el buscador y los filtros se
+   comprimen (el buscador llegaba a 22 px de alto en vez de 48 px). */
+.sheet > .search,
+.sheet > .chip-row {
+  flex-shrink: 0;
 }
