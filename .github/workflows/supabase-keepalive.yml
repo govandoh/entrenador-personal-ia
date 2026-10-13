@@ -6,7 +6,9 @@ name: Supabase keepalive
 
 on:
   schedule:
-    - cron: '0 12 * * 1' # lunes 12:00 UTC
+    # Dos veces por semana: una sola quedaría en el límite de 7 días de inactividad si
+    # GitHub retrasa o salta una ejecución.
+    - cron: '0 12 * * 1,4' # lunes y jueves, 12:00 UTC
   workflow_dispatch:
 
 permissions: {}
