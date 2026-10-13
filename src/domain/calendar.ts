@@ -9,8 +9,10 @@ import { PROGRAM_WEEKS } from './routineGenerator.ts';
  * `localStorage`, el reloj ni el azar: `now` llega como parámetro. Todo trabaja en la hora
  * local del dispositivo (como `sessionHistory`), con claves de día `AAAA-MM-DD`.
  *
- * Las semanas son bloques de 7 días contados desde el día de inicio, igual que
- * `currentProgramWeek` en `appStore`; si no coincidieran, Hoy y el calendario discreparían.
+ * Las semanas son bloques de 7 días de calendario contados desde el día de inicio (no
+ * desde la hora exacta). `programWeek` da la misma semana que `scheduleProgram` para una
+ * fecha dada; Hoy debe usarla en lugar de `currentProgramWeek` de `appStore`, que cuenta
+ * 24 horas transcurridas y por la mañana del día 8 todavía marca la semana anterior.
  * La función es genérica en los días: sirve para el programa generado (`GeneratedRoutine`)
  * y para la rutina editable activa (`Routine`, DEC-040). El detalle de cada sesión
  * (ejercicios, series) se obtiene con `dayIndex` y `week`: `weekPlan(routine, week)[dayIndex]`.
@@ -36,6 +38,9 @@ export interface ScheduleOptions {
   unlockedWeeks?: number;
 }
 
+/** Tope de semanas que se calculan; protege el bucle de un `weeks` descontrolado. */
+const MAX_WEEKS = 52;
+
 function startOfDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
@@ -48,6 +53,18 @@ function addDays(d: Date, n: number): Date {
 }
 
 /**
+ * Semana del programa (0 = semana 1) en que cae `date`, contando días de calendario desde
+ * el día de inicio. Antes del inicio o con fechas inválidas devuelve 0. No se acota por el
+ * fin del programa: quien llama decide qué hacer pasadas las semanas (p. ej. `weeks - 1`).
+ */
+export function programWeek(startedAt: Date, date: Date): number {
+  if (Number.isNaN(startedAt.getTime()) || Number.isNaN(date.getTime())) return 0;
+  // `round` absorbe los días de 23 o 25 horas de un cambio de hora.
+  const days = Math.round((startOfDay(date).getTime() - startOfDay(startedAt).getTime()) / 86_400_000);
+  return Math.max(0, Math.floor(days / 7));
+}
+
+/**
  * Todas las sesiones del programa, ordenadas por fecha (y por posición del día si dos caen
  * el mismo día). El día de inicio cuenta si su día de la semana está en el programa.
  * Una fecha inválida o sin días devuelve una lista vacía.
@@ -56,8 +73,10 @@ export function scheduleProgram(
   days: readonly { weekday: number }[], startedAt: Date, options: ScheduleOptions = {},
 ): ProgramSession[] {
   if (Number.isNaN(startedAt.getTime())) return [];
-  const weeks = Math.max(0, Math.floor(options.weeks ?? PROGRAM_WEEKS));
-  const unlockedWeeks = options.unlockedWeeks ?? weeks;
+  const requested = options.weeks ?? PROGRAM_WEEKS;
+  const weeks = Number.isNaN(requested) ? 0 : Math.min(MAX_WEEKS, Math.max(0, Math.floor(requested)));
+  // Un valor no numérico bloquea todo: ante la duda, el paywall falla cerrado.
+  const unlockedWeeks = Number.isNaN(options.unlockedWeeks ?? 0) ? 0 : (options.unlockedWeeks ?? weeks);
   const start = startOfDay(startedAt);
   const sessions: ProgramSession[] = [];
   for (let offset = 0; offset < weeks * 7; offset++) {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
-  nextSessions, reminderTimes, scheduleProgram, sessionsBetween, withStatus,
+  nextSessions, programWeek, reminderTimes, scheduleProgram, sessionsBetween, withStatus,
 } from './calendar.ts'
 import { PROGRAM_WEEKS } from './routineGenerator.ts'
 import type { SetRecord } from './sessionHistory.ts'
@@ -61,6 +61,13 @@ describe('scheduleProgram', () => {
     expect(s.filter(x => x.locked)).toHaveLength(3 * PROGRAM_WEEKS - 3)
   })
 
+  it('valores numéricos descontrolados no cuelgan ni abren el paywall', () => {
+    expect(scheduleProgram(MWF, WED, { weeks: Infinity })).toHaveLength(3 * 52)
+    expect(scheduleProgram(MWF, WED, { weeks: NaN })).toEqual([])
+    expect(scheduleProgram(MWF, WED, { weeks: 1, unlockedWeeks: NaN }).every(x => x.locked)).toBe(true)
+    expect(scheduleProgram(MWF, WED, { weeks: 1, unlockedWeeks: Infinity }).some(x => x.locked)).toBe(false)
+  })
+
   it('entradas vacías o inválidas dan una lista vacía y no lanzan', () => {
     expect(scheduleProgram([], WED)).toEqual([])
     expect(scheduleProgram(MWF, new Date('no-es-fecha'))).toEqual([])
@@ -71,6 +78,33 @@ describe('scheduleProgram', () => {
   it('dos días el mismo día de la semana dan dos sesiones ordenadas por posición', () => {
     const s = scheduleProgram([{ weekday: 3 }, { weekday: 3 }], WED, { weeks: 1 })
     expect(s.map(x => x.dayIndex)).toEqual([0, 1])
+  })
+})
+
+describe('programWeek', () => {
+  it('coincide con la semana de cada sesión de scheduleProgram, a cualquier hora del día', () => {
+    for (const s of scheduleProgram(MWF, WED)) {
+      const [y, m, d] = s.date.split('-').map(Number)
+      expect(programWeek(WED, new Date(y, m - 1, d, 0, 5))).toBe(s.week)
+      expect(programWeek(WED, new Date(y, m - 1, d, 23, 55))).toBe(s.week)
+    }
+  })
+
+  it('la mañana del día 8 ya es la semana 2 aunque no hayan pasado 7 días de 24 horas', () => {
+    expect(programWeek(WED, new Date(2026, 9, 13, 23, 0))).toBe(0)
+    expect(programWeek(WED, new Date(2026, 9, 14, 8, 0))).toBe(1)
+  })
+
+  it('antes del inicio o con fechas inválidas devuelve 0, y no se acota por el fin del programa', () => {
+    expect(programWeek(WED, new Date(2026, 9, 1))).toBe(0)
+    expect(programWeek(WED, new Date('x'))).toBe(0)
+    expect(programWeek(new Date('x'), WED)).toBe(0)
+    expect(programWeek(WED, new Date(2027, 9, 7))).toBeGreaterThan(PROGRAM_WEEKS)
+  })
+
+  it('no se desfasa con el cambio de hora', () => {
+    const start = new Date(2026, 2, 1)
+    for (let i = 0; i < 70; i++) expect(programWeek(start, new Date(2026, 2, 1 + i, 12))).toBe(Math.floor(i / 7))
   })
 })
 
