@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { StandingCalibrator, isStandingStraight } from './standingCalibration.ts'
 import { alignToGravity } from './gravityAlign.ts'
 import { LandmarkSmoother } from './landmarkFilter.ts'
-import { LM, getTorsoInclination, type Landmark3D } from './vectors3d.ts'
+import { LM, calculateAngle3D, getTorsoInclination, subtract, type Landmark3D } from './vectors3d.ts'
 import { DEMOS } from '../exercises/demoPoses.ts'
 import { playDemo, rotateCamera, tiltPose } from '../testing/syntheticMotion.ts'
 
@@ -25,6 +25,41 @@ describe('isStandingStraight', () => {
   it('exige visibilidad de piernas y tronco', () => {
     const hidden = standing.map((p, i) => (i === LM.LEFT_ANKLE ? { ...p, visibility: 0.2 } : p))
     expect(isStandingStraight(hidden)).toBe(false)
+  })
+
+  /**
+   * De pie, el 3D de MediaPipe en celular mide la rodilla en ~145–150° con la cadera recta
+   * (grabaciones de #49, DEC-065). Se reproduce moviendo los tobillos hacia atrás: la rodilla
+   * se cierra y el ángulo hombro-cadera-rodilla no cambia.
+   */
+  function kneesMeasuredAt(kneeDeg: number): Landmark3D[] {
+    const bend = subtract(DEMOS.sentadilla.pose(0.2)[LM.LEFT_KNEE], standing[LM.LEFT_KNEE])
+    const len = Math.hypot(bend.x, bend.y, bend.z)
+    const pose = (d: number) => standing.map((p, i) =>
+      i === LM.LEFT_ANKLE || i === LM.RIGHT_ANKLE
+        ? { ...p, x: p.x - (bend.x / len) * d, y: p.y - (bend.y / len) * d, z: p.z - (bend.z / len) * d }
+        : p)
+    const knee = (w: Landmark3D[]) => calculateAngle3D(w[LM.LEFT_HIP], w[LM.LEFT_KNEE], w[LM.LEFT_ANKLE])
+    let lo = 0
+    let hi = 0.5
+    for (let i = 0; i < 40; i++) {
+      const d = (lo + hi) / 2
+      if (knee(pose(d)) > kneeDeg) lo = d
+      else hi = d
+    }
+    return pose((lo + hi) / 2)
+  }
+
+  it('con la rodilla medida a 150° y la cadera recta, como en celular, cuenta como de pie', () => {
+    const w = kneesMeasuredAt(150)
+    expect(calculateAngle3D(w[LM.LEFT_HIP], w[LM.LEFT_KNEE], w[LM.LEFT_ANKLE])).toBeCloseTo(150, 0)
+    expect(calculateAngle3D(w[LM.LEFT_SHOULDER], w[LM.LEFT_HIP], w[LM.LEFT_KNEE]))
+      .toBeCloseTo(calculateAngle3D(standing[LM.LEFT_SHOULDER], standing[LM.LEFT_HIP], standing[LM.LEFT_KNEE]), 6)
+    expect(isStandingStraight(w)).toBe(true)
+  })
+
+  it('con la rodilla a 140° ya no cuenta como de pie', () => {
+    expect(isStandingStraight(kneesMeasuredAt(140))).toBe(false)
   })
 })
 

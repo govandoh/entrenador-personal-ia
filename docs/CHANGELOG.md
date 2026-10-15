@@ -2,6 +2,12 @@
 
 > Lo ya entregado, por hito. El estado vivo está en `docs/STATUS.md` y las decisiones en `docs/adr/README.md`. Se agrega una entrada cuando un PR mergeado cambia algo visible para el usuario o cierra un hito (DEC-062).
 
+## Sprint 1 — Migración y datos (octubre 2026)
+
+| Entregable | Contenido | Estado al cierre |
+|---|---|---|
+| Umbrales del motor 3D ajustados con grabaciones reales (#39, #49, `DEC-065`) | Las zancadas vuelven a contar y las flexiones pierden menos repeticiones; la sentadilla y el press cuentan con `?engine=3d`; la calibración de postura termina y la serie arranca sola | Probado con las grabaciones de un iPhone 17 Pro Max; falta validar con más personas (#16) y resolver el curl en 3D (#33) |
+
 ## Fase 1 — PRs #40 y #41 (septiembre 2026)
 
 | Entregable | Contenido | Estado al cierre |

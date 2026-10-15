@@ -26,8 +26,12 @@ import { alignToGravity } from './gravityAlign.ts';
  * `setLearning`.
  */
 
-/** Rodillas por encima de este ángulo cuentan como estiradas, en grados. */
-const STRAIGHT_KNEE_DEG = 160;
+/**
+ * Rodillas por encima de este ángulo cuentan como estiradas, en grados. En celular el 3D de
+ * MediaPipe mide la rodilla de pie en ~145–150° (no ~175°): con 160° la calibración nunca
+ * terminaba y la serie no arrancaba sola. Ver DEC-065.
+ */
+const STRAIGHT_KNEE_DEG = 145;
 /** Ángulo hombro-cadera-rodilla mínimo, en grados: el tronco sigue la línea de las piernas. */
 const STRAIGHT_HIP_DEG = 155;
 /** Visibilidad exigida: calibrar con puntos estimados fuera del cuadro sería peor que no calibrar. */
