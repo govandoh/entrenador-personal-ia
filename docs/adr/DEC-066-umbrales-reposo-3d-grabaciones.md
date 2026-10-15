@@ -63,9 +63,12 @@ Bajamos los umbrales de vuelta al reposo del motor 3D y el de rodilla estirada d
 | `LUNGE_3D.cycle.restDeg` | 160° | **135°** |
 | `PRESS_3D.cycle.restDeg` (polaridad máxima) | 100° | **110°** |
 | `STRAIGHT_KNEE_DEG` (`src/geometry/standingCalibration.ts`) | 160° | **145°** |
+| `PUSHUP_GOOD_DEPTH_DEG` ("¡Buena bajada!" en pantalla y voz) | 90° | **95°** |
+
+La profundidad buena de la flexión se ajustó tras la prueba en vivo: en el iPhone la app pedía "Baja más el pecho" estando abajo. En las 25 flexiones contadas de las grabaciones, el fondo medido dio mediana 84°, p75 90°, p90 95° y máximo 100°: con 90°, 6 de 25 recibían el aviso falso; con 95°, 2 de 25 (las de 96° y 100°, bajadas cortas). Las flexiones entre 95° y 100° se cuentan con aviso, así que la corrección de profundidad se mantiene.
 
 No cambian:
-- los umbrales de esfuerzo, el recorrido mínimo, la duración mínima y los de calidad (`GOOD_*`);
+- los umbrales de esfuerzo, el recorrido mínimo, la duración mínima y los de calidad (`GOOD_*`), salvo la profundidad de la flexión;
 - el requisito de cadera recta de la calibración (155°: las tomas lo cumplen);
 - el puente y la plancha;
 - el curl, que pasa a #33 (ver Consecuencias).
@@ -85,12 +88,13 @@ En la segunda toma de zancadas, las repeticiones que siguen sin contar tienen re
 **Pruebas de regresión:**
 - `src/exercises/definitions3d.test.ts` comprime la posición de inicio de las demos hasta el ángulo medido. Con el umbral nuevo cuenta 5 de 5; con el anterior, 0.
 - `src/geometry/standingCalibration.test.ts` acepta como "de pie" una rodilla medida a 150° con la cadera recta, y rechaza 140°.
+- En `definitions3d.test.ts`, una flexión con el fondo medido a 92° es "buena bajada" y una de 98° cuenta con aviso.
 
 ## Consecuencias
 
 ### Positivas
 
-- Las zancadas vuelven a contar en producción, y las flexiones pierden menos repeticiones: antes algunas se juntaban en un ciclo largo y se descartaban por lentas.
+- Las zancadas vuelven a contar en producción, y las flexiones pierden menos repeticiones (antes algunas se juntaban en un ciclo largo y se descartaban por lentas) y ya no piden bajar más a quien está abajo.
 - Sentadilla y press cuentan con `?engine=3d`, un paso previo para #33.
 - La calibración termina y la serie arranca sola en la mayoría de las tomas.
 - Los golden del PR 1 no cambian: miden el motor 2D.

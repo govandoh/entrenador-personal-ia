@@ -60,6 +60,28 @@ function run(def: ExerciseDefinition3D, id: string, effortPhase: number, startDe
   return { reps, restAngle: primaryAngle(def, demo.pose(p0)) }
 }
 
+describe('flexiones: profundidad buena con el fondo comprimido como en celular (DEC-066)', () => {
+  /** Feedback en el frame en que se confirma el fondo, con la bajada hasta `bottomDeg`. */
+  function levelAtBottom(bottomDeg: number) {
+    const pMax = progressAt(PUSHUP_3D, 'flexiones', bottomDeg)
+    const pipeline = new FramePipeline(PUSHUP_3D)
+    const levels: string[] = []
+    for (const f of playDemo(DEMOS.flexiones, { fps: 30, effortPhase: 3, pMax, cycles: 2 })) {
+      const r = pipeline.process({ world: f.world, t: f.t }).result
+      if (r.peak) levels.push(r.feedbackLevel)
+    }
+    return levels
+  }
+
+  it('una flexión completa que el 3D mide a 92° es "buena bajada"', () => {
+    expect(levelAtBottom(92)).toEqual(['good', 'good'])
+  })
+
+  it('una bajada corta (98°) cuenta, pero sigue pidiendo bajar más', () => {
+    expect(levelAtBottom(98)).toEqual(['warning', 'warning'])
+  })
+})
+
 describe.each(CASES)('reposo comprimido como en celular: $id', ({ id, def, effortPhase, oldRestDeg, startDeg }) => {
   it(`con la posición de inicio a ${startDeg}° cuenta las 5 reps`, () => {
     const r = run(def, id, effortPhase, startDeg)

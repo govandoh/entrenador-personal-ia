@@ -207,8 +207,12 @@ export const PRESS_3D: ExerciseDefinition3D = {
 // Se ajustan con las grabaciones por guion (DEC-055) y cualquier cambio que altere tests
 // de comportamiento exige DEC.
 
-/** Codo por debajo de este ángulo = flexión profunda, en grados. */
-export const PUSHUP_GOOD_DEPTH_DEG = 90;
+/**
+ * Codo por debajo de este ángulo = flexión profunda, en grados. El 3D mide el codo menos
+ * doblado de lo que está: en las flexiones completas grabadas el fondo dio mediana 84° y
+ * p90 95°, y con 90° una de cada cuatro recibía "Baja más el pecho" estando abajo (DEC-066).
+ */
+export const PUSHUP_GOOD_DEPTH_DEG = 95;
 /** Línea hombros-cadera-tobillos por debajo de este ángulo = cadera fuera de línea, en grados. */
 export const PUSHUP_MIN_BODY_LINE_DEG = 160;
 /** Rodilla delantera por debajo de este ángulo = zancada profunda, en grados. */
