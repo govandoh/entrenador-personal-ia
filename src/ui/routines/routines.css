@@ -1,0 +1,234 @@
+/*
+ * Editor de rutinas y lista "Mis rutinas" (DEC-052, issue #34). Solo tokens de tokens.css.
+ * El editor va a pantalla completa, fuera de la barra de navegación: es una tarea que se
+ * termina o se cancela, y dos barras apiladas no dejan espacio en un celular.
+ */
+
+.editor {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  padding: calc(var(--safe-top) + 20px) var(--gutter-right) var(--space-6) var(--gutter-left);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.editor__body > * {
+  flex-shrink: 0;
+}
+
+/* Barra fija abajo: "Cancelar" y la acción principal siempre a la vista mientras se agregan ejercicios. */
+.editor__bar {
+  flex-shrink: 0;
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--gutter-right) calc(var(--safe-bottom) + 12px) var(--gutter-left);
+  background: var(--color-ink);
+  border-top: 1px solid var(--color-surface-2);
+}
+
+.editor__bar .btn--ghost { flex: 1 1 96px; }
+.editor__bar .btn--primary { flex: 2 1 176px; padding: 0 var(--space-4); }
+
+/* Campos de texto y selects: 16 px para que iOS no haga zoom al enfocar. */
+.text-field {
+  width: 100%;
+  min-height: var(--touch);
+  padding: 0 var(--space-4);
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: 16px;
+  outline: none;
+}
+
+.text-field:focus-visible {
+  border-color: var(--color-volt);
+}
+
+.text-field[aria-invalid='true'] {
+  border-color: var(--color-coral);
+}
+
+.field-error {
+  color: var(--color-coral);
+  font-size: var(--text-small);
+}
+
+.editor-day__head {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+.editor-day__head .text-field {
+  font-family: var(--font-display);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.editor-entry {
+  padding: var(--space-3);
+  border-radius: var(--radius-chip);
+  background: var(--color-surface-2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.editor-entry__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.editor-entry__name {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--touch);
+  text-align: left;
+  font-weight: 600;
+  font-size: var(--text-lead);
+}
+
+.editor-entry__tools {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.editor-entry__tools .icon-btn {
+  width: 40px;
+  height: 40px;
+  background: var(--color-surface);
+}
+
+.editor-entry__tools .icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.flip-v svg {
+  transform: rotate(180deg);
+}
+
+/* Dos columnas solo si el valor cabe: con los botones de 40 px a cada lado, cada campo necesita unos 140 px.
+   En 320 y 360 px pasa a una columna en vez de dejar el número en 19 px de ancho. */
+.editor-entry__fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-3);
+}
+
+.editor-entry__pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.num-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.num-field__control {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  gap: var(--space-1);
+}
+
+.num-field__control .icon-btn {
+  width: 40px;
+  height: var(--touch);
+  background: var(--color-surface);
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.num-field__control input {
+  min-width: 0;
+  min-height: var(--touch);
+  text-align: center;
+  border-radius: var(--radius-chip);
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  outline: none;
+}
+
+.num-field__control input:focus-visible {
+  border-color: var(--color-volt);
+}
+
+/* Confirmación al salir con cambios pendientes. */
+.confirm-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: var(--scrim);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 var(--gutter-right) calc(var(--safe-bottom) + 16px) var(--gutter-left);
+}
+
+.confirm {
+  width: 100%;
+  max-width: 560px;
+  padding: var(--space-5);
+  border-radius: var(--radius-sheet);
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Lista "Mis rutinas" */
+.routine-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.routine-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.routine-card__actions .btn {
+  flex: 1 1 120px;
+  min-height: 44px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-body);
+}
+
+.btn--danger {
+  color: var(--color-coral);
+  background: var(--tint-coral);
+}
+
+/* En 360 px dos selects lado a lado no caben con el relleno normal: se reduce para no recortar "Intermedio". */
+.editor-entry__pair .text-field {
+  padding: 0 var(--space-2);
+}
+
+/* La hoja del selector es una columna flex con altura máxima: sin esto el buscador y los filtros se
+   comprimen (el buscador llegaba a 22 px de alto en vez de 48 px). */
+.sheet > .search,
+.sheet > .chip-row {
+  flex-shrink: 0;
+}

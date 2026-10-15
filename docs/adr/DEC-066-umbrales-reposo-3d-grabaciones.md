@@ -1,4 +1,4 @@
-# DEC-065 · Umbrales de reposo del motor 3D y de la calibración de pie, ajustados con grabaciones reales
+# DEC-066 · Umbrales de reposo del motor 3D y de la calibración de pie, ajustados con grabaciones reales
 
 - **Estado:** Propuesta
 - **Fecha:** 2026-10-14

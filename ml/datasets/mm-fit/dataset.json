@@ -1,7 +1,7 @@
 {
   "id": "mm-fit",
   "status": "phase2-rgb-plus-authorized-labels",
-  "allowedFor": ["product"],
+  "allowedFor": ["academic"],
   "citation": "Strömbäck, Huang, Radu. 2020. MM-Fit. ACM IMWUT 4(4):168. doi.org/10.1145/3432701",
   "verified": {
     "starterCodeLicense": { "url": "https://github.com/KDMStromback/mm-fit/blob/master/LICENCE.txt", "license": "MIT" },

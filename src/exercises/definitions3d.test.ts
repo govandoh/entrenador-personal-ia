@@ -7,7 +7,7 @@ import type { Landmark3D } from '../geometry/vectors3d.ts'
 import { playDemo } from '../testing/syntheticMotion.ts'
 
 /**
- * Umbrales de vuelta al reposo calibrados con grabaciones reales (DEC-065, issues #39 y #49).
+ * Umbrales de vuelta al reposo calibrados con grabaciones reales (DEC-066, issues #39 y #49).
  *
  * En celular, el 3D de MediaPipe mide la articulación en la posición de inicio menos
  * extendida de lo que está (sentadilla de pie: ~150° en vez de ~175°). Estas pruebas

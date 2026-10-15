@@ -29,7 +29,7 @@ describe('isStandingStraight', () => {
 
   /**
    * De pie, el 3D de MediaPipe en celular mide la rodilla en ~145–150° con la cadera recta
-   * (grabaciones de #49, DEC-065). Se reproduce moviendo los tobillos hacia atrás: la rodilla
+   * (grabaciones de #49, DEC-066). Se reproduce moviendo los tobillos hacia atrás: la rodilla
    * se cierra y el ángulo hombro-cadera-rodilla no cambia.
    */
   function kneesMeasuredAt(kneeDeg: number): Landmark3D[] {

@@ -3,6 +3,8 @@ import { isSetRecord, type SetRecord } from '../../domain/sessionHistory';
 import { FREE_ENTITLEMENT, isEntitlement, type Entitlement } from '../../domain/payment';
 import type { Questionnaire } from '../../domain/routineGenerator';
 import { ALL_EQUIPMENT } from '../../domain/catalog';
+import { activate, resolveStoredRoutines, type Routine } from '../../domain/routines';
+import { isGoal, type Goal } from '../../domain/progress';
 
 /**
  * Estado local de la app (historial, cuestionario, suscripción simulada, voz).
@@ -21,6 +23,10 @@ export interface AppState {
   voiceEnabled: boolean;
   /** Preferencias de vista (DEC-061): cada persona decide qué ayudas ve. */
   view: ViewPrefs;
+  /** Rutinas propias y plantillas; solo una puede estar activa (DEC-040, DEC-052). */
+  routines: Routine[];
+  /** Objetivos del perfil; su avance se deriva del historial (DEC-041). */
+  goals: Goal[];
 }
 
 export interface ViewPrefs {
@@ -68,7 +74,19 @@ const KEYS = {
   profile: 'fitnet_profile_v1',
   entitlement: 'fitnet_entitlement_v1',
   view: 'fitnet_view_v1',
+  routines: 'fitnet_routines_v1',
+  /** Copia del valor crudo cuando lo guardado venía dañado, antes de escribir encima. */
+  routinesBackup: 'fitnet_routines_v1_backup',
+  goals: 'fitnet_goals_v1',
 } as const;
+
+/** Tope de objetivos: la lista del perfil es corta a propósito. */
+export const MAX_GOALS = 6;
+
+/** Id único para entidades locales; `crypto.randomUUID` no existe en contextos inseguros. */
+export function newId(): string {
+  try { return crypto.randomUUID(); } catch { return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`; }
+}
 
 /** Series que se conservan en el dispositivo. */
 const MAX_HISTORY = 1000;
@@ -102,10 +120,38 @@ function isQuestionnaire(v: unknown): v is Questionnaire {
     (q.programType === undefined || ['full_body', 'upper_lower', 'ppl'].includes(q.programType as string));
 }
 
+/**
+ * Lee lo guardado distinguiendo "no hay nada" (`null`) de "hay algo ilegible" (el texto crudo,
+ * que no es una lista y se trata como `corrupt`). `read` no sirve aquí: devuelve `null` también
+ * cuando el JSON no se puede interpretar, y eso sembraría plantillas encima de datos dañados.
+ */
+function readRoutinesRaw(): unknown {
+  let text: string | null;
+  try { text = localStorage.getItem(KEYS.routines); } catch { return null; }
+  if (text === null) return null;
+  try { return JSON.parse(text); } catch { return text; }
+}
+
+/**
+ * Lee las rutinas con la regla de DEC-052: las plantillas se siembran solo si NO había nada
+ * guardado. Si lo guardado venía dañado (`partial` o `corrupt`) se conserva lo válido, se
+ * respalda el valor crudo y nunca se reemplaza por plantillas (defecto de fitnetv2).
+ */
+function loadRoutines(): Routine[] {
+  const raw = readRoutinesRaw();
+  const result = resolveStoredRoutines(raw, newId, Date.now());
+  if (result.status === 'seeded') write(KEYS.routines, result.routines);
+  else if ((result.status === 'partial' || result.status === 'corrupt') && read(KEYS.routinesBackup) === null) {
+    write(KEYS.routinesBackup, raw);
+  }
+  return result.routines;
+}
+
 function load(): AppState {
   const history = read(KEYS.history);
   const profile = read(KEYS.profile) as Record<string, unknown> | null;
   const entitlement = read(KEYS.entitlement);
+  const goals = read(KEYS.goals);
   return {
     history: Array.isArray(history) ? history.filter(isSetRecord) : [],
     questionnaire: profile && isQuestionnaire(profile.questionnaire) ? profile.questionnaire : null,
@@ -113,6 +159,8 @@ function load(): AppState {
     voiceEnabled: profile && typeof profile.voiceEnabled === 'boolean' ? profile.voiceEnabled : true,
     entitlement: isEntitlement(entitlement) ? entitlement : FREE_ENTITLEMENT,
     view: readView(read(KEYS.view)),
+    routines: loadRoutines(),
+    goals: Array.isArray(goals) ? goals.filter(isGoal).slice(0, MAX_GOALS) : [],
   };
 }
 
@@ -131,6 +179,8 @@ function set(next: Partial<AppState>): void {
   }
   if ('entitlement' in next) write(KEYS.entitlement, state.entitlement);
   if ('view' in next) write(KEYS.view, state.view);
+  if ('routines' in next) write(KEYS.routines, state.routines);
+  if ('goals' in next) write(KEYS.goals, state.goals);
   for (const l of listeners) l();
 }
 
@@ -146,6 +196,33 @@ export function useAppState(): AppState {
 export const appActions = {
   addSet(record: SetRecord): void {
     set({ history: [...state.history, record].slice(-MAX_HISTORY) });
+  },
+  /** Varias series de golpe (modo manual): una sola escritura y una sola notificación. */
+  addSets(records: readonly SetRecord[]): void {
+    if (records.length === 0) return;
+    set({ history: [...state.history, ...records].slice(-MAX_HISTORY) });
+  },
+  /** Crea o reemplaza una rutina por id. */
+  saveRoutine(routine: Routine): void {
+    const exists = state.routines.some(r => r.id === routine.id);
+    const routines = exists ? state.routines.map(r => (r.id === routine.id ? routine : r)) : [...state.routines, routine];
+    // Si la rutina guardada llega activa, desactiva las demás.
+    set({ routines: routine.active ? activate(routines, routine.id) : routines });
+  },
+  deleteRoutine(id: string): void {
+    set({ routines: state.routines.filter(r => r.id !== id) });
+  },
+  /** Deja activa solo la rutina `id` (o ninguna con `null`). */
+  activateRoutine(id: string | null): void {
+    set({ routines: activate(state.routines, id) });
+  },
+  saveGoal(goal: Goal): void {
+    const exists = state.goals.some(g => g.id === goal.id);
+    if (!exists && state.goals.length >= MAX_GOALS) return;
+    set({ goals: exists ? state.goals.map(g => (g.id === goal.id ? goal : g)) : [...state.goals, goal] });
+  },
+  deleteGoal(id: string): void {
+    set({ goals: state.goals.filter(g => g.id !== id) });
   },
   saveQuestionnaire(q: Questionnaire, now: Date): void {
     set({ questionnaire: q, programStartedAt: now.toISOString() });

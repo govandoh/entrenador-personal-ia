@@ -31,7 +31,8 @@ celular, con métricas por ejercicio × vista × clase y LOSO obligatorio.
   `ml/thresholds.yaml`, el `sha256` coincide y hay DEC enlazada en el PR.
 - Evaluación **Leave-One-Subject-Out** siempre; reportar por sujeto. Nunca mezclar sujetos
   entre train y test.
-- Licencias: MM-Fit e InfiniteRep pueden preentrenar; EC3D / REHAB24-6 / Fitness-AQA **solo**
+- Licencias: InfiniteRep y el video RGB de MM-Fit (CC BY 4.0) son `product`; las etiquetas y
+  sensores de MM-Fit son `academic` (`DEC-065`); EC3D / REHAB24-6 / Fitness-AQA **solo**
   benchmarks y prototipos (ver `docs/DATA-GOVERNANCE.md`). Anotar la licencia en el reporte.
 - Canonicalización (centrar cadera, escalar por torso, alinear yaw, espejo izq/der) se implementa
   en Python **y** TS; el test de paridad es un gate de CI.

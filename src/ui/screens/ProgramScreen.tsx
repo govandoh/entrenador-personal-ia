@@ -5,6 +5,7 @@ import { useProgram } from '../state/useProgram';
 import { PremiumSheet } from '../components/PremiumSheet';
 import { TechniqueSheet } from '../technique/TechniqueSheet';
 import { IconAssist, IconLock } from '../components/icons';
+import { MyRoutines } from '../routines/MyRoutines';
 import { weekPlan, type PlannedExercise, type ProgramType } from '../../domain/routineGenerator';
 
 const GOAL_LABEL = { muscle_gain: 'Ganar músculo', weight_loss: 'Perder peso', strength_gain: 'Ganar fuerza' } as const;
@@ -35,6 +36,7 @@ export function ProgramScreen() {
           <p className="muted">Responde 4 preguntas y armamos tu rutina con los ejercicios que puedes hacer donde entrenas.</p>
           <Link className="btn btn--primary btn--block" to="/cuestionario">Armar mi programa</Link>
         </section>
+        <MyRoutines />
       </div>
     );
   }
@@ -111,6 +113,7 @@ export function ProgramScreen() {
       ))}
 
       <Link className="btn btn--secondary btn--block" to="/cuestionario">Cambiar mis respuestas</Link>
+      <MyRoutines />
       {premiumOpen && <PremiumSheet onClose={() => setPremiumOpen(false)} />}
       {technique && <TechniqueSheet exerciseId={technique} onClose={() => setTechnique(null)} showTrainAction />}
     </div>

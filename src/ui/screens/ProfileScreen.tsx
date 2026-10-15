@@ -4,14 +4,18 @@ import { FitnetMark, IconVoice, IconVoiceOff } from '../components/icons';
 import { PremiumSheet } from '../components/PremiumSheet';
 import { appActions, useAppState } from '../state/appStore';
 import { totals } from '../../domain/sessionHistory';
+import { computeStats } from '../../domain/progress';
+import { AchievementsSection, GoalsSection, ProgressStats } from './ProgressSections';
 import { MockPaymentProvider } from '../../domain/payment';
 
 const ONBOARDING_KEY = 'ob_complete_v1';
 
 export function ProfileScreen() {
-  const { history, entitlement, voiceEnabled, questionnaire } = useAppState();
+  const { history, entitlement, voiceEnabled, questionnaire, goals } = useAppState();
   const [premiumOpen, setPremiumOpen] = useState(false);
   const t = totals(history);
+  // Todo se deriva del historial en cada render (DEC-041): nada de progreso se guarda acumulado.
+  const stats = computeStats(history, new Date());
 
   async function cancelPremium() {
     appActions.setEntitlement(await new MockPaymentProvider().cancel());
@@ -38,6 +42,10 @@ export function ProfileScreen() {
           <span className={`display-number stat-number${entitlement.premium ? ' is-volt' : ''}`}>{entitlement.premium ? 'Premium' : 'Libre'}</span>
         </div>
       </div>
+
+      <ProgressStats stats={stats} />
+      <GoalsSection goals={goals} stats={stats} />
+      <AchievementsSection stats={stats} />
 
       <section className="card card--framed">
         <h2 className="card-title">Ajustes</h2>

@@ -1,0 +1,97 @@
+/* Objetivos y logros del perfil (DEC-041, issue #34). Solo tokens de tokens.css. */
+
+.meter {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--color-surface-2);
+  overflow: hidden;
+}
+
+.meter__fill {
+  display: block;
+  height: 100%;
+  background: var(--color-volt);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.goal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.goal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.goal__remove {
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  font-size: var(--text-small);
+}
+
+.goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.goal-form__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.goal-form__actions .btn--ghost { flex: 1 1 96px; }
+.goal-form__actions .btn--primary { flex: 2 1 176px; padding: 0 var(--space-4); }
+
+.achievements {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.achievement {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: var(--space-3);
+  row-gap: var(--space-2);
+}
+
+.achievement .meter {
+  grid-column: 2 / 4;
+}
+
+.achievement__icon {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-chip);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-surface-2);
+  color: var(--color-text-muted);
+}
+
+.achievement__icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.achievement[data-unlocked='true'] .achievement__icon {
+  background: var(--tint-volt);
+  color: var(--color-volt);
+}
+
+.achievement__pct {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+  font-size: var(--text-small);
+}
