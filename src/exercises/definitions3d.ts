@@ -161,10 +161,10 @@ export const PRESS_3D: ExerciseDefinition3D = {
   extraLandmarks: [],
   sideAngle: elbowAngle,
   combine: 'max',
-  // Abajo < 110°, arriba > 150°; polaridad invertida: el esfuerzo es el ángulo máximo (DEC-018).
-  // Con las pesas en los hombros el 3D mide el codo en ~93–116° (mediana 101°): con 100° la
-  // mitad de las reps no se cerraban (DEC-066).
-  cycle: { polarity: 'max', restDeg: 110, effortDeg: 150, confirmMarginDeg: CONFIRM_MARGIN_DEG },
+  // Abajo < 100°, arriba > 150°; polaridad invertida: el esfuerzo es el ángulo máximo (DEC-018).
+  // Sin calibrar con personas: subirlo a 110° hacía contar repeticiones a medias (DEC-066);
+  // se calibra en el issue #58.
+  cycle: { polarity: 'max', restDeg: 100, effortDeg: 150, confirmMarginDeg: CONFIRM_MARGIN_DEG },
   perSideCycles: true,
   cooldownMs: ARM_COOLDOWN_MS,
   shape: { effortIsMinimum: false, concentricFirst: true },

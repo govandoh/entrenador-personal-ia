@@ -61,7 +61,6 @@ Bajamos los umbrales de vuelta al reposo del motor 3D y el de rodilla estirada d
 | `SQUAT_3D.cycle.restDeg` | 160° | **140°** |
 | `PUSHUP_3D.cycle.restDeg` | 150° | **140°** |
 | `LUNGE_3D.cycle.restDeg` | 160° | **135°** |
-| `PRESS_3D.cycle.restDeg` (polaridad máxima) | 100° | **110°** |
 | `STRAIGHT_KNEE_DEG` (`src/geometry/standingCalibration.ts`) | 160° | **145°** |
 | `PUSHUP_GOOD_DEPTH_DEG` ("¡Buena bajada!" en pantalla y voz) | 90° | **95°** |
 
@@ -71,7 +70,9 @@ No cambian:
 - los umbrales de esfuerzo, el recorrido mínimo, la duración mínima y los de calidad (`GOOD_*`), salvo la profundidad de la flexión;
 - el requisito de cadera recta de la calibración (155°: las tomas lo cumplen);
 - el puente y la plancha;
-- el curl, que pasa a #33 (ver Consecuencias).
+- el curl y el press, que pasan al issue #58 (ver Consecuencias).
+
+**El press se probó con 110° y se descartó.** Con las grabaciones de #49 mejoraba de 10 de 12 a 11 de 11, pero en la revisión del PR #56 (@govandoh, Samsung S24 Ultra con Brave) contó movimientos que no eran repeticiones y repeticiones a medias: bajar solo a 110° alcanzaba para cerrar la repetición. Vuelve a 100° y se calibra en #58, junto con el curl.
 
 **Resultado con las mismas grabaciones:**
 
@@ -80,7 +81,6 @@ No cambian:
 | Sentadilla (correcta / rápida) | 0 / 0 | 10 de 10 / 12 de 12 |
 | Zancadas (correctas, dos tomas / rápidas) | 0 y 5 de 11 / 8 de 14 | 7 de 13 y 11 de 11 / 13 de 16 |
 | Flexiones (correctas, dos tomas) | 11 de 15 y 9 de 11 | 14 de 16 y 9 de 11 |
-| Press (correcto) | 10 de 12 | 11 de 11 |
 | Calibración de pie completada | 2 de 14 tomas | 9 de 14 tomas (1,5–14 s) |
 
 En la segunda toma de zancadas, las repeticiones que siguen sin contar tienen recorrido corto: se descartan por `insufficient_rom`, como corresponde.
@@ -95,7 +95,8 @@ En la segunda toma de zancadas, las repeticiones que siguen sin contar tienen re
 ### Positivas
 
 - Las zancadas vuelven a contar en producción, y las flexiones pierden menos repeticiones (antes algunas se juntaban en un ciclo largo y se descartaban por lentas) y ya no piden bajar más a quien está abajo.
-- Sentadilla y press cuentan con `?engine=3d`, un paso previo para #33.
+- La sentadilla cuenta con `?engine=3d`, un paso previo para #33.
+- Prueba en vivo: iPhone 17 Pro Max (@ecaldcc) y Samsung S24 Ultra (@govandoh), los dos con Brave. Zancadas, flexiones y sentadilla contaron 5 de 5.
 - La calibración termina y la serie arranca sola en la mayoría de las tomas.
 - Los golden del PR 1 no cambian: miden el motor 2D.
 
@@ -103,10 +104,10 @@ En la segunda toma de zancadas, las repeticiones que siguen sin contar tienen re
 
 - **Datos de una sola persona, un celular y una sesión.** Hay que validar con las grabaciones de más personas y dispositivos (#16) antes de dar #39 por cerrada.
 - **La repetición se cierra antes al subir.** Con un reposo más bajo, la duración medida del ciclo se acorta un poco, y quien no se estira del todo entre repeticiones igual cuenta. Las protecciones de profundidad y recorrido mínimo siguen igual.
-- **Press:** `lumbar_arch` se evalúa con los brazos por encima de 110° en vez de 100°, porque usa el mismo umbral.
 - **Calibración:** acepta rodillas algo flexionadas. El eje tobillos-hombros sigue casi vertical, y `MAX_CORRECTION_DEG` (35°) limita cualquier corrección grande.
-- **Curl sin resolver en 3D:** el 3D mide unos 90° con el brazo a unos 30°. Bajar el umbral de flexión a ~100° lo haría contar, pero entonces no distinguiría un curl a medias y la voz diría siempre "Sube un poco más". **No se debe pasar el curl al motor 3D (#33) hasta resolverlo.** En producción sigue en 2D, que funciona.
+- **Curl sin resolver en 3D:** el 3D mide unos 90° con el brazo a unos 30°. Bajar el umbral de flexión a ~100° lo haría contar, pero entonces no distinguiría un curl a medias y la voz diría siempre "Sube un poco más". **No se debe pasar el curl ni el press al motor 3D (#33) hasta resolverlo en #58.** En producción siguen en 2D, que funciona.
 - **Ejercicios en el suelo (flexiones, puente, plancha):** si la persona ya está en el suelo al abrir la pantalla, la calibración de pie no ocurre y la serie no arranca sola. Queda pendiente en #39.
+- **Técnica de la cadera en flexiones y plancha:** la revisión notó que hay que detectar mejor la cadera caída o levantada (`PUSHUP_MIN_BODY_LINE_DEG`, sin calibrar). Se sigue en #59.
 - **Repeticiones rápidas:** en sentadilla, curl y zancadas los "tirones" grabados duraron ~1,5 s y cuentan como repeticiones rápidas válidas. Es coherente con la pregunta de entrenar con intensidad (#49); el límite de duración no cambia.
 
 ## Referencias

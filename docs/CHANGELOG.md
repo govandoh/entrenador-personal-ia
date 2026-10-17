@@ -6,7 +6,7 @@
 
 | Entregable | Contenido | Estado al cierre |
 |---|---|---|
-| Umbrales del motor 3D ajustados con grabaciones reales (#39, #49, `DEC-066`) | Las zancadas vuelven a contar; las flexiones pierden menos repeticiones y ya no piden bajar más estando abajo; la sentadilla y el press cuentan con `?engine=3d`; la calibración de postura termina y la serie arranca sola | Probado con las grabaciones de un iPhone 17 Pro Max; falta validar con más personas (#16) y resolver el curl en 3D (#33) |
+| Umbrales del motor 3D ajustados con grabaciones reales (#39, #49, `DEC-066`) | Las zancadas vuelven a contar; las flexiones pierden menos repeticiones y ya no piden bajar más estando abajo; la sentadilla cuenta con `?engine=3d`; la calibración de postura termina y la serie arranca sola | Probado en vivo en iPhone 17 Pro Max y Samsung S24 Ultra, y con grabaciones; falta validar con más personas (#16) y resolver curl y press en 3D (#58) |
 
 ## Fase 1 — PRs #40 y #41 (septiembre 2026)
 

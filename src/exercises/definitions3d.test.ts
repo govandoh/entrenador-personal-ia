@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { ExerciseDefinition3D } from './tracker3d.ts'
-import { LUNGE_3D, PRESS_3D, PUSHUP_3D, SQUAT_3D } from './definitions3d.ts'
+import { LUNGE_3D, PUSHUP_3D, SQUAT_3D } from './definitions3d.ts'
 import { DEMOS } from './demoPoses.ts'
 import { FramePipeline } from '../analysis/framePipeline.ts'
 import type { Landmark3D } from '../geometry/vectors3d.ts'
@@ -21,7 +21,6 @@ const CASES = [
   { id: 'sentadilla', def: SQUAT_3D, effortPhase: 3, oldRestDeg: 160, startDeg: 148 },
   { id: 'flexiones', def: PUSHUP_3D, effortPhase: 3, oldRestDeg: 150, startDeg: 145 },
   { id: 'zancadas', def: LUNGE_3D, effortPhase: 3, oldRestDeg: 160, startDeg: 142 },
-  { id: 'press-hombro', def: PRESS_3D, effortPhase: 1, oldRestDeg: 100, startDeg: 105 },
 ] as const
 
 /** Ángulo primario de una pose, combinando los lados como el contador. */
