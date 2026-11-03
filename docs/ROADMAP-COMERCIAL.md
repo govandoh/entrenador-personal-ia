@@ -323,6 +323,7 @@ autor («Gerardo» o «coordinador bajo la delegación») y dónde quedó escrit
 | 2026-11-03 | — | DEC-084 incluye el SDK `anthropic` de Python, que usan R-16 y R-33. `@anthropic-ai/sdk` entra como devDependency en R-32 | Gerardo | R-01, R-32 |
 | 2026-11-03 | — | La cesión de Edwar debe cubrir el contenido portado de fitnetv2 (catálogo y fichas); si no lo cubre, R-34 reescribe las fichas desde cero sin leer el texto original | Gerardo | `PLAN-COMERCIAL.md` §9; R-34 |
 | 2026-11-03 | — | En el dataset, Claude no etiqueta errores de forma: revisa calidad de tomas y landmarks, explica desacuerdos con Mendeley y sugiere en las reps ambiguas (R-33, R-16) | Gerardo | `PLAN-COMERCIAL.md` §5 |
+| 2026-11-03 | — | No se etiqueta ni se pide revisión a otras personas: `.github/CODEOWNERS` queda solo con govandoh (adelanta esa parte de R-31) y ninguna sesión hace menciones de usuarios ni pide revisores | Gerardo | `.github/CODEOWNERS`; `docs/COORDINADOR.md` §9 |
 | 2026-11-03 | — | Las sesiones las abre el coordinador autónomo, una hija por tarea con modelo y esfuerzo asignados; lo pendiente queda en `docs/PENDIENTES.md`. La llave para los scripts va como `MOVEXNET_ANTHROPIC_API_KEY` en el entorno de la nube, no como `ANTHROPIC_API_KEY` | Gerardo | `docs/COORDINADOR.md` |
 
 ## 5. Lo que cada tarea espera de Gerardo

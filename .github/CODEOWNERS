@@ -1,61 +1,9 @@
-# CODEOWNERS de MovexNet — propiedad por workstream (ver docs/WORKSTREAMS.md).
+# CODEOWNERS de MovexNet.
 #
-# A ChejoUMG · B ecaldcc · C christian15alda-netizen · D govandoh (líder) · E eliasgregoriomp-svg.
-# Los leads de contratos son B (ecaldcc) y D (govandoh). GitHub ignora a quien no tenga permiso
-# de escritura, así que cada handle cuenta desde que acepta la invitación al repositorio (#18).
-#
-# Reglas: la última línea que coincide gana. Las rutas "objetivo" (packages/*, apps/web, …)
-# aún no existen; se dejan aquí para que la propiedad quede definida antes de la migración.
+# Desde el 2026-11-03 el único dueño es govandoh: MovexNet es un producto que construye Gerardo
+# con Claude (docs/PLAN-COMERCIAL.md §1) y no se etiqueta ni se pide revisión a otras personas
+# (docs/ROADMAP-COMERCIAL.md, sección 4). Como Gerardo es el autor de los PRs, GitHub no le pide
+# revisión a nadie. La propiedad por workstream sigue en AGENTS.md y en .claude/agents/ como
+# frontera de trabajo para los agentes, no como revisores.
 
-# ---------- A. Pose & Captura ----------
-/src/pose/                          @ChejoUMG
-/packages/pose-engine/              @ChejoUMG
-/apps/web/src/features/capture/     @ChejoUMG
-/fixtures/                          @ChejoUMG
-
-# ---------- B. Análisis & Runtime ----------
-/src/exercises/                     @ecaldcc
-/src/geometry/                      @ecaldcc
-/src/analysis/                      @ecaldcc
-/src/feedback/                      @ecaldcc
-/packages/analysis-core/            @ecaldcc
-/packages/ml-runtime/               @ecaldcc
-
-# ---------- C. ML Training ----------
-/ml/                                @christian15alda-netizen
-/models/                            @christian15alda-netizen
-/models/manifest.json               @ecaldcc @christian15alda-netizen
-
-# ---------- D. Backend de producto ----------
-/supabase/                          @govandoh
-/src/domain/                        @govandoh
-/packages/domain/                   @govandoh
-/packages/api-client/               @govandoh
-/evals/coach/                       @govandoh
-
-# ---------- E. App & UI ----------
-/src/ui/                            @eliasgregoriomp-svg
-/src/App.tsx                        @eliasgregoriomp-svg
-/src/App.css                        @eliasgregoriomp-svg
-/src/index.css                      @eliasgregoriomp-svg
-/src/main.tsx                       @eliasgregoriomp-svg
-/index.html                         @eliasgregoriomp-svg
-/public/                            @eliasgregoriomp-svg
-/apps/web/                          @eliasgregoriomp-svg
-/packages/ui/                       @eliasgregoriomp-svg
-/e2e/                               @eliasgregoriomp-svg
-
-# ---------- Co-propiedad: contratos (2 aprobaciones, leads B y D) ----------
-/src/contracts/                     @ecaldcc @govandoh
-/packages/contracts/                @ecaldcc @govandoh
-
-# ---------- Decisiones y arquitectura (B, D y E) ----------
-/docs/adr/                          @ecaldcc @govandoh @eliasgregoriomp-svg
-/DECISIONS.md                       @ecaldcc @govandoh @eliasgregoriomp-svg
-/ARCHITECTURE.md                    @ecaldcc @govandoh @eliasgregoriomp-svg
-
-# ---------- Plataforma / DevEx ----------
-/.claude/                           @ecaldcc @govandoh
-/.github/                           @ecaldcc @govandoh
-/AGENTS.md                          @ecaldcc @govandoh
-/CLAUDE.md                          @ecaldcc @govandoh
+*                                   @govandoh
