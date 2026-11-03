@@ -17,7 +17,7 @@ Todo el contexto del proyecto, las reglas duras, la propiedad por workstream y l
 
 ## Skills, hooks y agentes
 
-- **Skills del repo** (`.claude/skills/`, se listan solas): `/adr`, `/fixture`, `/promote-model`, `/pr-ready` y `/fitnet-diseno`. Las de animación de Emil Kowalski se usan siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen.
+- **Skills del repo** (`.claude/skills/`, se listan solas): `/adr`, `/fixture`, `/promote-model`, `/pr-ready`, `/fitnet-diseno` y `/coordinar` (arranca el coordinador del roadmap comercial en una sesión en la nube dedicada; pauta en `docs/COORDINADOR.md`). Las de animación de Emil Kowalski se usan siempre a través de `/fitnet-diseno`, cuyas reglas prevalecen.
 - **Hooks** (`.claude/settings.json`; detalle en `.claude/README.md`): `guard-protected-paths.mjs` **bloquea** ediciones en `src/contracts/**`, `packages/contracts/**` y `models/manifest.json` fuera de ramas `adr/*` o `contracts/*`; `lint-on-edit.mjs` corre `eslint --fix` sobre el archivo editado; `remind-status.mjs` solo avisa.
 - `.claude/settings.local.json` es personal y está en `.gitignore`; no pongas ahí reglas que el equipo deba compartir.
 

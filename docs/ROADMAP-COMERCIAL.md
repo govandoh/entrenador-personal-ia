@@ -11,6 +11,13 @@ sustituye: lo que queda del Sprint 2 se cierra por su propia cola._
 Este archivo es lo que mantiene sincronizadas las sesiones. Ninguna sesión
 recuerda lo que hizo la anterior: lo sabe porque está escrito aquí.
 
+Desde el 3 de noviembre las sesiones las abre el **coordinador**
+(`docs/COORDINADOR.md`, skill `/coordinar`): elige la fila, lanza una sesión
+hija con el modelo y el esfuerzo que corresponden y registra en
+`docs/PENDIENTES.md` lo que se hizo, lo que quedó y lo que espera a Gerardo.
+Lo que sigue en esta sección es lo que cumple cada hija; sin coordinador,
+Gerardo lo sigue a mano igual que antes.
+
 **Al abrir una sesión**
 
 0. Mira 3.2, «Olas: la cola, en orden»: toca la primera fila ⬜ cuyas
@@ -79,6 +86,7 @@ octubre. No se repite.
 | Pagos simulados con `MockPaymentProvider` (regla dura 8, transitoria desde DEC-081) | `src/domain/payment.ts` |
 | Consentimiento y hoja de registro de grabaciones, hoy con cláusula no comercial | `docs/CONSENTIMIENTO-GRABACION.md`, `docs/REGISTRO-GRABACIONES.md` (DEC-064) |
 | La investigación del 30 de octubre: licencias de datasets, vendedores, SDKs, biomecánica, benchmark FitAQA, costo de Claude | `docs/PLAN-COMERCIAL.md` §2, §3, §5 y «Fuentes» |
+| El análisis del 3 de noviembre del crédito de la API (vencimiento, costo por modelo, en qué gastarlo) y la pauta del coordinador autónomo | `docs/PLAN-COMERCIAL.md` §5, `docs/COORDINADOR.md`, `docs/PENDIENTES.md` |
 
 ## 3. Las tareas, en orden
 
@@ -111,10 +119,18 @@ flowchart TB
     R03 --> R07["R-07 Guía de grabación y consentimiento"]
   end
 
+  subgraph O1b["Ola 1 b · noviembre · crédito de la API hasta el 24"]
+    direction LR
+    R10["R-10 Edge Function coach"]:::vendible
+    R32["R-32 Evals y elección de modelo"]:::vendible
+    R34["R-34 Fichas de técnica"]
+    R33["R-33 Imágenes del dataset"]
+    R35["R-35 Auditoría de rutinas"]:::opcional
+  end
+
   subgraph O2["Ola 2 · F0/F1 · semanas 2 y 3 · datos y Claude"]
     direction LR
     R06 --> R08["R-08 Mendeley"] --> R09["R-09 InfiniteRep y Kaggle"]
-    R10["R-10 Edge Function coach"]:::vendible
     R07 --> R11["R-11 Grabaciones propias ⏸"]
     R05 --> R12["R-12 Etiquetador por cálculo"]:::critico --> R13["R-13 Revisión y acuerdo con el entrenador"]
   end
@@ -130,7 +146,11 @@ flowchart TB
     R17["R-17 Rasgos canónicos con paridad"] --> R18["R-18 Dataset y LOSO"] --> R19["R-19 Entrenar sentadilla"] --> R20["R-20 ONNX y manifest"] --> R21["R-21 ml-runtime"] --> R22["R-22 Modo sombra"] --> R23["R-23 Informe y gate"]
   end
 
-  O1 --> O2 --> O3 --> O4
+  R02 --> R32
+  R32 -.-> R14
+  R32 -.-> R35
+  R08 --> R33
+  O1 --> O1b --> O2 --> O3 --> O4
   R23 --> HITO(["Primer modelo en sombra: fin de F2"]):::hito
 ```
 
@@ -143,13 +163,30 @@ toma la próxima fila que no dependa de ese PR.
 
 | Orden | ID | Tarea | Plan | Modelo | Depende de | Hecho cuando | Estado |
 |---|---|---|---|---|---|---|---|
-| 1 | R-01 | **DEC-081, el giro comercial, y DEC-084, el entorno Python de `ml/`.** Con `/adr`: DEC-081 declara el producto comercial con facturación futura, datos solo con derechos comerciales y Claude en producción; marca DEC-035 y DEC-065 como sustituidas y vuelve transitorias las reglas duras 7 y 8 en `AGENTS.md` (se reescriben las dos filas, no se borran). DEC-084 autoriza `ml/requirements.txt` con MediaPipe, PyTorch y ONNX como entorno de C, fuera del bundle. Filas en `docs/adr/README.md` y `DECISIONS.md`. Rama `adr/giro-comercial` | §1, §8 | Sonnet medio | — | Las dos DEC «Aceptada» con fecha; `AGENTS.md` y `docs/ML-PIPELINE.md` §5 citan DEC-081 donde decían «solo académico» | ⬜ |
+| 1 | R-01 | **DEC-081, el giro comercial, y DEC-084, el entorno Python de `ml/`.** Con `/adr`: DEC-081 declara el producto comercial con facturación futura, datos solo con derechos comerciales y Claude en producción; marca DEC-035 y DEC-065 como sustituidas, vuelve transitorias las reglas duras 7 y 8 y reescribe la 2 con la excepción de cuadros (redacción en `docs/PLAN-COMERCIAL.md` §5) en `AGENTS.md` (se reescriben las filas, no se borran). DEC-084 autoriza `ml/requirements.txt` con MediaPipe, PyTorch, ONNX y el SDK `anthropic` de Python (para R-16 y R-33) como entorno de C, fuera del bundle. Filas en `docs/adr/README.md` y `DECISIONS.md`. Rama `adr/giro-comercial` | §1, §5, §8 | Sonnet medio | — | Las dos DEC «Aceptada» con fecha; `AGENTS.md` y `docs/ML-PIPELINE.md` §5 citan DEC-081 donde decían «solo académico»; la regla 2 dice la excepción de cuadros | ⬜ |
 | 2 | R-02 | **DEC-082, la segunda opinión tras la serie con cuadros clave.** Qué sale del celular (2 o 3 cuadros a 512 px, los ángulos y métricas del resumen), cuándo (solo con el toque de consentimiento en esa serie), qué no se guarda (los cuadros, nunca), dónde vive la clave (secreto de Supabase), el tope (DEC-067) y el esquema JSON de la respuesta en español. Cierra el «pendiente de DEC propia» de `docs/DATA-GOVERNANCE.md` y añade la fila a su tabla de datos que salen del dispositivo. Rama `adr/segunda-opinion` | §5 | Opus plan | R-01 | La DEC aceptada; `DATA-GOVERNANCE.md` sin la nota de pendiente; el esquema JSON en la DEC es el que R-14 implementa | ⬜ |
 | 3 | R-03 | **DEC-083, criterios con fuente y etiqueta calculada.** Amplía DEC-055: la etiqueta la da el guion más los ángulos medidos contra `docs/TECHNIQUE-CRITERIA.md`; lo que cae dentro del error de medida se marca `ambiguous` y no entrena; un entrenador certificado valida criterios y una muestra, y el acuerdo se registra. Fija el formato de `TECHNIQUE-CRITERIA.md` (error, definición, medida, umbral, fuente, estado). Actualiza `docs/ML-PIPELINE.md` §1 «Etiqueta por guion». Rama `adr/criterios-tecnica` | §3 | Sonnet medio | R-01 | La DEC aceptada y el formato escrito; §1 de ML-PIPELINE ya no dice que valida una sola persona | ⬜ |
 | 4 | R-04 | **El diagnóstico de las fixtures.** `scripts/diagnose-fixtures.ts` (`pnpm fixtures:diagnose`) reproduce las 25 grabaciones de `fixtures/landmarks/` con `src/testing/replay.ts` y el motor 3D: reps esperadas y obtenidas, avisos emitidos, instante de cada rep y margen con que cruzó cada umbral. Informe en `reports/fixtures/2026-11-diagnostico.md` con la tabla y los casos frágiles. A las 15 fixtures sin `expected` se les escribe uno a partir de sus `notes` y del informe (no es un cambio golden: las 10 que ya lo tienen no se tocan). Rama `chore/diagnostico-fixtures` | §7 F0 | Opus medio | — | El informe existe; `pnpm fixtures:diagnose` corre en CI sin fallar; las 25 entradas de `index.json` tienen `expected`; tests golden intactos | ⬜ |
 | 5 | R-05 | **`docs/TECHNIQUE-CRITERIA.md`, sentadilla.** Con el formato de R-03: `shallow_depth` (bandas de flexión de rodilla de la revisión IJSPT), `trunk_lean` (tronco-tibia ±10°), `knee_valgus` (FPPA, con la nota de que no hay corte validado y el umbral queda provisional), `asymmetry`, `excess_speed`. Cada error con la fórmula sobre landmarks de MediaPipe (qué puntos, qué plano, qué vista lo ve). Tabla final contra `GOOD_DEPTH_ANGLE`, `SQUAT_MAX_TRUNK_LEAN_DEG` y `CONFIRM_MARGIN_DEG` de `definitions3d.ts`, diciendo cuál coincide, cuál no y por qué; el código no se toca. Rama `docs/criterios-sentadilla` | §3 | Sonnet medio | R-03 | Cada error tiene fuente o dice «provisional»; la tabla contra el código existe; govandoh aprobó la lista de errores | ⬜ |
 | 6 | R-06 | **El conversor video → landmarks.** `ml/tools/video_to_landmarks.py`: lee un `.mp4`, corre MediaPipe Tasks en Python con el mismo modelo que la app (`pose_landmarker_lite`; si se usa `heavy` se anota en la sección 4), escribe `landmarks` y `worldLandmarks` por cuadro en el esquema v2 que valida `ml/datasets/validate_v2.py`, con `fps`, `durationMs` y el nombre `ejercicio_vista_condicion_persona_NN`. `ml/requirements.txt`, `ml/README.md` con el comando. Prueba con un clip de 3 a 5 segundos que Gerardo deja en una carpeta local (sección 5); el clip no entra en Git. Rama `feat/ml-conversor` | §4, §7 F0 | Sonnet alto | R-01 | Un video de prueba produce un JSON que pasa el validador v2; `pytest ml/` en verde con una prueba que usa un video sintético corto generado en el test | ⬜ |
 | 7 | R-07 | **La guía de grabación y el consentimiento comercial.** `docs/GUIA-GRABACION.md`: vistas lateral y frontal, distancia y altura del celular, 8 a 10 reps por serie, el guion de errores por ejercicio (el de sentadilla sale de R-05; los otros seis, provisionales), nombre de archivo, y qué hacer con cada video después. `docs/CONSENTIMIENTO-GRABACION.md` pasa de «no comercial» a uso comercial con cláusula de revocación; `docs/REGISTRO-GRABACIONES.md` añade la columna de versión del consentimiento. Rama `docs/guia-grabacion` | §4 | Sonnet medio | R-01, R-03 | La guía cabe en una página por ejercicio; el consentimiento dice uso comercial; Gerardo revisó el texto legal (sección 5) | ⬜ |
+
+#### Ola 1 b · noviembre · lo que usa el crédito de la API (vence el 24)
+
+Decisión del 3 de noviembre (sección 4): el crédito de US$100 vence el 24 de
+noviembre y no se renueva. Estas filas van antes que el resto en cuanto sus
+dependencias estén fusionadas; el último lote se manda el 22. Tope del
+workspace: US$60. Cada fila dice su presupuesto, y la hija informa el gasto
+real (`usage`) en su PR. La llave para los scripts está en la variable
+`MOVEXNET_ANTHROPIC_API_KEY` del entorno de la nube (`docs/COORDINADOR.md` §2).
+
+| Orden | ID | Tarea | Plan | Modelo | Depende de | Hecho cuando | Estado |
+|---|---|---|---|---|---|---|---|
+| 7 a | R-10 | **La Edge Function `coach`, mínima y con la clave.** `supabase/functions/coach/index.ts`: recibe el resumen de una serie (métricas de `setSummary`, sin imágenes), llama con salida estructurada en español al modelo que elija R-32 (mientras R-32 no esté, `claude-opus-5-5`), registra en `coach_usage` y respeta el tope de DEC-067. La clave entra como secreto de Supabase (`supabase secrets set`), nunca en el repo ni en el bundle; la tarea añade el patrón `sk-ant-` a `scripts/check-bundle-secrets.mjs`, que hoy solo busca secretos de Supabase. Prueba de tipos con `tsconfig.functions.json`; prueba real desde la función desplegada con una serie de ejemplo, que además confirma el crédito en la consola. Desde el 24 de noviembre queda en `COACH_MODE=mock`. Presupuesto de API: US$2. Rama `feat/coach-edge-function` | §5 uso 2; DEC-033 | Sonnet alto | — (la clave, sección 5) | Una llamada real devuelve JSON válido, deja fila en `coach_usage` y el costo aparece en la consola de Anthropic; sin clave en el bundle | ⏸ |
+| 7 b | R-32 | **Evals y elección de modelo del coach y la segunda opinión.** `evals/coach/` y `evals/coach/second-opinion/`: 40 casos por ruta. Las métricas salen de las fixtures pasadas por el motor 3D; los 3 cuadros de 512 px de la segunda opinión, de Mendeley si R-08 ya está, y si no, dibujados desde las fixtures. Chequeos en código (JSON válido, solo números presentes en la entrada, tuteo, sin consejo médico) y juez `claude-sonnet-5-5` con contraste de `claude-opus-5-5` en una muestra. Compara en lote `claude-haiku-5-5`, `claude-sonnet-5-5` y `claude-opus-5-5`, con dos iteraciones de prompt sobre los finalistas. Deja los prompts y esquemas ganadores en `supabase/functions/coach/` para R-10 y R-14, y el informe con calidad, fallos y costo por 1 000 llamadas en `evals/coach/reports/`. Agrega `@anthropic-ai/sdk` como devDependency (aprobada por Gerardo el 3 de noviembre). Presupuesto US$35, tope US$40. Rama `feat/evals-coach` | §5 | Sonnet alto | R-02 | El informe elige un modelo por ruta con su costo; casos y rúbrica en el repo; último lote antes del 22 de noviembre | ⬜ |
+| 7 c | R-34 | **Fichas de técnica: auditoría y, si hace falta, reescritura.** Revisa en lote las 60 fichas de `src/domain/tutorials.ts` contra las indicaciones de `catalog.ts` y, donde exista, contra `docs/TECHNIQUE-CRITERIA.md`: contradicciones, avisos de seguridad débiles, frases que suenen a consejo médico y tuteo (DEC-049). Informe por ficha en `reports/fichas/`; las correcciones de texto van en el mismo PR. Si `docs/PENDIENTES.md` dice que la cesión no cubre fitnetv2, genera las 60 fichas desde cero con los datos del catálogo y los criterios, sin pasarle al modelo el texto original. API: `claude-sonnet-5-5` para auditar, `claude-opus-5-5` para redactar. Presupuesto US$3, tope US$5. Rama `docs/fichas-tecnica` | §5, §9 | Sonnet medio | — | Informe con cada ficha revisada; los hallazgos graves señalados en el PR para Gerardo; `tutorials.test.ts` en verde | ⬜ |
+| 7 d | R-33 | **Imágenes del dataset: calidad de tomas y landmarks, y desacuerdos con Mendeley.** `ml/labeling/qa_frames.py`: filtros en código sobre los landmarks (visibilidad, saltos entre cuadros, largo de huesos); a lo marcado y a una muestra, una hoja de contactos de 6 cuadros con el esqueleto para que Claude confirme vista, encuadre, cuerpo completo, que el esqueleto coincida con el cuerpo y que no haya terceros. Antes compara `claude-haiku-5-5` con `claude-sonnet-5-5` en 40 videos y se queda con Haiku si coinciden en al menos el 90 %. Si R-12 ya está, explica en línea por qué la etiqueta calculada no coincide con la buena/mala de Mendeley en cada video discrepante. Claude no etiqueta errores de forma. Lotes borrados al bajar los resultados; ninguna imagen en Git; en el repo solo el informe con números en `reports/dataset-qa/`. Presupuesto US$9 (US$3 sin grabaciones propias), tope US$12. Rama `feat/ml-qa-imagenes` | §4, §5 | Sonnet alto | R-01, R-06, R-08 | El informe dice cuántos videos se revisaron, cuántos se descartaron y por qué; con R-12, la explicación de cada desacuerdo; 20 hojas señaladas en el PR para que Gerardo las revise | ⬜ |
+| 7 e | R-35 | **Auditoría del generador de rutinas.** `scripts/audit-routines.ts`: recorre el cuestionario (objetivo, nivel, lugar, días, duración, división y equipo en casa) con `generateRoutine`, quita las repetidas, chequea en código equipo, repetidos y mínimo por día sobre todo el espacio, y manda en lote a `claude-sonnet-5-5` unas 400 rutinas estratificadas para lo que una regla no ve: equilibrio, volumen y descanso por objetivo, progresión y adecuación al nivel. Informe en `reports/rutinas/`; las correcciones al generador van en otra fila. Presupuesto US$13, tope US$15. Rama `chore/auditoria-rutinas` | §5 | Sonnet medio | R-32 (por el SDK) | Informe con hallazgos por celda del cuestionario | ◌ |
 
 #### Ola 2 · F0/F1 · semanas 2 y 3 · los datos y Claude
 
@@ -160,7 +197,6 @@ pueden adelantarse si una de ellas espera.
 |---|---|---|---|---|---|---|---|
 | 8 | R-08 | **Mendeley kgbb3yn47p en el esquema v2.** Descarga del dataset (CC BY 4.0) a una carpeta local fuera de Git, conversión con R-06 de los cuatro ejercicios que coinciden con los nuestros (sentadilla, curl, flexión, press) en sus tres vistas, y `ml/datasets/mendeley-7ex/{README.md,dataset.json,landmarks/}` con `allowedFor: ["product"]`, la cita y la etiqueta buena/mala por video tal como viene. Si los landmarks pesan más de 50 MB se guardan como artefacto fuera de Git y se anota en la sección 4. Rama `feat/ml-dataset-mendeley` | §4 | Sonnet medio | R-06 | `dataset.json` pasa el validador; el README dice cuántos videos, sujetos y vistas entraron y cuántos fallaron en la conversión | ⬜ |
 | 9 | R-09 | **InfiniteRep y Kaggle Exercise Detection.** InfiniteRep trae sus propios puntos 2D y 3D: si el mapeo a los 33 de MediaPipe no cubre los que usa el motor, se convierten sus videos con R-06 y se anota. Kaggle CC0 trae ángulos de MediaPipe por cuadro, no landmarks: entra como dataset de ángulos para flexiones y sentadillas, con su propio esquema mínimo. Dos carpetas en `ml/datasets/` con `allowedFor: ["product"]`. Rama `feat/ml-datasets-libres` | §4 | Sonnet medio | R-06 | Los dos `dataset.json` pasan el validador; el README de cada uno dice qué ejercicios cubren y en qué formato quedaron | ⬜ |
-| 10 | R-10 | **La Edge Function `coach`, mínima y con la clave.** `supabase/functions/coach/index.ts`: recibe el resumen de una serie (métricas de `setSummary`, sin imágenes), llama a `claude-opus-5-5` con salida estructurada en español, registra en `coach_usage` y respeta el tope de DEC-067; la clave entra como secreto de Supabase (`supabase secrets set`), nunca en el repo ni en el bundle (`scripts/check-bundle-secrets.mjs` ya lo vigila). Prueba de tipos con `tsconfig.functions.json`; prueba real desde la función desplegada con una serie de ejemplo, que además confirma el crédito en la consola. Rama `feat/coach-edge-function` | §5 uso 2; DEC-033 | Sonnet alto | — (la clave, sección 5) | Una llamada real devuelve JSON válido, deja fila en `coach_usage` y el costo aparece en la consola de Anthropic; sin clave en el bundle | ⏸ |
 | 11 | R-11 | **La ingesta de las grabaciones propias.** Gerardo graba a 5 personas con la guía de R-07 (sección 5). La sesión corre R-06 sobre los videos, registra cada toma en la hoja (fuera de Git) y deja `ml/datasets/propio/{README.md,dataset.json,landmarks/}` con el guion de cada archivo como etiqueta de intención, la versión del consentimiento y sin dato que identifique a la persona. Rama `feat/ml-dataset-propio` | §4 | Sonnet medio | R-06, R-07 | ~300 reps por ejercicio en el README; `dataset.json` pasa el validador; ningún video en Git | ⏸ |
 | 12 | R-12 | **El etiquetador por cálculo.** `ml/labeling/compute_labels.py`: segmenta repeticiones sobre el ángulo primario de cada ejercicio con la misma histéresis que `tracker3d.ts` (umbrales leídos de un `criteria.json` generado desde `TECHNIQUE-CRITERIA.md`), aplica cada criterio por rep, marca `ambiguous` lo que cae dentro del error de medida, y escribe las etiquetas por rep en el esquema v2. Se prueba contra las 10 fixtures con `expected`: el conteo de reps coincide. Rama `feat/ml-etiquetador` | §3, §7 F1 | Opus medio | R-05, R-06 | Las 10 fixtures dan el mismo número de reps que el motor TS; sobre Mendeley, la etiqueta calculada coincide con la buena/mala del dataset en sentadilla en al menos el 80 % de los videos (si no, se anota por qué) | ⬜ |
 | 13 | R-13 | **La revisión y el acuerdo con el entrenador.** `ml/labeling/review.py` genera por rep una tira de cuadros con el esqueleto y la etiqueta calculada; `ml/labeling/hoja-calificacion.csv` para que el entrenador califique una muestra estratificada (por error y por persona); `ml/labeling/agreement.py` calcula el acuerdo (kappa) y lista las discrepancias. Lo que el entrenador corrija cambia el criterio en `TECHNIQUE-CRITERIA.md`, no la etiqueta. Rama `feat/ml-revision-etiquetas` | §3 | Sonnet medio | R-12 | La muestra calificada existe fuera de Git y el acuerdo está escrito en `TECHNIQUE-CRITERIA.md`; cada criterio ajustado cita la fecha de la revisión | ⏸ |
@@ -169,9 +205,9 @@ pueden adelantarse si una de ellas espera.
 
 | Orden | ID | Tarea | Plan | Modelo | Depende de | Hecho cuando | Estado |
 |---|---|---|---|---|---|---|---|
-| 14 | R-14 | **La segunda opinión, función.** `supabase/functions/second-opinion/index.ts` (o un modo de `coach`, se decide en la sesión y se anota): recibe las métricas de la serie y hasta 3 cuadros en base64, prompt con caché (`cache_control`) que le dice a Claude que los números dan el veredicto y los cuadros son contexto, salida estructurada con el esquema de DEC-082, registro en `coach_usage`, los cuadros no se escriben en ninguna parte. Evals en `evals/coach/second-opinion/` con 5 casos (métricas reales de fixtures y cuadros sintéticos). Rama `feat/segunda-opinion-funcion` | §5 uso 1; DEC-082 | Sonnet alto | R-02, R-10 | Los 5 evals pasan; una llamada real cuesta menos de US$0,03 según `coach_usage`; `grep` del bundle sin la clave | ⬜ |
+| 14 | R-14 | **La segunda opinión, función.** `supabase/functions/second-opinion/index.ts` (o un modo de `coach`, se decide en la sesión y se anota): recibe las métricas de la serie y hasta 3 cuadros en base64, prompt con caché (`cache_control`) que le dice a Claude que los números dan el veredicto y los cuadros son contexto, salida estructurada con el esquema de DEC-082, registro en `coach_usage`, los cuadros no se escriben en ninguna parte. Evals: los de R-32 si ya está; si no, 5 casos en `evals/coach/second-opinion/` (métricas reales de fixtures y cuadros sintéticos). Modelo de la API: el que elija R-32 para la segunda opinión. Si se puede, antes del 22 de noviembre; presupuesto de API: US$4. Rama `feat/segunda-opinion-funcion` | §5 uso 1; DEC-082 | Sonnet alto | R-02, R-10 (R-32 si ya está) | Los evals pasan; una llamada real cuesta menos de US$0,03 según `coach_usage`; `grep` del bundle sin la clave | ⬜ |
 | 15 | R-15 | **La segunda opinión, app.** En `WorkoutScreen` se capturan hasta 3 cuadros clave por serie (fondo y pico de las reps que el motor marcó con aviso), reducidos a 512 px en el cliente; `SetSummaryView` ofrece «Pedir segunda opinión» solo a premium, con el texto de consentimiento de DEC-082 y el toque explícito; `src/api-client/` llama a la función; la respuesta se muestra en la hoja del resumen y se guarda solo el texto, nunca los cuadros. Prueba en celular: Android y iOS. Rama `feat/segunda-opinion-app` | §5 uso 1; DEC-082 | Opus plan | R-14 | Flujo completo en un celular real con una serie de sentadillas; sin consentimiento no sale ninguna imagen (afirmado en un test de `api-client`); entrada en `CHANGELOG.md` | ⬜ |
-| 16 | R-16 | ◌ **El pre-etiquetado asistido con Claude.** `ml/labeling/suggest_with_claude.py`: para las reps `ambiguous` de R-12, manda cuadros y ángulos y recibe la etiqueta sugerida y el punto dudoso; escribe `suggested_label` sin tocar `label`. Solo acelera la revisión de R-13. Rama `feat/ml-sugerencias-claude` | §5 uso 3 | Sonnet medio | R-12, R-10 | Las sugerencias quedan en un archivo aparte y la hoja de R-13 las muestra como columna | ◌ |
+| 16 | R-16 | ◌ **El pre-etiquetado asistido con Claude.** `ml/labeling/suggest_with_claude.py`: para las reps `ambiguous` de R-12, manda cuadros y ángulos y recibe la etiqueta sugerida y el punto dudoso; escribe `suggested_label` sin tocar `label`. Solo acelera la revisión de R-13. Usa el SDK `anthropic` de Python (DEC-084) y la llave de `MOVEXNET_ANTHROPIC_API_KEY`; antes del 24 de noviembre, con el crédito (presupuesto US$5); después, solo con presupuesto aprobado. Rama `feat/ml-sugerencias-claude` | §5 uso 3 | Sonnet medio | R-12, R-10 | Las sugerencias quedan en un archivo aparte y la hoja de R-13 las muestra como columna | ◌ |
 
 #### Ola 4 · F2 · semanas 4 a 6 · el primer modelo
 
@@ -259,6 +295,10 @@ una raya es que no dejó nada.
 | R-29 | Volante de datos | ⬜ | |
 | R-30 | Reescribir los trackers 3D (si no hay cesión) | ⏸ | |
 | R-31 | LICENSE y repo privado | ⏸ | |
+| R-32 | Evals y elección de modelo del coach y la segunda opinión | ⬜ | |
+| R-33 | Imágenes del dataset: calidad de tomas y desacuerdos con Mendeley | ⬜ | |
+| R-34 | Fichas de técnica: auditoría y reescritura si hace falta | ⬜ | |
+| R-35 | Auditoría del generador de rutinas | ◌ | |
 
 ## 4. Decisiones tomadas en el camino
 
@@ -277,16 +317,26 @@ autor («Gerardo» o «coordinador bajo la delegación») y dónde quedó escrit
 | 2026-10-30 | — | DEC-084 cubre el entorno Python completo de `ml/` (MediaPipe, PyTorch, ONNX) y no una DEC por librería; `onnxruntime-web` en el cliente se confirma en R-21 porque toca el bundle | coordinador bajo la delegación, pendiente de confirmar en R-01 | Este archivo; DEC-084 |
 | 2026-10-30 | — | Los videos crudos (propios y descargados) nunca entran en Git; los landmarks sí mientras pesen poco, y si no, como artefacto fuera del repo. Lo fija R-08 con el peso real | coordinador bajo la delegación | Este archivo; R-08 |
 | 2026-10-30 | — | Este archivo ordena el giro comercial; `docs/STATUS.md` sigue con el Sprint 2 del seminario y lo que quede del equipo. No se mezclan | Gerardo | Este archivo |
+| 2026-11-03 | — | El crédito de US$100 del plan Max es mensual, vence el 24 de noviembre y no se renueva porque el plan se cancela. No se cuenta con él para producción: se gasta antes del 24 en la ola 1 b, con workspace propio y tope de US$60. Desde el 24, la función `coach` queda en modo simulado hasta aprobar presupuesto pagado | Gerardo | `PLAN-COMERCIAL.md` §5; ola 1 b |
+| 2026-11-03 | — | El modelo de la API del coach y de la segunda opinión lo decide R-32 con evals, por calidad y costo por llamada; mientras tanto, `claude-opus-5-5` | Gerardo | R-32, R-10, R-14 |
+| 2026-11-03 | — | La regla dura 2 se reescribe en R-01 con la excepción de cuadros: hasta 3 cuadros reducidos con consentimiento por envío (DEC-082) y los de las grabaciones propias con el consentimiento comercial de R-07 | Gerardo | `PLAN-COMERCIAL.md` §5; R-01 |
+| 2026-11-03 | — | DEC-084 incluye el SDK `anthropic` de Python, que usan R-16 y R-33. `@anthropic-ai/sdk` entra como devDependency en R-32 | Gerardo | R-01, R-32 |
+| 2026-11-03 | — | La cesión de Edwar debe cubrir el contenido portado de fitnetv2 (catálogo y fichas); si no lo cubre, R-34 reescribe las fichas desde cero sin leer el texto original | Gerardo | `PLAN-COMERCIAL.md` §9; R-34 |
+| 2026-11-03 | — | En el dataset, Claude no etiqueta errores de forma: revisa calidad de tomas y landmarks, explica desacuerdos con Mendeley y sugiere en las reps ambiguas (R-33, R-16) | Gerardo | `PLAN-COMERCIAL.md` §5 |
+| 2026-11-03 | — | No se etiqueta ni se pide revisión a otras personas: `.github/CODEOWNERS` queda solo con govandoh (adelanta esa parte de R-31) y ninguna sesión hace menciones de usuarios ni pide revisores | Gerardo | `.github/CODEOWNERS`; `docs/COORDINADOR.md` §9 |
+| 2026-11-03 | — | Las sesiones las abre el coordinador autónomo, una hija por tarea con modelo y esfuerzo asignados; lo pendiente queda en `docs/PENDIENTES.md`. La llave para los scripts va como `MOVEXNET_ANTHROPIC_API_KEY` en el entorno de la nube, no como `ANTHROPIC_API_KEY` | Gerardo | `docs/COORDINADOR.md` |
 
 ## 5. Lo que cada tarea espera de Gerardo
 
 | Antes de | Qué |
 |---|---|
-| R-01 | Aprobar el texto de DEC-081 (es la que cambia las reglas duras 7 y 8) y decidir si las dos reglas se reescriben ahora o cuando exista pasarela |
+| Arrancar | Abrir el coordinador (`docs/COORDINADOR.md` §3) en una sesión en la nube con permisos sin aprobación manual; desde ahí, lo que espera a Gerardo se lleva en `docs/PENDIENTES.md` §1 |
+| R-01 | Aprobar el texto de DEC-081 (es la que cambia las reglas duras 2, 7 y 8) y decidir si la 7 y la 8 se reescriben ahora o cuando exista pasarela. Con el coordinador, fusionar el PR es aprobarlo |
 | R-05 | Aprobar la lista de errores de sentadilla y decir qué umbral provisional está dispuesto a defender sin fuente |
 | R-06 | Dejar un clip de 3 a 5 segundos de una sentadilla, grabado con el celular, en una carpeta local fuera del repo (la sesión pide la ruta) |
 | R-07 | Revisar el texto legal del consentimiento comercial, idealmente con alguien de derecho; hasta entonces no se graba a nadie |
-| R-10 | Cargar la clave de la API de Claude como secreto del proyecto de Supabase (`supabase secrets set ANTHROPIC_API_KEY=...`), nunca en `.env` del repo; confirmar en la consola de Anthropic que el crédito de US$100 está activo y poner un límite de gasto mensual |
+| R-10 | Crear el workspace `movexnet` en la consola con tope de US$60 al mes, sin método de pago ni recarga automática; cargar la clave como secreto del proyecto de Supabase (`supabase secrets set ANTHROPIC_API_KEY=...`) y como variable `MOVEXNET_ANTHROPIC_API_KEY` del entorno de la nube, nunca en `.env` del repo; `SUPABASE_ACCESS_TOKEN` en el entorno para desplegar. El 24 de noviembre, revocar las claves y dejar `COACH_MODE=mock` |
+| R-34 | Decir si la cesión de Edwar cubre el contenido portado de fitnetv2 (catálogo y fichas) |
 | R-11 | Grabar a 5 personas con la guía de R-07 (unas 4 a 5 horas en total), con consentimiento firmado y la hoja de registro llena fuera de Git |
 | R-13 | Contratar a un entrenador certificado por 2 o 3 horas para validar los criterios y calificar la muestra; pagar el servicio |
 | R-15 | Probar el flujo de segunda opinión en Android y iOS y decir si el texto de consentimiento se entiende |

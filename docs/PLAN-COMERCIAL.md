@@ -70,17 +70,30 @@ FLAG3D, FLEX, M3GYM, QEVD, Fitness-AQA, EC3D, RepCount, MotionBank, etiquetas de
 
 ## 5. IA provisional: Claude mientras existe el modelo propio
 
-Hay US$100 de crédito en la API de Claude. El saldo solo se ve en la consola de Anthropic; no hay clave configurada en el repo ni en el entorno de desarrollo y debe vivir únicamente en una Edge Function (regla dura 3).
+**El crédito (corregido el 2026-11-03).** Los US$100 vienen del plan Max: son mensuales, vencen el 24 de noviembre de 2026 y, como el plan se cancela, no se renuevan. No se cuenta con ellos para producción, donde hoy solo entrena el equipo. Se gastan antes del 24 en la ola 1 b del roadmap (R-10, R-32, R-33, R-34 y, si alcanza, R-35), con el workspace `movexnet` en la consola, tope de US$60 al mes, sin método de pago ni recarga automática. Después del 24, cada llamada es gasto real: la función `coach` queda en `COACH_MODE=mock` o con `COACH_GLOBAL_BUDGET_USD=0` (DEC-067) hasta aprobar un presupuesto pagado. La clave vive solo como secreto de Supabase (`ANTHROPIC_API_KEY`, regla dura 3) y, para los scripts de las sesiones en la nube, como variable del entorno `MOVEXNET_ANTHROPIC_API_KEY`. El nombre es distinto a propósito: en una terminal local, Claude Code usaría `ANTHROPIC_API_KEY` antes que la suscripción.
+
+**Lo que cuesta cada segunda opinión** (precios vigentes el 2026-11-03). Supuestos: 3 000 tokens de instrucciones y esquema, 2 000 de métricas, 3 cuadros de 512 px (hasta 361 tokens cada uno) y 1 000 de salida, contando el razonamiento, que Opus 5.5 no permite apagar. El coach sin cuadros cuesta casi lo mismo.
+
+| Modelo | Por serie, sin caché | Con caché del prompt | Por cada 1 000 series |
+|---|---|---|---|
+| `claude-opus-5-5` | ≈ US$0,044 | ≈ US$0,033 | US$33-44 |
+| `claude-sonnet-5-5` | ≈ US$0,022 | ≈ US$0,017 | US$17-22 |
+| `claude-haiku-5-5` | ≈ US$0,001 | ≈ US$0,001 | ≈ US$1 |
+
+El criterio de R-14 (menos de US$0,03 por llamada) solo se cumple con Opus si hay caché y esfuerzo bajo. Qué modelo usa cada ruta lo decide R-32 con evals; la diferencia de 40 veces entre Opus y Haiku pesa directamente en el margen del premium.
+
+**Regla dura 2 (decidido el 2026-11-03; la escribe R-01 en DEC-081):** «El video nunca sale del dispositivo. Con consentimiento por envío, hasta 3 cuadros reducidos pueden ir a Claude (DEC-082); los cuadros de las grabaciones propias, solo con el consentimiento comercial de R-07.»
 
 Evidencia que condiciona el diseño: el benchmark FitAQA muestra que los modelos multimodales **evalúan mal la técnica a partir de video**, cerca o por debajo de líneas base simples. Por eso Claude **no juzga la técnica**: recibe ángulos y métricas ya calculados por MediaPipe y el motor 3D, más 2-3 cuadros clave reducidos, y explica, prioriza y aconseja. Los números dan el veredicto; el modelo lo comunica.
 
 Usos, en orden de valor:
 
-1. **Segunda opinión tras la serie** (premium): métricas + cuadros clave → JSON estructurado en español con qué mejorar y por qué. Con `claude-opus-5-5` y cuadros de 512 px, ~US$0,015-0,02 por serie; con caché del prompt, menos. US$100 cubren 5 000-6 000 series.
+1. **Segunda opinión tras la serie** (premium): métricas + cuadros clave → JSON estructurado en español con qué mejorar y por qué. Costo por serie según el modelo en la tabla de arriba; el modelo lo elige R-32.
 2. **Coach de DEC-033**: resúmenes de sesión, ajustes de rutina, reporte semanal al entrenador; solo texto y métricas; Batch API a mitad de precio para lo nocturno.
-3. **Pre-etiquetado asistido** en la fase 1: Claude propone etiqueta y punto dudoso a partir de cuadros + ángulos; una persona valida. Nunca decide solo.
+3. **Pre-etiquetado asistido** en la fase 1: Claude propone etiqueta y punto dudoso a partir de cuadros + ángulos; una persona valida. Nunca decide solo. Solo en las repeticiones `ambiguous` (R-16).
+4. **Imágenes del dataset** (R-33): revisar la calidad de tomas y landmarks (vista, encuadre, cuerpo completo, esqueleto que coincide, sin terceros) y explicar por qué la etiqueta calculada no coincide con la de Mendeley. En el dataset, Claude no etiqueta errores de forma por su cuenta.
 
-Condiciones: consentimiento explícito en cada envío de cuadros, cuadros reducidos y sin persistir, cara difuminada opcional antes de salir del celular, clave solo en la Edge Function, tope de costo (DEC-067). Requiere su propia DEC (DATA-GOVERNANCE lo tiene "pendiente de DEC propia").
+Condiciones: consentimiento explícito en cada envío de cuadros, cuadros reducidos y sin persistir, cara difuminada antes de salir del celular (recomendada por defecto; lo decide R-02), clave solo en la Edge Function, tope de costo (DEC-067). Requiere su propia DEC (DATA-GOVERNANCE lo tiene "pendiente de DEC propia"). Retención en Anthropic, para el aviso y el consentimiento: los mensajes en línea no se guardan por defecto; los lotes, hasta 29 días, y se borran al bajar los resultados; lo que marquen los filtros de seguridad, hasta 2 años; nada se usa para entrenar sus modelos.
 
 ## 6. Versión inicial vendible
 
@@ -104,14 +117,15 @@ Números provisionales (DEC-062); se escriben con `/adr` en rama `adr/*` como pr
 
 | DEC | Decisión | Sustituye o amplía |
 |---|---|---|
-| DEC-081 | Giro comercial: producto con facturación futura, datos solo con derechos comerciales, Claude en producción desde el inicio | DEC-035, DEC-065; reglas duras 7 y 8 pasan a transitorias |
+| DEC-081 | Giro comercial: producto con facturación futura, datos solo con derechos comerciales, Claude en producción desde el inicio; regla dura 2 con la excepción de cuadros (§5) | DEC-035, DEC-065; reglas duras 7 y 8 pasan a transitorias; reescribe la 2 |
 | DEC-082 | Segunda opinión tras la serie con cuadros clave en Claude: consentimiento por envío, sin persistencia, Edge Function, tope de costo | Amplía DEC-027 y DEC-033; cierra el pendiente de DATA-GOVERNANCE |
 | DEC-083 | Criterios de técnica con fuente y etiqueta calculada con validación de entrenador | Amplía DEC-055; sustituye la validación "como experto" de una sola persona |
-| DEC-084 | MediaPipe en Python dentro de `ml/` para convertir video externo y propio a landmarks | Dependencia nueva (regla dura 9) |
+| DEC-084 | MediaPipe en Python dentro de `ml/` para convertir video externo y propio a landmarks, y el SDK `anthropic` de Python para R-16 y R-33 | Dependencia nueva (regla dura 9) |
 
 ## 9. Pendientes no técnicos
 
 - LICENSE del repo y acuerdo de cesión con Sergio (trackers 3D), Edwar (ola 1 y sentadilla 3D), Elias (CSP, SW) y Christian (docs, datasets). Sin cesión, la parte de Sergio se reescribe.
+- La cesión de Edwar debe cubrir el contenido portado de fitnetv2 (`ecaldcc/07-FitNet`): el catálogo de 60 ejercicios y las fichas de `src/domain/tutorials.ts`, que dicen «portado sin cambios de contenido». Si no lo cubre, R-34 reescribe las fichas desde cero sin leer el texto original (decidido el 2026-11-03).
 - Repo privado al comercializar; revisión de marca "MovexNet".
 - Plantilla de consentimiento con cláusula comercial y aviso de privacidad (`docs/DATA-GOVERNANCE.md` §5).
 - Figura fiscal (SAT) y pasarela real antes de cobrar; hasta entonces, `MockPaymentProvider`.
